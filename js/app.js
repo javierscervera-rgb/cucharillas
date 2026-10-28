@@ -29,6 +29,10 @@
     reloj: s('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
     lugar: s('<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/>'),
     enlace: s('<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/>'),
+    play: `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M8 5.5v13a1 1 0 0 0 1.5.9l10.4-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5Z"/></svg>`,
+    check: s('<path d="m5 12.5 4.5 4.5L19 7.5"/>'),
+    foto: s('<rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M8.5 6 10 3.5h4L15.5 6"/>'),
+    articulo: s('<path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14.5 3v4.5H19M8.5 12h7M8.5 15.5h7M8.5 8.5h3"/>'),
     vela: s('<path d="M12 3c1.5 1.8 2 3 2 4a2 2 0 0 1-4 0c0-1 .5-2.2 2-4Z"/><rect x="9" y="10.5" width="6" height="10.5" rx="1.5"/>'),
     ajustes: s('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 0 1-4 0v-.1a1.6 1.6 0 0 0-2.7-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3.6 14H3a2 2 0 0 1 0-4h.1a1.6 1.6 0 0 0 1.1-2.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 10 3.6V3a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7h.1a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/>')
   };
@@ -122,8 +126,60 @@
     }
   }
 
+  // Ordena por fecha; si no hay fecha, por cuándo se publicó
   function ordenarPorFecha(lista, desc = true) {
-    return [...lista].sort((a, b) => (desc ? -1 : 1) * String(a.fecha || "").localeCompare(String(b.fecha || "")));
+    const clave = e => String(e.fecha || (e.creado || "").slice(0, 10) || "");
+    return [...lista].sort((a, b) => (desc ? -1 : 1) * (clave(a).localeCompare(clave(b)) || String(a.creado || "").localeCompare(String(b.creado || ""))));
+  }
+
+  // ---------- Leído / visto (solo en este móvil) ----------
+  const CLAVE_ESTADOS = "cucharillas_estados";
+  const Estados = {
+    todos() { try { return JSON.parse(localStorage.getItem(CLAVE_ESTADOS)) || {}; } catch (e) { return {}; } },
+    hecho(clave) { return !!this.todos()[clave]; },
+    marcar(clave, hecho = true) {
+      const t = this.todos();
+      if (hecho) t[clave] = { fecha: new Date().toISOString() }; else delete t[clave];
+      localStorage.setItem(CLAVE_ESTADOS, JSON.stringify(t));
+    }
+  };
+
+  // ---------- Imágenes ----------
+  // Reduce una foto del móvil a JPEG ligero. cuadrado: recorta al centro.
+  function redimensionar(archivo, { max = 1600, cuadrado = false, calidad = 0.82 } = {}) {
+    return new Promise((ok, mal) => {
+      const img = new Image();
+      const url = URL.createObjectURL(archivo);
+      img.onload = () => {
+        let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
+        if (cuadrado) { const l = Math.min(sw, sh); sx = (sw - l) / 2; sy = (sh - l) / 2; sw = sh = l; }
+        const escala = Math.min(1, max / Math.max(sw, sh));
+        const c = document.createElement("canvas");
+        c.width = Math.round(sw * escala); c.height = Math.round(sh * escala);
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        ok(c.toDataURL("image/jpeg", calidad));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); mal(new Error("No se pudo leer la imagen")); };
+      img.src = url;
+    });
+  }
+
+  // Avatar de perfil: foto si la hay, si no el símbolo
+  function avatar(p, tam) {
+    const estilo = `background:${escapar(p.color || "#E8F4FD")}${tam ? `;width:${tam}px;height:${tam}px;font-size:${tam / 2}px` : ""}`;
+    return p.foto
+      ? `<div class="avatar" style="${estilo}"><img src="${escapar(p.foto)}" alt=""></div>`
+      : `<div class="avatar" style="${estilo}">${escapar(p.emoji || "🙂")}</div>`;
+  }
+
+  // Tras pintar contenido, baja hasta el #ancla si la hay
+  function irAlAncla() {
+    if (!location.hash) return;
+    const el = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
   }
 
   // ---------- Notas (solo en este móvil) ----------
@@ -148,7 +204,7 @@
       localStorage.setItem(CLAVE_NOTAS, JSON.stringify(todas));
     },
     exportar() {
-      const blob = new Blob([JSON.stringify({ app: "cucharillas", version: 1, exportado: new Date().toISOString(), notas: this.todas() }, null, 2)], { type: "application/json" });
+      const blob = new Blob([JSON.stringify({ app: "cucharillas", version: 2, exportado: new Date().toISOString(), notas: this.todas(), estados: Estados.todos() }, null, 2)], { type: "application/json" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = "cucharillas-mis-notas-" + new Date().toISOString().slice(0, 10) + ".json";
@@ -165,6 +221,10 @@
         if (!todas[k] || (v.actualizado || "") > (todas[k].actualizado || "")) { todas[k] = v; n++; }
       }
       localStorage.setItem(CLAVE_NOTAS, JSON.stringify(todas));
+      if (datos.estados) {
+        const est = Estados.todos();
+        localStorage.setItem(CLAVE_ESTADOS, JSON.stringify(Object.assign({}, datos.estados, est)));
+      }
       return n;
     }
   };
@@ -178,6 +238,7 @@
   function cajaNota(clave, meta) {
     const caja = document.createElement("section");
     caja.className = "caja-nota";
+    if (meta && meta.ancla) caja.id = "nota-" + meta.ancla;
     const existente = Notas.obtener(clave);
     caja.innerHTML = `
       <h3 class="seccion-titulo">${ICONOS.lapiz} Mis notas</h3>
@@ -233,5 +294,5 @@
     document.querySelectorAll("[data-marca]").forEach(el => { el.outerHTML = MARCA; });
   });
 
-  window.App = { ICONOS, MARCA, escapar, formatear, fechaLarga, fechaCorta, aFecha, hoy, semanaActual, cargar, ordenarPorFecha, Notas, cajaNota, horaRelativa, aviso, parametro, MESES };
+  window.App = { ICONOS, MARCA, escapar, formatear, fechaLarga, fechaCorta, aFecha, hoy, semanaActual, cargar, ordenarPorFecha, Notas, Estados, cajaNota, redimensionar, avatar, irAlAncla, horaRelativa, aviso, parametro, MESES };
 })();

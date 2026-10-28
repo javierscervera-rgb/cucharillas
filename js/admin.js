@@ -36,6 +36,22 @@
     return r.json();
   }
 
+  // Sube una imagen (dataURL JPEG) al repositorio y devuelve su ruta
+  async function subirImagen(dataURL, carpeta) {
+    const ruta = `img/subidas/${carpeta}-${Date.now().toString(36)}.jpg`;
+    await gh(`/contents/${ruta}`, { method: "PUT", body: JSON.stringify({
+      message: `Sube imagen (${carpeta})`, content: dataURL.split(",")[1], branch: G.rama }) });
+    return ruta;
+  }
+
+  async function borrarArchivo(ruta, mensaje) {
+    ruta = ruta.split("?")[0];
+    try {
+      const r = await gh(`/contents/${ruta}?ref=${encodeURIComponent(G.rama)}`);
+      await gh(`/contents/${ruta}`, { method: "DELETE", body: JSON.stringify({ message: mensaje, sha: r.sha, branch: G.rama }) });
+    } catch (e) { if (e.status !== 404) console.warn(e); }
+  }
+
   const archivoDe = (tipo) => tipo === "perfiles" ? "data/perfiles.json" : CONFIG.esquemas[tipo].archivo;
 
   async function leer(tipo) {
@@ -99,7 +115,7 @@
 
   // ---------- Panel ----------
   const SECCIONES = [
-    ["lectio", "Lectio"], ["retiro", "Retiro"], ["agenda", "Agenda"], ["recursos", "Recursos"], ["perfiles", "Perfiles"]
+    ["lectio", "Lectio"], ["retiro", "Retiro"], ["agenda", "Agenda"], ["recursos", "Libros y vídeos"], ["articulos", "Artículos"], ["perfiles", "Perfiles"]
   ];
 
   function pintarPanel() {
@@ -109,8 +125,8 @@
         <h1 style="flex:1">Administración</h1>
         <button class="boton suave" id="salir" style="padding:8px 12px;font-size:13px">Salir</button>
       </header>
-      <div class="pestanas" style="margin-top:14px;overflow-x:auto">
-        ${SECCIONES.map(([id, n]) => `<button data-s="${id}" class="${id === seccion ? "activa" : ""}" style="font-size:13px">${n}</button>`).join("")}
+      <div class="pestanas desplazable" style="margin-top:14px">
+        ${SECCIONES.map(([id, n]) => `<button data-s="${id}" class="${id === seccion ? "activa" : ""}">${n}</button>`).join("")}
       </div>
       <div id="zona"></div>`;
     raiz.querySelectorAll("[data-s]").forEach(b => b.onclick = () => {
@@ -145,7 +161,7 @@
       ${lista.map(e => `
         <div class="pastilla" role="button" data-id="${escapar(e.id)}">
           <div class="texto"><div class="titulo">${escapar(e.titulo || "(sin título)")}</div>
-          <div class="detalle">${escapar(e.fecha ? App.fechaCorta(e.fecha) : "Sin fecha")}</div></div>
+          <div class="detalle">${escapar(e.fecha ? App.fechaCorta(e.fecha) : e.creado ? "Publicado el " + App.fechaCorta(e.creado.slice(0, 10)) : "")}</div></div>
           <span class="flecha">${ICONOS.lapiz}</span>
         </div>`).join("")}
       <button class="boton suave ancho" id="recargar" style="margin-top:8px">Recargar desde GitHub</button>`;
@@ -159,8 +175,21 @@
     const v = escapar(valor || "");
     const ayuda = c.ayuda ? ` <small>${escapar(c.ayuda)}</small>` : "";
     const etiqueta = `<label class="campo" for="c-${c.id}">${escapar(c.nombre)}${c.obligatorio ? " *" : ""}${ayuda}</label>`;
+    const separador = c.bloque ? `<h3 class="bloque-admin">${escapar(c.bloque)}</h3>` : "";
     switch (c.tipo) {
-      case "largo": return etiqueta + `<textarea id="c-${c.id}" style="min-height:${c.biblico ? 200 : 120}px">${v}</textarea>`;
+      case "notas": return `<p class="detalle" style="color:var(--verde-menta);font-size:13px;margin:10px 0 0">✎ Aquí cada chico verá su caja de «Mis notas».</p>`;
+      case "subtitulo": return separador + etiqueta + `<input id="c-${c.id}" value="${v}">`;
+      case "imagen": return separador + etiqueta + `
+        <div class="campo-imagen" data-imagen="${c.id}">
+          <input type="hidden" id="c-${c.id}" value="${v}">
+          <img alt="" ${valor ? `src="${v}"` : "hidden"}>
+          <div class="fila-botones">
+            <button type="button" class="boton secundario" data-elegir>${ICONOS.foto} ${valor ? "Cambiar" : "Elegir imagen"}</button>
+            <button type="button" class="boton suave" data-quitar ${valor ? "" : "hidden"}>Quitar</button>
+          </div>
+          <input type="file" accept="image/*" hidden>
+        </div>`;
+      case "largo": return separador + etiqueta + `<textarea id="c-${c.id}" style="min-height:${c.biblico ? 200 : 120}px">${v}</textarea>`;
       case "fecha": return etiqueta + `<input id="c-${c.id}" type="date" value="${v}">`;
       case "url":   return etiqueta + `<input id="c-${c.id}" type="url" inputmode="url" placeholder="https://…" value="${v}">`;
       case "lista": return etiqueta + `<select id="c-${c.id}">${c.opciones.map(o => `<option${o === valor ? " selected" : ""}>${escapar(o)}</option>`).join("")}</select>`;
@@ -172,7 +201,7 @@
     const esquema = CONFIG.esquemas[seccion];
     const zona = document.getElementById("zona");
     const nueva = !entrada;
-    entrada = entrada || { fecha: new Date().toISOString().slice(0, 10) };
+    entrada = entrada || (esquema.campos.some(c => c.tipo === "fecha") ? { fecha: new Date().toISOString().slice(0, 10) } : {});
 
     zona.innerHTML = `
       <button class="boton suave" id="cancelar" style="padding:8px 14px;margin-bottom:6px">${ICONOS.atras} Volver</button>
@@ -186,9 +215,37 @@
 
     document.getElementById("cancelar").onclick = () => pintarSeccion();
 
+    // Campos de imagen: se reduce la foto y se sube a GitHub al elegirla
+    let subiendo = 0;
+    zona.querySelectorAll("[data-imagen]").forEach(caja => {
+      const oculto = caja.querySelector('input[type="hidden"]');
+      const archivo = caja.querySelector('input[type="file"]');
+      const vista = caja.querySelector("img");
+      const elegir = caja.querySelector("[data-elegir]");
+      const quitar = caja.querySelector("[data-quitar]");
+      elegir.onclick = () => archivo.click();
+      quitar.onclick = () => { oculto.value = ""; vista.hidden = true; quitar.hidden = true; elegir.innerHTML = `${ICONOS.foto} Elegir imagen`; };
+      archivo.onchange = async () => {
+        const f = archivo.files[0]; if (!f) return;
+        subiendo++; elegir.disabled = true; elegir.textContent = "Subiendo…";
+        try {
+          const dataURL = await App.redimensionar(f, { max: 1600 });
+          vista.src = dataURL; vista.hidden = false;
+          oculto.value = await subirImagen(dataURL, seccion);
+          quitar.hidden = false; elegir.innerHTML = `${ICONOS.foto} Cambiar`;
+        } catch (e) {
+          aviso("No se pudo subir la imagen: " + e.message);
+          elegir.innerHTML = `${ICONOS.foto} Elegir imagen`;
+        }
+        subiendo--; elegir.disabled = false; archivo.value = "";
+      };
+    });
+
     document.getElementById("guardar").onclick = async (ev) => {
+      if (subiendo) return aviso("Espera a que termine de subir la imagen");
       const datos = {};
       for (const c of esquema.campos) {
+        if (c.tipo === "notas") continue;
         const valor = document.getElementById("c-" + c.id).value.trim();
         if (c.obligatorio && !valor) return aviso(`Falta: ${c.nombre}`);
         datos[c.id] = valor;
@@ -198,6 +255,7 @@
         const base = (datos.titulo || "entrada").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
           .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
         datos.id = `${base}-${Date.now().toString(36)}`;
+        datos.creado = new Date().toISOString();
         lista.push(datos);
       } else {
         Object.assign(lista.find(x => x.id === entrada.id), datos);
@@ -239,7 +297,7 @@
       ${orden.map(p => `
         <div class="pastilla columna">
           <div class="fila">
-            <div class="avatar" style="background:${escapar(p.color || "#E8F4FD")}">${escapar(p.emoji || "🙂")}</div>
+            ${App.avatar(p)}
             <div class="texto"><div class="titulo">${escapar(p.nombre)}</div>
             <div class="detalle">${p.aprobado ? "✓ Publicado" : "⏳ Pendiente"} · ${escapar(App.horaRelativa(p.actualizado))}</div></div>
           </div>
@@ -264,6 +322,7 @@
       if (!confirm(`¿Borrar el perfil de ${p.nombre}?`)) return;
       cache.perfiles.datos.perfiles = lista.filter(x => x.id !== p.id);
       await publicar(b, `Borra perfil: ${p.nombre}`);
+      if (p.foto) borrarArchivo(p.foto, `Borra foto de perfil: ${p.nombre}`);
     });
   }
 
