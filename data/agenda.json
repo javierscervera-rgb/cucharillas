@@ -7,14 +7,6 @@
       "hora": "21:00",
       "lugar": "Iglesia",
       "descripcion": "Trae una vela."
-    },
-    {
-      "id": "ag-4",
-      "titulo": "Retiro mensual",
-      "fecha": "2026-11-14",
-      "hora": "10:00",
-      "lugar": "Casa de espiritualidad",
-      "descripcion": "Volvemos a las 18:00. Trae comida."
     }
   ]
 }
