@@ -2,14 +2,24 @@
   "entradas": [
     {
       "id": "retiro-noviembre-2026",
+      "creado": "2026-10-25T10:00:00Z",
       "titulo": "El tesoro escondido",
       "fecha": "2026-11-14",
-      "lugar": "Casa de espiritualidad",
-      "intro": "Este mes nos dejamos preguntar por lo que de verdad nos importa. ¿Dónde está tu tesoro?",
-      "texto": "[Texto de ejemplo: Mt 13, 44-46.]\n\nEl Reino de los cielos se parece a un tesoro escondido en el campo: quien lo encuentra, lleno de alegría, vende todo lo que tiene y compra aquel campo.",
-      "puntos": "1. Busca un sitio tranquilo y ponte en presencia de Dios.\n\n2. Lee despacio el texto dos veces.\n\n3. Piensa en las cosas que más valoras y dónde pones tu tiempo.\n\n4. Habla con Jesús de lo que hayas descubierto.",
-      "preguntas": "¿Qué es lo que más alegría te da?\n\n¿Hay algo a lo que te cueste renunciar para seguir a Jesús?",
-      "proposito": "Escribe en tus notas una cosa concreta que quieras cambiar este mes."
+      "texto": "**Mt 13, 44-46** [Texto de ejemplo]\n\nEl Reino de los cielos se parece a un tesoro escondido en el campo: quien lo encuentra, lleno de alegría, vende todo lo que tiene y compra aquel campo.",
+      "portada": "img/subidas/retiro-ejemplo.jpg",
+      "titulo1": "Buscar",
+      "descripcion1": "Busca un sitio tranquilo. Ponte en presencia de Dios y lee despacio el texto dos veces.",
+      "reflexion1": "¿Qué estás buscando de verdad en tu vida? ¿Dónde lo buscas?",
+      "titulo2": "Encontrar",
+      "descripcion2": "El hombre de la parábola no buscaba el tesoro: se lo encontró. Dios se adelanta.",
+      "reflexion2": "¿Cuándo has sentido que Dios te salía al encuentro sin esperarlo?",
+      "titulo3": "Alegría",
+      "descripcion3": "Vende todo «lleno de alegría». No es un sacrificio triste, es un buen negocio.",
+      "reflexion3": "¿Qué es lo que más alegría te da? ¿Tiene que ver con Dios?",
+      "titulo4": "Elegir",
+      "descripcion4": "Para comprar el campo hay que soltar otras cosas.",
+      "reflexion4": "¿Hay algo a lo que te cueste renunciar para seguir a Jesús?",
+      "otros": "Antes de irte, escribe en tus notas una cosa concreta que quieras cambiar este mes."
     }
   ]
 }

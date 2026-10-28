@@ -10,11 +10,19 @@
     },
     {
       "id": "rec-2",
-      "titulo": "Historia de un secuestro",
+      "titulo": "Vídeo de ejemplo",
       "tipo": "Vídeo",
       "autor": "",
-      "enlace": "https://youtu.be/HqNvisIwQWc?is=yAJnvAD_1mFW9AkK",
-      "descripcion": "Impresionante testimonio de Filiación Divina"
+      "enlace": "",
+      "descripcion": "Pega un enlace de YouTube o Vimeo desde el panel y se verá aquí mismo."
+    },
+    {
+      "id": "rec-3",
+      "titulo": "Historia de un alma",
+      "tipo": "Libro",
+      "autor": "Santa Teresa de Lisieux",
+      "enlace": "",
+      "descripcion": "El «caminito» de la confianza, contado por una chica de tu edad."
     }
   ]
 }

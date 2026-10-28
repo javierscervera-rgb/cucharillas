@@ -1,20 +1,40 @@
 {
   "entradas": [
     {
+      "id": "ag-1",
+      "titulo": "Encuentro de grupo",
+      "fecha": "2026-10-30",
+      "hora": "19:00",
+      "lugar": "Parroquia",
+      "descripcion": "Compartimos la Lectio de la semana.",
+      "imagen": ""
+    },
+    {
       "id": "ag-2",
       "titulo": "Vigilia de Todos los Santos",
       "fecha": "2026-10-31",
       "hora": "21:00",
       "lugar": "Iglesia",
-      "descripcion": "Trae una vela."
+      "descripcion": "Trae una vela.",
+      "imagen": ""
     },
     {
-      "titulo": "Escapada Allariz",
-      "fecha": "2026-11-06",
-      "hora": "",
-      "lugar": "Allariz, Orense",
+      "id": "ag-3",
+      "titulo": "Voluntariado en el comedor",
+      "fecha": "2026-11-07",
+      "hora": "12:00",
+      "lugar": "Comedor social",
       "descripcion": "",
-      "id": "escapada-allariz-mvrvtkfh"
+      "imagen": ""
+    },
+    {
+      "id": "ag-4",
+      "titulo": "Retiro mensual",
+      "fecha": "2026-11-14",
+      "hora": "10:00",
+      "lugar": "Casa de espiritualidad",
+      "descripcion": "Volvemos a las 18:00. Trae comida.",
+      "imagen": "img/subidas/retiro-ejemplo.jpg"
     }
   ]
 }

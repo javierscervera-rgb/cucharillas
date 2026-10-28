@@ -2,25 +2,19 @@
   "entradas": [
     {
       "id": "lectio-marta-maria",
+      "creado": "2026-10-27T10:00:00Z",
       "titulo": "Marta y María",
-      "fecha": "2026-10-27",
-      "cita": "Lc 10, 38-42",
-      "lectio": "[Texto de ejemplo: pega aquí el pasaje del Evangelio desde el panel de administración.]\n\nJesús entra en una aldea y una mujer llamada Marta lo recibe en su casa. Su hermana María se sienta a sus pies a escucharle, mientras Marta anda atareada con mil cosas.",
-      "meditatio": "¿Con quién te identificas más hoy, con Marta o con María?\n\n¿Qué cosas te tienen «inquieto y nervioso» esta semana?",
-      "oratio": "Señor, enséñame a pararme. Quiero sentarme a tus pies y escucharte, aunque tenga muchas cosas que hacer.",
-      "contemplatio": "Quédate unos minutos en silencio. Imagina que estás en esa casa de Betania, sentado junto a Jesús.",
-      "actio": "Esta semana regálale a Jesús diez minutos al día sin móvil."
+      "geografico": "Betania es una pequeña aldea a unos tres kilómetros de Jerusalén, en la ladera oriental del monte de los Olivos. Era el último alto en el camino de los peregrinos que subían desde Jericó.\n\n[Texto de ejemplo: sustitúyelo desde el panel.]",
+      "biografico": "Marta, María y su hermano Lázaro eran amigos íntimos de Jesús. En su casa encontraba descanso. Marta aparece activa y servicial; María, sentada a los pies del Maestro, en la postura propia de un discípulo.",
+      "cita": "**Lc 10, 38-42**\n\n[Pega aquí el texto del Evangelio.]\n\nJesús entra en una aldea y una mujer llamada Marta lo recibe en su casa. Su hermana María se sienta a sus pies a escucharle, mientras Marta anda atareada con mil cosas."
     },
     {
       "id": "lectio-zaqueo",
+      "creado": "2026-10-20T10:00:00Z",
       "titulo": "Zaqueo, baja que hoy voy a tu casa",
-      "fecha": "2026-10-20",
-      "cita": "Lc 19, 1-10",
-      "lectio": "[Texto de ejemplo.]\n\nZaqueo, jefe de publicanos y rico, quiere ver a Jesús pero es bajo de estatura, así que se sube a un sicómoro. Jesús lo mira y le dice que baje, que hoy quiere alojarse en su casa.",
-      "meditatio": "¿Qué «árbol» necesitas subir tú para ver a Jesús?\n\n¿Te dejas mirar por Él tal como eres?",
-      "oratio": "Jesús, gracias porque me buscas antes de que yo te busque.",
-      "contemplatio": "Deja que Jesús te mire. No hace falta decir nada.",
-      "actio": "Da un paso concreto de reconciliación con alguien."
+      "geografico": "Jericó, en el valle del Jordán, era una ciudad rica y un importante paso de caravanas, con aduanas donde se cobraban impuestos.",
+      "biografico": "Zaqueo era jefe de publicanos: cobraba impuestos para Roma y era considerado un traidor y un pecador público.",
+      "cita": "**Lc 19, 1-10**\n\n[Texto de ejemplo.]\n\nZaqueo quiere ver a Jesús pero es bajo de estatura, así que se sube a un sicómoro. Jesús lo mira y le dice que baje, que hoy quiere alojarse en su casa."
     }
   ]
 }

@@ -1,0 +1,14 @@
+{
+  "entradas": [
+    {
+      "id": "art-silencio",
+      "creado": "2026-10-26T10:00:00Z",
+      "titulo": "Diez minutos de silencio",
+      "autor": "Equipo Cucharillas",
+      "fecha": "2026-10-26",
+      "imagen": "img/subidas/retiro-ejemplo.jpg",
+      "resumen": "Por qué cuesta tanto parar y cómo empezar a hacerlo.",
+      "texto": "Vivimos rodeados de ruido: notificaciones, música, vídeos que empiezan solos. A veces el silencio da un poco de miedo, porque en él aparece lo que llevamos dentro.\n\n**Empieza poco a poco.** Diez minutos al día bastan. Busca siempre el mismo sitio y la misma hora, y deja el móvil en otra habitación.\n\n**No hace falta decir mucho.** Puedes empezar con una frase sencilla, como «Aquí estoy», y quedarte ahí. Si te distraes, vuelve a esa frase sin agobiarte.\n\n*[Artículo de ejemplo: escribe los vuestros desde el panel de administración.]*"
+    }
+  ]
+}
