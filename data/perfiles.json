@@ -103,6 +103,19 @@
       "aprobado": false,
       "actualizado": "2026-10-28T11:18:47.328Z",
       "claveHash": "6a94a51943f3e18839dfd5c6e49e77011fc7c87b14638be1511d5d3b0073bafc"
+    },
+    {
+      "id": "84a7d74f64aa",
+      "nombre": "Pedro",
+      "emoji": "🌻",
+      "color": "#E8F4FD",
+      "sobreMi": "",
+      "gustos": "",
+      "intencion": "",
+      "foto": "img/perfiles/84a7d74f64aa.jpg?v=1793188069259",
+      "aprobado": false,
+      "actualizado": "2026-10-28T11:47:49.547Z",
+      "claveHash": "2636f1fb17bacae041cb49d3aef3d80e7b2c82e2dfc5008a7c6f47253e1e5da7"
     }
   ]
 }
