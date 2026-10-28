@@ -9,14 +9,6 @@
       "descripcion": "Trae una vela."
     },
     {
-      "id": "ag-3",
-      "titulo": "Voluntariado en el comedor",
-      "fecha": "2026-11-07",
-      "hora": "12:00",
-      "lugar": "Comedor social",
-      "descripcion": ""
-    },
-    {
       "id": "ag-4",
       "titulo": "Retiro mensual",
       "fecha": "2026-11-14",
