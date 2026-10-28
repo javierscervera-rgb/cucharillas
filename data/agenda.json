@@ -1,15 +1,6 @@
 {
   "entradas": [
     {
-      "id": "ag-1",
-      "titulo": "Encuentro de grupo",
-      "fecha": "2026-10-30",
-      "hora": "19:00",
-      "lugar": "Parroquia",
-      "descripcion": "Compartimos la Lectio de la semana.",
-      "imagen": ""
-    },
-    {
       "id": "ag-2",
       "titulo": "Vigilia de Todos los Santos",
       "fecha": "2026-10-31",
