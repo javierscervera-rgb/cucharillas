@@ -34,11 +34,36 @@ export default {
 
     let datos;
     try { datos = await request.json(); } catch { return responder({ error: "Datos no válidos" }, 400); }
-    const { accion, id, clave, perfil } = datos || {};
+    const { accion, id, clave, perfil, foto, quitarFoto } = datos || {};
     if (!/^[a-f0-9]{12}$/.test(id || "") || !/^[a-f0-9]{32}$/.test(clave || "")) return responder({ error: "Identificación no válida" }, 400);
     if (accion !== "guardar" && accion !== "borrar") return responder({ error: "Acción no válida" }, 400);
 
     const claveHash = await sha256(clave);
+    const rutaFoto = `img/perfiles/${id}.jpg`;
+
+    if (foto !== undefined && foto !== null) {
+      // Solo JPEG (lo que genera la app) y como mucho ~300 KB
+      if (typeof foto !== "string" || !foto.startsWith("/9j/") || foto.length > 400000) return responder({ error: "Foto no válida" }, 400);
+    }
+
+    // Comprobamos que el perfil es de este móvil antes de tocar la foto
+    {
+      const { lista } = await leer(env);
+      const previo = lista.find(p => p.id === id);
+      if (previo && previo.claveHash !== claveHash) return responder({ error: "Este perfil pertenece a otro móvil" }, 403);
+      if (!previo && accion === "guardar" && lista.length >= MAX_PERFILES) return responder({ error: "Se ha alcanzado el máximo de perfiles" }, 400);
+    }
+
+    let nuevaFoto = null; // null = no cambia
+    if (accion === "borrar" || quitarFoto) {
+      await borrarArchivo(env, rutaFoto, `Quita foto de perfil ${id}`);
+      nuevaFoto = "";
+    }
+    if (accion === "guardar" && foto) {
+      const r = await subirArchivo(env, rutaFoto, foto, `Foto de perfil ${id}`);
+      if (!r.ok) return responder({ error: "No se pudo guardar la foto (" + r.status + ")" }, 502);
+      nuevaFoto = `${rutaFoto}?v=${Date.now()}`;
+    }
 
     // Reintenta si otro envío ha escrito el archivo a la vez
     for (let intento = 0; intento < 4; intento++) {
@@ -54,10 +79,10 @@ export default {
         for (const [campo, max] of Object.entries(LIMITES)) limpio[campo] = String((perfil || {})[campo] || "").trim().slice(0, max);
         if (!limpio.nombre) return responder({ error: "Falta el nombre" }, 400);
         if (!/^#[0-9a-fA-F]{6}$/.test(limpio.color)) limpio.color = "#E8F4FD";
-        if (i < 0 && lista.length >= MAX_PERFILES) return responder({ error: "Se ha alcanzado el máximo de perfiles" }, 400);
 
         // Cada cambio vuelve a quedar pendiente de aprobación por un responsable
-        const nuevo = Object.assign({ id }, limpio, { aprobado: false, actualizado: new Date().toISOString(), claveHash });
+        const fotoFinal = nuevaFoto !== null ? nuevaFoto : (i >= 0 ? lista[i].foto || "" : "");
+        const nuevo = Object.assign({ id }, limpio, { foto: fotoFinal, aprobado: false, actualizado: new Date().toISOString(), claveHash });
         if (i >= 0) lista[i] = nuevo; else lista.push(nuevo);
       }
 
@@ -68,6 +93,20 @@ export default {
     return responder({ error: "Mucho tráfico, inténtalo de nuevo" }, 503);
   }
 };
+
+async function subirArchivo(env, ruta, base64, mensaje) {
+  const previo = await gh(env, `${ruta}?ref=${encodeURIComponent(env.RAMA || "main")}`);
+  const cuerpo = { message: mensaje, content: base64, branch: env.RAMA || "main" };
+  if (previo.ok) cuerpo.sha = (await previo.json()).sha;
+  return gh(env, ruta, { method: "PUT", body: JSON.stringify(cuerpo) });
+}
+
+async function borrarArchivo(env, ruta, mensaje) {
+  const previo = await gh(env, `${ruta}?ref=${encodeURIComponent(env.RAMA || "main")}`);
+  if (!previo.ok) return;
+  const { sha } = await previo.json();
+  await gh(env, ruta, { method: "DELETE", body: JSON.stringify({ message: mensaje, sha, branch: env.RAMA || "main" }) });
+}
 
 async function gh(env, ruta, opciones = {}) {
   return fetch(`https://api.github.com/repos/${env.REPO}/contents/${ruta}`, Object.assign({}, opciones, {
