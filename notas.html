@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cucharillas">
+  <meta name="theme-color" content="#FFFFFF">
+  <title>Mis notas · Cucharillas</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="icon" href="img/icono-192.png">
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</head>
+<body data-pagina="notas">
+  <main class="contenedor">
+    <header class="cabecera-pagina">
+      <a class="btn-volver" href="index.html" aria-label="Volver" data-icono="atras"></a>
+      <h1>Mis notas</h1>
+    </header>
+    <div id="contenido"></div>
+  </main>
+  <input type="file" id="archivo-importar" accept="application/json,.json" hidden>
+
+  <script>
+    const cont = document.getElementById("contenido");
+    const notaParam = App.parametro("nota");
+    if (notaParam) editarLibre(notaParam); else lista();
+
+    function lista() {
+      const todas = Object.entries(App.Notas.todas())
+        .map(([clave, n]) => Object.assign({ clave }, n))
+        .sort((a, b) => (b.actualizado || "").localeCompare(a.actualizado || ""));
+
+      let html = `<p class="subtitulo">Se guardan solo en este móvil. Nadie más puede verlas.</p>
+        <a class="boton ancho" href="notas.html?nota=nueva">${App.ICONOS.mas} Nueva nota</a>
+        <div style="height:18px"></div>`;
+
+      if (!todas.length) {
+        html += `<div class="vacio"><div class="icono-pastilla icono-lila">${App.ICONOS.lapiz}</div>
+          Todavía no tienes notas.<br>Escribe en cualquier Lectio o Retiro, o crea una nota libre.</div>`;
+      }
+
+      const grupos = [
+        ["lectio", "Lectio Divina", "libro", "verde", "lectio.html"],
+        ["retiro", "Retiro mensual", "montana", "verde", "retiro.html"],
+        ["libre", "Notas libres", "lapiz", "lila", null]
+      ];
+      grupos.forEach(([tipo, nombre, icono, color, pagina]) => {
+        const del = todas.filter(n => (n.tipo || "libre") === tipo);
+        if (!del.length) return;
+        html += `<h3 class="titulo-grupo">${nombre}</h3>` + del.map(n => {
+          const href = pagina ? `${pagina}?id=${encodeURIComponent(n.entradaId)}` : `notas.html?nota=${encodeURIComponent(n.clave)}`;
+          const resumen = n.texto.length > 110 ? n.texto.slice(0, 110) + "…" : n.texto;
+          return `<a class="pastilla" href="${href}">
+            <div class="icono-pastilla icono-${color}">${App.ICONOS[icono]}</div>
+            <div class="texto">
+              <div class="titulo">${App.escapar(n.titulo || "Sin título")}</div>
+              <div class="detalle">${App.escapar(resumen)}</div>
+              <div class="detalle" style="font-size:12px;margin-top:4px">${App.horaRelativa(n.actualizado)}</div>
+            </div>
+            <span class="flecha">${App.ICONOS.flecha}</span>
+          </a>`;
+        }).join("");
+      });
+
+      html += `<h3 class="titulo-grupo">Copia de seguridad</h3>
+        <div class="aviso info">Si cambias de móvil o borras los datos del navegador, las notas se pierden.
+        Guarda de vez en cuando una copia en tu móvil y podrás recuperarla.</div>
+        <div class="fila-botones">
+          <button class="boton suave" id="b-exportar">${App.ICONOS.descargar} Guardar copia</button>
+          <button class="boton suave" id="b-importar">${App.ICONOS.subir} Recuperar</button>
+        </div>`;
+      cont.innerHTML = html;
+
+      document.getElementById("b-exportar").onclick = () => {
+        if (!todas.length) return App.aviso("No hay notas que guardar");
+        App.Notas.exportar();
+      };
+      const input = document.getElementById("archivo-importar");
+      document.getElementById("b-importar").onclick = () => input.click();
+      input.onchange = async () => {
+        const f = input.files[0]; if (!f) return;
+        try {
+          const n = App.Notas.importar(await f.text());
+          App.aviso(n ? `${n} nota${n > 1 ? "s" : ""} recuperada${n > 1 ? "s" : ""}` : "No había notas nuevas");
+          lista();
+        } catch (e) { App.aviso("Ese archivo no es una copia de Cucharillas"); }
+        input.value = "";
+      };
+    }
+
+    function editarLibre(clave) {
+      if (clave === "nueva") clave = "libre:" + Date.now();
+      const n = App.Notas.obtener(clave) || { titulo: "", texto: "" };
+      document.querySelector(".btn-volver").href = "notas.html";
+      cont.innerHTML = `
+        <label class="campo" for="t">Título</label>
+        <input id="t" placeholder="Ej.: Lo que me dijo Dios hoy" value="${App.escapar(n.titulo || "")}">
+        <label class="campo" for="x">Nota</label>
+        <textarea id="x" style="min-height:260px" placeholder="Escribe aquí…">${App.escapar(n.texto || "")}</textarea>
+        <div class="estado-guardado" id="estado">Se guarda automáticamente en este móvil.</div>
+        <div class="fila-botones">
+          <a class="boton" href="notas.html">Hecho</a>
+          ${App.Notas.obtener(clave) ? `<button class="boton peligro" id="borrar">${App.ICONOS.papelera} Borrar</button>` : ""}
+        </div>`;
+      const t = document.getElementById("t"), x = document.getElementById("x"), estado = document.getElementById("estado");
+      let tm;
+      const guardar = () => { App.Notas.guardar(clave, x.value, { tipo: "libre", titulo: t.value.trim() || "Nota libre" }); estado.textContent = x.value.trim() ? "Guardado en este móvil ✓" : "Escribe algo para guardar la nota"; };
+      [t, x].forEach(el => el.addEventListener("input", () => { clearTimeout(tm); tm = setTimeout(guardar, 500); }));
+      const b = document.getElementById("borrar");
+      if (b) b.onclick = () => { if (confirm("¿Borrar esta nota? No se puede deshacer.")) { App.Notas.borrar(clave); location.href = "notas.html"; } };
+      if (!n.texto) x.focus();
+    }
+  </script>
+</body>
+</html>

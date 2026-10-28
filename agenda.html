@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cucharillas">
+  <meta name="theme-color" content="#FFFFFF">
+  <title>Agenda · Cucharillas</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="icon" href="img/icono-192.png">
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</head>
+<body data-pagina="agenda">
+  <main class="contenedor">
+    <header class="cabecera-pagina">
+      <a class="btn-volver" href="index.html" aria-label="Volver" data-icono="atras"></a>
+      <h1>Agenda</h1>
+    </header>
+    <p class="subtitulo">Lo que viene en el grupo.</p>
+    <div id="contenido"><div class="cargando">Cargando…</div></div>
+  </main>
+
+  <script>
+    (async function () {
+      const cont = document.getElementById("contenido");
+      const { entradas } = await App.cargar("agenda");
+      const hoy = App.hoy();
+      const { fin } = App.semanaActual();
+      const orden = App.ordenarPorFecha(entradas, false);
+      const futuras = orden.filter(e => App.aFecha(e.fecha) >= hoy);
+      const pasadas = orden.filter(e => App.aFecha(e.fecha) < hoy).reverse();
+
+      const tarjeta = (e, pasada) => {
+        const d = App.aFecha(e.fecha);
+        const info = [e.hora, e.lugar].filter(Boolean).map(App.escapar).join(" · ");
+        return `<div class="pastilla columna">
+          <div class="fila">
+            <div class="fecha-bloque${pasada ? " pasada" : ""}"><span class="dia">${d.getDate()}</span><span class="mes">${App.MESES[d.getMonth()].slice(0, 3)}</span></div>
+            <div class="texto">
+              <div class="titulo">${App.escapar(e.titulo)}</div>
+              <div class="detalle">${App.fechaLarga(e.fecha)}${info ? " · " + info : ""}</div>
+            </div>
+          </div>
+          ${e.descripcion ? `<div class="detalle" style="margin-top:10px;font-size:14.5px">${App.escapar(e.descripcion)}</div>` : ""}
+          ${pasada ? "" : `<button class="boton secundario" style="margin-top:12px;padding:10px" data-ics="${App.escapar(e.id)}">${App.ICONOS.calendario} Añadir a mi calendario</button>`}
+        </div>`;
+      };
+
+      let html = "";
+      const semana = futuras.filter(e => App.aFecha(e.fecha) <= fin);
+      const despues = futuras.filter(e => App.aFecha(e.fecha) > fin);
+      if (semana.length) html += `<h3 class="titulo-grupo">Esta semana</h3>` + semana.map(e => tarjeta(e)).join("");
+      if (despues.length) html += `<h3 class="titulo-grupo">Más adelante</h3>` + despues.map(e => tarjeta(e)).join("");
+      if (!futuras.length) html += `<div class="vacio"><div class="icono-pastilla icono-azul">${App.ICONOS.calendario}</div>No hay actividades próximas.</div>`;
+      if (pasadas.length) html += `<h3 class="titulo-grupo">Ya pasaron</h3>` + pasadas.slice(0, 6).map(e => tarjeta(e, true)).join("");
+      cont.innerHTML = html;
+
+      // Descarga un .ics para añadir el evento al calendario del móvil
+      cont.querySelectorAll("[data-ics]").forEach(b => b.onclick = () => {
+        const e = entradas.find(x => x.id === b.dataset.ics);
+        const f = e.fecha.replace(/-/g, "");
+        let ini, fin2;
+        if (/^\d{1,2}:\d{2}$/.test(e.hora || "")) {
+          const [h, m] = e.hora.split(":").map(Number);
+          ini = `DTSTART:${f}T${String(h).padStart(2, "0")}${String(m).padStart(2, "0")}00`;
+          fin2 = `DTEND:${f}T${String(Math.min(h + 2, 23)).padStart(2, "0")}${String(m).padStart(2, "0")}00`;
+        } else {
+          const d = App.aFecha(e.fecha); d.setDate(d.getDate() + 1);
+          ini = `DTSTART;VALUE=DATE:${f}`;
+          fin2 = `DTEND;VALUE=DATE:${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+        }
+        const limpiar = t => String(t || "").replace(/[,;\\]/g, m => "\\" + m).replace(/\n/g, "\\n");
+        const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Cucharillas//ES", "BEGIN:VEVENT",
+          `UID:${e.id}@cucharillas`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").slice(0, 15)}Z`,
+          ini, fin2, `SUMMARY:${limpiar(e.titulo)}`, `LOCATION:${limpiar(e.lugar)}`, `DESCRIPTION:${limpiar(e.descripcion)}`,
+          "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
+        a.download = e.titulo.replace(/[^\wáéíóúñ ]/gi, "").trim() + ".ics";
+        document.body.appendChild(a); a.click(); a.remove();
+      });
+    })();
+  </script>
+</body>
+</html>

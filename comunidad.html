@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cucharillas">
+  <meta name="theme-color" content="#FFFFFF">
+  <title>Comunidad · Cucharillas</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="icon" href="img/icono-192.png">
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</head>
+<body data-pagina="comunidad">
+  <main class="contenedor">
+    <header class="cabecera-pagina">
+      <a class="btn-volver" href="index.html" aria-label="Volver" data-icono="atras"></a>
+      <h1>Todos por todos</h1>
+    </header>
+    <p class="subtitulo">Conócenos y reza por los demás.</p>
+    <div class="pestanas">
+      <button class="activa" data-pestana="grupo">El grupo</button>
+      <button data-pestana="yo">Mi perfil</button>
+    </div>
+    <div id="grupo"><div class="cargando">Cargando…</div></div>
+    <div id="yo" hidden></div>
+  </main>
+
+  <script>
+    const CLAVE_YO = "cucharillas_mi_perfil";
+    const EMOJIS = ["🌻", "🌿", "⭐", "🔥", "🕊️", "⚽", "🎸", "📚", "🏔️", "🌊", "☕", "🎨", "🐾", "🌙", "💙", "🙏"];
+    const COLORES = ["#E8F4FD", "#E6F7F0", "#F3EFFF", "#FDF4E3", "#FDECEC", "#EEF2F7"];
+
+    const leerYo = () => { try { return JSON.parse(localStorage.getItem(CLAVE_YO)) || null; } catch (e) { return null; } };
+    const guardarYo = p => localStorage.setItem(CLAVE_YO, JSON.stringify(p));
+    const aleatorio = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => b.toString(16).padStart(2, "0")).join("");
+
+    document.querySelectorAll("[data-pestana]").forEach(b => b.onclick = () => {
+      document.querySelectorAll("[data-pestana]").forEach(x => x.classList.toggle("activa", x === b));
+      document.getElementById("grupo").hidden = b.dataset.pestana !== "grupo";
+      document.getElementById("yo").hidden = b.dataset.pestana !== "yo";
+    });
+
+    let perfiles = [];
+
+    async function pintarGrupo() {
+      const g = document.getElementById("grupo");
+      const datos = await App.cargar("perfiles");
+      perfiles = datos.perfiles || [];
+      const visibles = perfiles.filter(p => p.aprobado).sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+      if (!visibles.length) {
+        g.innerHTML = `<div class="vacio"><div class="icono-pastilla icono-verde">${App.ICONOS.personas}</div>Aún no hay perfiles.<br>¡Sé el primero en crear el tuyo!</div>`;
+        return;
+      }
+      g.innerHTML = visibles.map(p => `
+        <div class="pastilla columna" role="button" tabindex="0">
+          <div class="fila">
+            <div class="avatar" style="background:${App.escapar(p.color || "#E8F4FD")}">${App.escapar(p.emoji || "🙂")}</div>
+            <div class="texto">
+              <div class="titulo">${App.escapar(p.nombre)}</div>
+              <div class="detalle">${App.escapar(p.sobreMi ? (p.sobreMi.length > 60 ? p.sobreMi.slice(0, 60) + "…" : p.sobreMi) : "")}</div>
+            </div>
+            <span class="flecha">${App.ICONOS.flecha}</span>
+          </div>
+          <div class="perfil-abierto">
+            ${p.sobreMi ? `<div class="dato"><b>Sobre mí</b>${App.escapar(p.sobreMi)}</div>` : ""}
+            ${p.gustos ? `<div class="dato"><b>Me gusta</b>${App.escapar(p.gustos)}</div>` : ""}
+            ${p.intencion ? `<div class="dato" style="background:var(--verde-suave);border-radius:14px;padding:12px 14px"><b>Reza por mí</b>${App.escapar(p.intencion)}</div>` : ""}
+          </div>
+        </div>`).join("");
+      g.querySelectorAll(".pastilla").forEach(el => el.onclick = () => {
+        el.classList.toggle("abierta");
+        el.querySelector(".flecha").style.transform = el.classList.contains("abierta") ? "rotate(90deg)" : "";
+      });
+    }
+
+    function pintarYo() {
+      const yo = leerYo() || { emoji: "🌻", color: "#E8F4FD" };
+      const y = document.getElementById("yo");
+      const publicado = yo.id && perfiles.find(p => p.id === yo.id);
+      let estado = "";
+      if (!CONFIG.urlPerfiles) estado = `<div class="aviso">El envío de perfiles todavía no está activado. Puedes rellenarlo y se guardará en tu móvil hasta entonces.</div>`;
+      else if (publicado && publicado.aprobado) estado = `<div class="aviso info">✓ Tu perfil está publicado en el grupo.</div>`;
+      else if (yo.enviado) estado = `<div class="aviso info">Enviado. Aparecerá en el grupo cuando un responsable lo apruebe.</div>`;
+
+      y.innerHTML = `${estado}
+        <div class="ficha">
+          <div style="display:flex;justify-content:center;margin-bottom:6px">
+            <div class="avatar" id="vista" style="width:72px;height:72px;font-size:36px;background:${yo.color}">${yo.emoji}</div>
+          </div>
+          <label class="campo">Tu símbolo</label>
+          <div class="selector-emoji" id="emojis">${EMOJIS.map(e => `<button type="button" class="${e === yo.emoji ? "elegido" : ""}">${e}</button>`).join("")}</div>
+          <label class="campo">Color</label>
+          <div class="selector-emoji" id="colores">${COLORES.map(c => `<button type="button" data-c="${c}" class="${c === yo.color ? "elegido" : ""}" style="background:${c}"></button>`).join("")}</div>
+
+          <label class="campo" for="f-nombre">Nombre <small>(solo el nombre, sin apellidos)</small></label>
+          <input id="f-nombre" maxlength="30" value="${App.escapar(yo.nombre || "")}" placeholder="¿Cómo te llamamos?">
+          <label class="campo" for="f-sobre">Sobre mí</label>
+          <textarea id="f-sobre" maxlength="300" style="min-height:90px" placeholder="Qué estudias, a qué te dedicas, algo que te defina…">${App.escapar(yo.sobreMi || "")}</textarea>
+          <label class="campo" for="f-gustos">Me gusta</label>
+          <input id="f-gustos" maxlength="120" value="${App.escapar(yo.gustos || "")}" placeholder="Música, deporte, series…">
+          <label class="campo" for="f-int">Reza por mí <small>(opcional)</small></label>
+          <textarea id="f-int" maxlength="200" style="min-height:80px" placeholder="Una intención por la que quieres que recemos">${App.escapar(yo.intencion || "")}</textarea>
+        </div>
+        <div class="aviso">Tu perfil lo podrá ver cualquiera que tenga el enlace de la app. No pongas apellidos, teléfono, dirección ni redes sociales.</div>
+        <button class="boton ancho" id="enviar">${CONFIG.urlPerfiles ? "Guardar y enviar" : "Guardar en mi móvil"}</button>
+        ${yo.enviado && CONFIG.urlPerfiles ? `<button class="boton peligro ancho" id="retirar" style="margin-top:10px">Retirar mi perfil del grupo</button>` : ""}`;
+
+      y.querySelectorAll("#emojis button").forEach(b => b.onclick = () => {
+        y.querySelectorAll("#emojis button").forEach(x => x.classList.toggle("elegido", x === b));
+        yo.emoji = b.textContent; document.getElementById("vista").textContent = yo.emoji;
+      });
+      y.querySelectorAll("#colores button").forEach(b => b.onclick = () => {
+        y.querySelectorAll("#colores button").forEach(x => x.classList.toggle("elegido", x === b));
+        yo.color = b.dataset.c; document.getElementById("vista").style.background = yo.color;
+      });
+
+      document.getElementById("enviar").onclick = async (ev) => {
+        const boton = ev.currentTarget;
+        yo.nombre = document.getElementById("f-nombre").value.trim();
+        yo.sobreMi = document.getElementById("f-sobre").value.trim();
+        yo.gustos = document.getElementById("f-gustos").value.trim();
+        yo.intencion = document.getElementById("f-int").value.trim();
+        if (!yo.nombre) return App.aviso("Escribe al menos tu nombre");
+        if (!yo.id) { yo.id = aleatorio(6); yo.clave = aleatorio(16); }
+        guardarYo(yo);
+        if (!CONFIG.urlPerfiles) return App.aviso("Guardado en tu móvil");
+
+        boton.disabled = true; boton.textContent = "Enviando…";
+        try {
+          const r = await fetch(CONFIG.urlPerfiles, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ accion: "guardar", id: yo.id, clave: yo.clave,
+              perfil: { nombre: yo.nombre, emoji: yo.emoji, color: yo.color, sobreMi: yo.sobreMi, gustos: yo.gustos, intencion: yo.intencion } })
+          });
+          const res = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(res.error || "Error " + r.status);
+          yo.enviado = true; guardarYo(yo);
+          App.aviso("¡Enviado! Gracias");
+        } catch (e) {
+          App.aviso("No se pudo enviar: " + e.message);
+        }
+        pintarYo();
+      };
+
+      const retirar = document.getElementById("retirar");
+      if (retirar) retirar.onclick = async () => {
+        if (!confirm("¿Quitar tu perfil del grupo? Seguirá guardado en tu móvil.")) return;
+        try {
+          const r = await fetch(CONFIG.urlPerfiles, { method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ accion: "borrar", id: yo.id, clave: yo.clave }) });
+          if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.status);
+          yo.enviado = false; guardarYo(yo); App.aviso("Perfil retirado");
+          pintarYo();
+        } catch (e) { App.aviso("No se pudo retirar: " + e.message); }
+      };
+    }
+
+    pintarGrupo().then(pintarYo);
+    if (App.parametro("pestana") === "yo") document.querySelector('[data-pestana="yo"]').click();
+  </script>
+</body>
+</html>
