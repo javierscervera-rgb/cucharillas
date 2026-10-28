@@ -282,3 +282,9 @@ label.campo small { font-weight: 400; color: var(--texto-secundario); }
 .campo-imagen { border: 1.5px dashed #C9D6E8; border-radius: 14px; padding: 12px; text-align: center; }
 .campo-imagen img { max-width: 100%; max-height: 200px; border-radius: 10px; display: block; margin: 0 auto 10px; }
 .campo-imagen .fila-botones { margin-top: 0; }
+
+/* ---------- Portada con el logo ---------- */
+.cabecera-portada { display: flex; align-items: center; gap: 16px; margin: 0 0 20px; }
+.logo-portada { height: 120px; width: auto; flex-shrink: 0; }
+.cabecera-portada h1 { font-size: 32px; font-weight: 700; margin: 0; letter-spacing: -0.5px; }
+.cabecera-portada .saludo { margin: 4px 0 0; }
