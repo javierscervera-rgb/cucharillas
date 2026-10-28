@@ -90,6 +90,19 @@
       "aprobado": false,
       "actualizado": "2026-10-28T11:04:28.398Z",
       "claveHash": "0cd716230187a74615cdf174846aa9ec24c71842526d5f4d1162b0941c60b12c"
+    },
+    {
+      "id": "0ddb26abd2c2",
+      "nombre": "Pablo Mochales",
+      "emoji": "🌻",
+      "color": "#E8F4FD",
+      "sobreMi": "",
+      "gustos": "",
+      "intencion": "",
+      "foto": "img/perfiles/0ddb26abd2c2.jpg?v=1793186327056",
+      "aprobado": false,
+      "actualizado": "2026-10-28T11:18:47.328Z",
+      "claveHash": "6a94a51943f3e18839dfd5c6e49e77011fc7c87b14638be1511d5d3b0073bafc"
     }
   ]
 }
