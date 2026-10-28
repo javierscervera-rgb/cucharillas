@@ -22,7 +22,7 @@
 
     // URL del pequeño servidor que guarda los perfiles (ver README, paso 5).
     // Déjalo vacío ("") hasta que lo tengas configurado.
-    urlPerfiles: "",
+    urlPerfiles: "https://cucharillas-perfiles.javierscervera.workers.dev",
 
     // ---------------------------------------------------------
     // Campos de cada tipo de contenido.
