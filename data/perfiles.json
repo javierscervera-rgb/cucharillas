@@ -38,6 +38,19 @@
       "aprobado": true,
       "actualizado": "2026-10-28T10:41:37.343Z",
       "claveHash": "93fe809e254e77cfc06c13808a6967bea7918fc3f5c6bee5cc2590cd004ab234"
+    },
+    {
+      "id": "bd80233617bb",
+      "nombre": "Adri",
+      "emoji": "🌻",
+      "color": "#E6F7F0",
+      "sobreMi": "Estudié automoción y trabajo para un renting",
+      "gustos": "Friki de los aviones, los coches, los funko pop y las pelis",
+      "intencion": "Porque salga bien mi nueva relación y mi madre le echen de su trabajo que ya quiere dejar de trabajar",
+      "foto": "img/perfiles/bd80233617bb.jpg?v=1793184534683",
+      "aprobado": false,
+      "actualizado": "2026-10-28T10:48:55.253Z",
+      "claveHash": "446b7e67d6201a090d9035f80976bcf4d314a5b2acf56e13048d10994f3a5491"
     }
   ]
 }
