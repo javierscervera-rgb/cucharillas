@@ -51,6 +51,19 @@
       "aprobado": true,
       "actualizado": "2026-10-28T10:49:05.852Z",
       "claveHash": "446b7e67d6201a090d9035f80976bcf4d314a5b2acf56e13048d10994f3a5491"
+    },
+    {
+      "id": "a25016d67820",
+      "nombre": "Fercho",
+      "emoji": "🌻",
+      "color": "#E8F4FD",
+      "sobreMi": "Soy profe de pádel, me gusta levantar hierro en el gimnasio y me apasiona la comida.",
+      "gustos": "Pádel, comer, gimnasio, música.",
+      "intencion": "Pido por que tengamos un buen día.",
+      "foto": "img/perfiles/a25016d67820.jpg?v=1793185061673",
+      "aprobado": false,
+      "actualizado": "2026-10-28T10:57:41.947Z",
+      "claveHash": "8dc3bdb00a5fc6bfbbd5341a91d0a4dbe077b807ca6cfee4c68960665bd6e2cc"
     }
   ]
 }
