@@ -15,7 +15,7 @@
   window.CONFIG = {
     // Repositorio de GitHub donde vive la app (github.com/USUARIO/REPO)
     github: {
-      usuario: "TU-USUARIO-GITHUB",
+      usuario: "javierscervera-rgb",
       repo: "cucharillas",
       rama: "main"
     },
