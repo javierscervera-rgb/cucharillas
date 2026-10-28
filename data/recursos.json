@@ -1,0 +1,6 @@
+{
+  "entradas": [
+    { "id": "rec-1", "titulo": "Confesiones", "tipo": "Libro", "autor": "San Agustín", "enlace": "", "descripcion": "Un clásico: la historia de una búsqueda inquieta que termina en Dios." },
+    { "id": "rec-2", "titulo": "Vídeo de ejemplo", "tipo": "Vídeo", "autor": "", "enlace": "https://www.youtube.com/", "descripcion": "Sustitúyelo desde el panel de administración." }
+  ]
+}
