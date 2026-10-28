@@ -12,6 +12,19 @@
       "aprobado": true,
       "actualizado": "2026-10-28T10:20:11.341Z",
       "claveHash": "2a5d38cbb7fb7100e9a4106e998aa752ce62026cc13c822a0ee2800cf5075431"
+    },
+    {
+      "id": "b5e367e41f81",
+      "nombre": "Andrea",
+      "emoji": "🌻",
+      "color": "#FDF4E3",
+      "sobreMi": "Curiosidad inquieta.",
+      "gustos": "Los power rangers",
+      "intencion": "Por mi tranquilidad y serenidad en esta época de hiperactividad.",
+      "foto": "img/perfiles/b5e367e41f81.jpg?v=1793183647982",
+      "aprobado": false,
+      "actualizado": "2026-10-28T10:34:08.292Z",
+      "claveHash": "02fff3d1471022cd1eea5af2190531685e202d16e73c206c9ee50fa4d4f5fc3f"
     }
   ]
 }
