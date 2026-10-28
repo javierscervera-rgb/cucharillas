@@ -7,6 +7,14 @@
       "hora": "21:00",
       "lugar": "Iglesia",
       "descripcion": "Trae una vela."
+    },
+    {
+      "titulo": "Escapada Allariz",
+      "fecha": "2026-11-06",
+      "hora": "",
+      "lugar": "Allariz, Orense",
+      "descripcion": "",
+      "id": "escapada-allariz-mvrvtkfh"
     }
   ]
 }
