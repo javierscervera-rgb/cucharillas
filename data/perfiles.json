@@ -116,6 +116,19 @@
       "aprobado": true,
       "actualizado": "2026-10-28T11:47:49.547Z",
       "claveHash": "2636f1fb17bacae041cb49d3aef3d80e7b2c82e2dfc5008a7c6f47253e1e5da7"
+    },
+    {
+      "id": "d64414f424b9",
+      "nombre": "Daniela",
+      "emoji": "🌊",
+      "color": "#FDECEC",
+      "sobreMi": "",
+      "gustos": "",
+      "intencion": "",
+      "foto": "img/perfiles/d64414f424b9.jpg?v=1793190013326",
+      "aprobado": false,
+      "actualizado": "2026-10-28T12:20:13.595Z",
+      "claveHash": "e1ac2bc9c756bd32ed3cc3f09ac3b70b499364e31066f338328bac8a2a2d69c2"
     }
   ]
 }
