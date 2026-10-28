@@ -59,7 +59,7 @@
       g.innerHTML = visibles.map(p => `
         <div class="pastilla columna" role="button" tabindex="0">
           <div class="fila">
-            <div class="avatar" style="background:${App.escapar(p.color || "#E8F4FD")}">${App.escapar(p.emoji || "🙂")}</div>
+            ${App.avatar(p)}
             <div class="texto">
               <div class="titulo">${App.escapar(p.nombre)}</div>
               <div class="detalle">${App.escapar(p.sobreMi ? (p.sobreMi.length > 60 ? p.sobreMi.slice(0, 60) + "…" : p.sobreMi) : "")}</div>
@@ -89,10 +89,13 @@
 
       y.innerHTML = `${estado}
         <div class="ficha">
-          <div style="display:flex;justify-content:center;margin-bottom:6px">
-            <div class="avatar" id="vista" style="width:72px;height:72px;font-size:36px;background:${yo.color}">${yo.emoji}</div>
+          <div style="display:flex;justify-content:center;margin-bottom:10px" id="vista-caja"></div>
+          <div class="fila-botones" style="margin-top:0">
+            <button type="button" class="boton secundario" id="b-foto">${App.ICONOS.foto} ${yo.foto ? "Cambiar foto" : "Subir foto"}</button>
+            ${yo.foto ? `<button type="button" class="boton suave" id="b-quitar-foto">Quitar foto</button>` : ""}
           </div>
-          <label class="campo">Tu símbolo</label>
+          <input type="file" id="f-foto" accept="image/*" hidden>
+          <label class="campo">${yo.foto ? "Símbolo (si quitas la foto)" : "O elige un símbolo"}</label>
           <div class="selector-emoji" id="emojis">${EMOJIS.map(e => `<button type="button" class="${e === yo.emoji ? "elegido" : ""}">${e}</button>`).join("")}</div>
           <label class="campo">Color</label>
           <div class="selector-emoji" id="colores">${COLORES.map(c => `<button type="button" data-c="${c}" class="${c === yo.color ? "elegido" : ""}" style="background:${c}"></button>`).join("")}</div>
@@ -106,25 +109,51 @@
           <label class="campo" for="f-int">Reza por mí <small>(opcional)</small></label>
           <textarea id="f-int" maxlength="200" style="min-height:80px" placeholder="Una intención por la que quieres que recemos">${App.escapar(yo.intencion || "")}</textarea>
         </div>
-        <div class="aviso">Tu perfil lo podrá ver cualquiera que tenga el enlace de la app. No pongas apellidos, teléfono, dirección ni redes sociales.</div>
+        <div class="aviso">Tu perfil lo podrá ver cualquiera que tenga el enlace de la app. No pongas apellidos, teléfono, dirección ni redes sociales. Si subes foto, que sea una en la que salgas tú solo.</div>
         <button class="boton ancho" id="enviar">${CONFIG.urlPerfiles ? "Guardar y enviar" : "Guardar en mi móvil"}</button>
         ${yo.enviado && CONFIG.urlPerfiles ? `<button class="boton peligro ancho" id="retirar" style="margin-top:10px">Retirar mi perfil del grupo</button>` : ""}`;
 
+      const pintarVista = () => { document.getElementById("vista-caja").innerHTML = App.avatar(yo, 88); };
+      pintarVista();
       y.querySelectorAll("#emojis button").forEach(b => b.onclick = () => {
         y.querySelectorAll("#emojis button").forEach(x => x.classList.toggle("elegido", x === b));
-        yo.emoji = b.textContent; document.getElementById("vista").textContent = yo.emoji;
+        yo.emoji = b.textContent; pintarVista();
       });
       y.querySelectorAll("#colores button").forEach(b => b.onclick = () => {
         y.querySelectorAll("#colores button").forEach(x => x.classList.toggle("elegido", x === b));
-        yo.color = b.dataset.c; document.getElementById("vista").style.background = yo.color;
+        yo.color = b.dataset.c; pintarVista();
       });
 
-      document.getElementById("enviar").onclick = async (ev) => {
-        const boton = ev.currentTarget;
+      // Foto: se recorta cuadrada y se reduce para que pese poco
+      const fFoto = document.getElementById("f-foto");
+      document.getElementById("b-foto").onclick = () => fFoto.click();
+      fFoto.onchange = async () => {
+        const f = fFoto.files[0]; if (!f) return;
+        try {
+          leerFormulario();
+          yo.foto = await App.redimensionar(f, { max: 400, cuadrado: true, calidad: 0.8 });
+          yo.fotoCambiada = true; yo.fotoQuitada = false;
+          guardarYo(yo); pintarYo();
+          App.aviso(CONFIG.urlPerfiles ? "Pulsa «Guardar y enviar» para compartirla" : "Foto guardada en tu móvil");
+        } catch (e) { App.aviso(e.message); }
+      };
+      const bQuitar = document.getElementById("b-quitar-foto");
+      if (bQuitar) bQuitar.onclick = () => {
+        leerFormulario();
+        yo.foto = ""; yo.fotoCambiada = false; yo.fotoQuitada = true;
+        guardarYo(yo); pintarYo();
+      };
+
+      function leerFormulario() {
         yo.nombre = document.getElementById("f-nombre").value.trim();
         yo.sobreMi = document.getElementById("f-sobre").value.trim();
         yo.gustos = document.getElementById("f-gustos").value.trim();
         yo.intencion = document.getElementById("f-int").value.trim();
+      }
+
+      document.getElementById("enviar").onclick = async (ev) => {
+        const boton = ev.currentTarget;
+        leerFormulario();
         if (!yo.nombre) return App.aviso("Escribe al menos tu nombre");
         if (!yo.id) { yo.id = aleatorio(6); yo.clave = aleatorio(16); }
         guardarYo(yo);
@@ -135,11 +164,13 @@
           const r = await fetch(CONFIG.urlPerfiles, {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ accion: "guardar", id: yo.id, clave: yo.clave,
-              perfil: { nombre: yo.nombre, emoji: yo.emoji, color: yo.color, sobreMi: yo.sobreMi, gustos: yo.gustos, intencion: yo.intencion } })
+              perfil: { nombre: yo.nombre, emoji: yo.emoji, color: yo.color, sobreMi: yo.sobreMi, gustos: yo.gustos, intencion: yo.intencion },
+              foto: yo.fotoCambiada && yo.foto ? yo.foto.split(",")[1] : undefined,
+              quitarFoto: yo.fotoQuitada || undefined })
           });
           const res = await r.json().catch(() => ({}));
           if (!r.ok) throw new Error(res.error || "Error " + r.status);
-          yo.enviado = true; guardarYo(yo);
+          yo.enviado = true; yo.fotoCambiada = false; yo.fotoQuitada = false; guardarYo(yo);
           App.aviso("¡Enviado! Gracias");
         } catch (e) {
           App.aviso("No se pudo enviar: " + e.message);

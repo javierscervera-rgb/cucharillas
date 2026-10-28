@@ -80,7 +80,7 @@
 
     <a class="pastilla" href="recursos.html">
       <div class="icono-pastilla icono-ambar" data-icono="video"></div>
-      <div class="texto"><div class="titulo">Libros y vídeos</div><div class="detalle">Recomendaciones del grupo</div></div>
+      <div class="texto"><div class="titulo">Para leer y ver</div><div class="detalle" id="det-recursos">Artículos, libros y vídeos</div></div>
       <span class="flecha" data-icono="flecha"></span>
     </a>
   </main>
@@ -105,6 +105,12 @@
 
       const proxima = App.ordenarPorFecha(agenda.entradas, false).find(e => App.aFecha(e.fecha) >= App.hoy());
       if (proxima) document.getElementById("det-agenda").textContent = `${proxima.titulo} · ${App.fechaLarga(proxima.fecha)}`;
+
+      Promise.all([App.cargar("recursos"), App.cargar("articulos")]).then(([r, a]) => {
+        const claves = [...(a.entradas || []).map(x => "art:" + x.id), ...(r.entradas || []).map(x => "rec:" + x.id)];
+        const pend = claves.filter(k => !App.Estados.hecho(k)).length;
+        if (claves.length) document.getElementById("det-recursos").textContent = pend ? `${pend} pendiente${pend > 1 ? "s" : ""}` : "Todo al día ✓";
+      });
 
       const ul = App.ordenarPorFecha(lectio.entradas)[0];
       if (ul) document.getElementById("det-lectio").textContent = ul.titulo;

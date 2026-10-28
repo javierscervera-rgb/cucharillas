@@ -53,7 +53,9 @@
         const del = todas.filter(n => (n.tipo || "libre") === tipo);
         if (!del.length) return;
         html += `<h3 class="titulo-grupo">${nombre}</h3>` + del.map(n => {
-          const href = pagina ? `${pagina}?id=${encodeURIComponent(n.entradaId)}` : `notas.html?nota=${encodeURIComponent(n.clave)}`;
+          const href = pagina
+            ? `${pagina}?id=${encodeURIComponent(n.entradaId)}${n.ancla && n.ancla !== "notas" ? "#nota-" + n.ancla : ""}`
+            : `notas.html?nota=${encodeURIComponent(n.clave)}`;
           const resumen = n.texto.length > 110 ? n.texto.slice(0, 110) + "…" : n.texto;
           return `<a class="pastilla" href="${href}">
             <div class="icono-pastilla icono-${color}">${App.ICONOS[icono]}</div>

@@ -39,6 +39,7 @@
         const d = App.aFecha(e.fecha);
         const info = [e.hora, e.lugar].filter(Boolean).map(App.escapar).join(" · ");
         return `<div class="pastilla columna">
+          ${e.imagen ? `<a href="${App.escapar(e.imagen)}" target="_blank" rel="noopener"><img class="imagen-tarjeta" src="${App.escapar(e.imagen)}" alt="" loading="lazy"></a>` : ""}
           <div class="fila">
             <div class="fecha-bloque${pasada ? " pasada" : ""}"><span class="dia">${d.getDate()}</span><span class="mes">${App.MESES[d.getMonth()].slice(0, 3)}</span></div>
             <div class="texto">

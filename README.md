@@ -1,6 +1,6 @@
 # Cucharillas
 
-App web (solo móvil) para el grupo: Lectio Divina, Retiro mensual, Mis notas, Agenda, Libros y vídeos y Comunidad ("Todos por todos").
+App web (solo móvil) para el grupo: Lectio Divina, Retiro mensual, Mis notas, Agenda, Para leer y ver (artículos, libros y vídeos) y Comunidad ("Todos por todos").
 
 Funciona sin servidor propio: los contenidos viven en este repositorio de GitHub y la app se publica gratis con **GitHub Pages**.
 
@@ -8,9 +8,10 @@ Funciona sin servidor propio: los contenidos viven en este repositorio de GitHub
 
 | Qué | Dónde | Quién lo cambia |
 |---|---|---|
-| Lectio, Retiro, Agenda, Libros y vídeos | `data/*.json` en GitHub | Responsables, desde `admin.html` |
-| Perfiles de los chicos | `data/perfiles.json` en GitHub | Cada chico desde *Comunidad → Mi perfil* (pasa por el Worker) y el admin los aprueba |
-| Mis notas | En el propio móvil (navegador) | Solo su dueño. Nunca salen del móvil |
+| Lectio, Retiro, Agenda, Libros y vídeos, Artículos | `data/*.json` en GitHub | Responsables, desde `admin.html` |
+| Imágenes (portadas, carteles, artículos) | `img/subidas/` en GitHub | Se suben desde `admin.html`; la app las reduce antes de subirlas |
+| Perfiles y sus fotos | `data/perfiles.json` y `img/perfiles/` | Cada chico desde *Comunidad → Mi perfil* (pasa por el Worker) y el admin los aprueba |
+| Mis notas y lo marcado como leído/visto | En el propio móvil (navegador) | Solo su dueño. Nunca salen del móvil |
 
 ## Puesta en marcha (unos 15 minutos)
 
@@ -57,6 +58,8 @@ Así se abre a pantalla completa, funciona sin conexión con lo último que se c
 ## Cosas importantes
 
 - **Privacidad**: el repositorio es público, así que cualquiera con el enlace puede leer los textos y los perfiles aprobados. Por eso el formulario pide solo el nombre (sin apellidos) y el admin aprueba cada perfil. `robots.txt` pide a los buscadores que no la indexen. Si el grupo tiene menores, conviene contar con el permiso de las familias.
+- **Vídeos**: pega el enlace de YouTube o Vimeo (o de un archivo .mp4) y se ven dentro de la app. Se marcan como «vistos» al empezar a reproducirse; los libros se marcan a mano y los artículos al abrirlos.
+- **Imágenes**: si quitas una imagen de una entrada, el archivo sigue en `img/subidas/`; puedes borrarlo a mano en GitHub si quieres.
 - **Notas**: se guardan en el navegador del móvil. Si se borran los datos del navegador o se cambia de móvil, se pierden. En *Mis notas → Guardar copia* se descarga un archivo para recuperarlas después. En iPhone, instalar la app en la pantalla de inicio evita que Safari las borre por falta de uso.
 - **Tiempo de publicación**: tras publicar desde el admin, GitHub Pages tarda 1–2 minutos en mostrar el cambio.
 - **Añadir campos**: en `js/config.js` → `esquemas` puedes añadir o quitar campos de Lectio, Retiro, Agenda o Recursos; el panel de admin y las páginas se adaptan solos.
@@ -69,16 +72,20 @@ index.html        Inicio
 lectio.html       Lectio Divina (lista y detalle)
 retiro.html       Retiro mensual (abre el último)
 notas.html        Mis notas (locales) + copia de seguridad
+articulo.html     Lectura de un artículo
 agenda.html       Agenda (con "Añadir a mi calendario")
 comunidad.html    Todos por todos + Mi perfil
-recursos.html     Libros y vídeos
+recursos.html     Para leer y ver: pestañas Pendientes / Leídos y vistos
 admin.html        Panel de administración (no aparece en el menú)
 css/estilos.css   Estilos
 js/config.js      Configuración y campos de cada sección
 js/app.js         Código común (menú, notas, carga de datos)
-js/entradas.js    Lectio y Retiro
+js/entradas.js    Lectio y Retiro (lista, bloques y notas por bloque)
+js/videos.js      Reproductor de vídeo integrado
 js/admin.js       Panel de administración
 data/*.json       Contenidos
+img/subidas/      Imágenes subidas desde el panel
+img/perfiles/     Fotos de perfil
 worker/           Servidor de perfiles (Cloudflare)
 sw.js, manifest.json   Instalación como app y modo sin conexión
 ```

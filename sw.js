@@ -2,10 +2,10 @@
    Siempre intenta la red primero (así el contenido nuevo aparece enseguida)
    y, si no hay conexión, usa la última copia guardada. */
 
-const VERSION = "cucharillas-v1";
+const VERSION = "cucharillas-v2";
 const BASICOS = [
-  "./", "index.html", "lectio.html", "retiro.html", "notas.html", "agenda.html", "comunidad.html", "recursos.html",
-  "css/estilos.css", "js/config.js", "js/app.js", "js/entradas.js", "img/logo.png", "img/icono-192.png", "manifest.json"
+  "./", "index.html", "lectio.html", "retiro.html", "notas.html", "agenda.html", "comunidad.html", "recursos.html", "articulo.html",
+  "css/estilos.css", "js/config.js", "js/app.js", "js/entradas.js", "js/videos.js", "img/logo.png", "img/icono-192.png", "manifest.json"
 ];
 
 self.addEventListener("install", e => {

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cucharillas">
+  <meta name="theme-color" content="#FFFFFF">
+  <title>Artículo · Cucharillas</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="icon" href="img/icono-192.png">
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</head>
+<body data-pagina="recursos">
+  <main class="contenedor">
+    <header class="cabecera-pagina">
+      <a class="btn-volver" href="recursos.html" aria-label="Volver" data-icono="atras"></a>
+      <h1>Artículo</h1>
+    </header>
+    <div id="contenido"><div class="cargando">Cargando…</div></div>
+  </main>
+
+  <script>
+    (async function () {
+      const cont = document.getElementById("contenido");
+      const { entradas } = await App.cargar("articulos");
+      const a = entradas.find(x => x.id === App.parametro("id"));
+      if (!a) { cont.innerHTML = `<div class="vacio">Este artículo ya no está disponible.</div>`; return; }
+      document.title = a.titulo + " · Cucharillas";
+      const clave = "art:" + a.id;
+      App.Estados.marcar(clave, true); // abrirlo = leído
+
+      const meta = [a.autor, a.fecha && App.fechaCorta(a.fecha)].filter(Boolean).map(App.escapar).join(" · ");
+      cont.innerHTML = `
+        ${a.imagen ? `<img class="portada" src="${App.escapar(a.imagen)}" alt="">` : ""}
+        <div class="ficha-cabecera azul">
+          <div class="etiqueta">Artículo</div>
+          <h2>${App.escapar(a.titulo)}</h2>
+          ${meta ? `<div class="meta">${meta}</div>` : ""}
+        </div>
+        <article class="ficha"><div class="texto-largo">${App.formatear(a.texto)}</div></article>
+        <div style="text-align:center;padding:4px 0 10px" id="estado"></div>`;
+
+      const estado = document.getElementById("estado");
+      const pintarEstado = () => {
+        const hecho = App.Estados.hecho(clave);
+        estado.innerHTML = hecho
+          ? `<span class="insignia">${App.ICONOS.check} Leído</span><br><button class="enlace-suave" id="alt">Marcar como no leído</button>`
+          : `<button class="boton secundario" id="alt">${App.ICONOS.check} Marcar como leído</button>`;
+        document.getElementById("alt").onclick = () => { App.Estados.marcar(clave, !hecho); pintarEstado(); };
+      };
+      pintarEstado();
+    })();
+  </script>
+</body>
+</html>

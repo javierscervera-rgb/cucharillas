@@ -7,46 +7,124 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Cucharillas">
   <meta name="theme-color" content="#FFFFFF">
-  <title>Libros y vídeos · Cucharillas</title>
+  <title>Libros, vídeos y artículos · Cucharillas</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
   <link rel="icon" href="img/icono-192.png">
   <link rel="stylesheet" href="css/estilos.css">
   <script src="js/config.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/videos.js"></script>
 </head>
 <body data-pagina="recursos">
   <main class="contenedor">
     <header class="cabecera-pagina">
       <a class="btn-volver" href="index.html" aria-label="Volver" data-icono="atras"></a>
-      <h1>Libros y vídeos</h1>
+      <h1>Para leer y ver</h1>
     </header>
-    <p class="subtitulo">Lo que el grupo te recomienda.</p>
+    <p class="subtitulo">Artículos, libros y vídeos que el grupo te recomienda.</p>
+    <div class="pestanas">
+      <button data-ver="pendientes">Pendientes</button>
+      <button data-ver="hechos">Leídos y vistos</button>
+    </div>
     <div id="contenido"><div class="cargando">Cargando…</div></div>
   </main>
 
   <script>
     (async function () {
       const cont = document.getElementById("contenido");
-      const { entradas } = await App.cargar("recursos");
-      if (!entradas.length) { cont.innerHTML = `<div class="vacio">Aún no hay recomendaciones.</div>`; return; }
-      const estilo = { "Libro": ["libro", "verde"], "Vídeo": ["video", "azul"], "Podcast": ["reloj", "lila"], "Música": ["corazon", "lila"], "Web": ["enlace", "ambar"] };
-      const plural = { "Libro": "Libros", "Vídeo": "Vídeos", "Podcast": "Podcasts", "Música": "Música", "Web": "Webs" };
-      const tipos = [...new Set(entradas.map(e => e.tipo || "Otros"))];
-      cont.innerHTML = tipos.map(t => `<h3 class="titulo-grupo">${App.escapar(plural[t] || t)}</h3>` +
-        entradas.filter(e => (e.tipo || "Otros") === t).map(e => {
-          const [ic, col] = estilo[e.tipo] || ["estrella", "ambar"];
-          const enlace = /^https?:\/\//.test(e.enlace || "") ? e.enlace : "";
-          return `<div class="pastilla columna">
-            <div class="fila">
-              <div class="icono-pastilla icono-${col}">${App.ICONOS[ic]}</div>
-              <div class="texto"><div class="titulo">${App.escapar(e.titulo)}</div>
-              ${e.autor ? `<div class="detalle">${App.escapar(e.autor)}</div>` : ""}</div>
-            </div>
-            ${e.descripcion ? `<div class="detalle" style="margin-top:10px;font-size:14.5px">${App.escapar(e.descripcion)}</div>` : ""}
-            ${enlace ? `<a class="boton secundario" style="margin-top:12px;padding:10px" href="${App.escapar(enlace)}" target="_blank" rel="noopener">${App.ICONOS.enlace} Abrir</a>` : ""}
-          </div>`;
-        }).join("")).join("");
+      const [rec, art] = await Promise.all([App.cargar("recursos"), App.cargar("articulos")]);
+      const items = [
+        ...App.ordenarPorFecha(art.entradas || []).map(a => Object.assign({}, a, { tipo: "Artículo", clave: "art:" + a.id })),
+        ...(rec.entradas || []).map(r => Object.assign({}, r, { tipo: r.tipo || "Web", clave: "rec:" + r.id }))
+      ];
+      const ORDEN = ["Artículo", "Libro", "Vídeo", "Podcast", "Música", "Web"];
+      const PLURAL = { "Artículo": "Artículos", "Libro": "Libros", "Vídeo": "Vídeos", "Podcast": "Podcasts", "Música": "Música", "Web": "Webs" };
+      const VERBO = { "Artículo": "leído", "Libro": "leído", "Vídeo": "visto", "Podcast": "escuchado", "Música": "escuchado", "Web": "visto" };
+      const ESTILO = { "Artículo": ["articulo", "azul"], "Libro": ["libro", "verde"], "Vídeo": ["video", "azul"], "Podcast": ["reloj", "lila"], "Música": ["corazon", "lila"], "Web": ["enlace", "ambar"] };
+      let ver = App.parametro("ver") === "hechos" ? "hechos" : "pendientes";
+
+      document.querySelectorAll("[data-ver]").forEach(b => b.onclick = () => { ver = b.dataset.ver; pintar(); });
+
+      function contar() {
+        const hechos = items.filter(i => App.Estados.hecho(i.clave)).length;
+        document.querySelector('[data-ver="pendientes"]').innerHTML = `Pendientes <span class="num">${items.length - hechos}</span>`;
+        document.querySelector('[data-ver="hechos"]').innerHTML = `Leídos y vistos <span class="num">${hechos}</span>`;
+        document.querySelectorAll("[data-ver]").forEach(b => b.classList.toggle("activa", b.dataset.ver === ver));
+      }
+
+      const insignia = (i) => `<span class="insignia">${App.ICONOS.check} ${VERBO[i.tipo][0].toUpperCase() + VERBO[i.tipo].slice(1)}</span>`;
+      const icono = (i) => { const [ic, col] = ESTILO[i.tipo] || ESTILO.Web; return `<div class="icono-pastilla icono-${col}">${App.ICONOS[ic]}</div>`; };
+      const enlaceValido = (u) => /^https?:\/\//.test(u || "") ? u : "";
+
+      function tarjeta(i) {
+        const hecho = App.Estados.hecho(i.clave);
+        const verbo = VERBO[i.tipo] || "visto";
+        const cabeza = `<div class="fila">${icono(i)}
+            <div class="texto"><div class="titulo">${App.escapar(i.titulo)}</div>
+            ${i.autor ? `<div class="detalle">${App.escapar(i.autor)}</div>` : ""}
+            <span class="hueco-insignia">${hecho ? insignia(i) : ""}</span></div></div>`;
+        const desc = i.descripcion ? `<div class="detalle" style="margin-top:10px;font-size:14.5px">${App.escapar(i.descripcion)}</div>` : "";
+        const alternar = `<button class="enlace-suave" data-alternar>${hecho ? `Marcar como no ${verbo}` : `Marcar como ${verbo}`}</button>`;
+
+        if (i.tipo === "Artículo") {
+          return `<a class="pastilla" href="articulo.html?id=${encodeURIComponent(i.id)}" data-clave="${App.escapar(i.clave)}">
+            ${i.imagen ? `<img class="miniatura" src="${App.escapar(i.imagen)}" alt="" loading="lazy">` : icono(i)}
+            <div class="texto"><div class="titulo">${App.escapar(i.titulo)}</div>
+              <div class="detalle">${App.escapar(i.resumen || i.autor || "")}</div>
+              <span class="hueco-insignia">${hecho ? insignia(i) : ""}</span></div>
+            <span class="flecha">${App.ICONOS.flecha}</span></a>`;
+        }
+
+        if (i.tipo === "Vídeo") {
+          const v = Videos.info(i.enlace);
+          return `<div class="pastilla columna" data-clave="${App.escapar(i.clave)}">${cabeza}${desc}
+            ${v ? `<div class="video-caja">${v.miniatura ? `<img src="${v.miniatura}" alt="" loading="lazy">` : ""}
+                <button class="boton-play" aria-label="Reproducir">${App.ICONOS.play}</button></div>`
+                : (enlaceValido(i.enlace) ? `<a class="boton secundario" style="margin-top:12px;padding:10px" href="${App.escapar(i.enlace)}" target="_blank" rel="noopener" data-abrir>${App.ICONOS.enlace} Ver vídeo</a>` : "")}
+            ${alternar}</div>`;
+        }
+
+        const url = enlaceValido(i.enlace);
+        const abrir = url ? `<a class="boton suave" style="margin-top:12px;padding:10px" href="${App.escapar(url)}" target="_blank" rel="noopener" ${i.tipo === "Libro" ? "" : "data-abrir"}>${App.ICONOS.enlace} Abrir</a>` : "";
+        if (i.tipo === "Libro") {
+          return `<div class="pastilla columna" data-clave="${App.escapar(i.clave)}">${cabeza}${desc}${abrir}
+            ${hecho ? alternar : `<button class="boton secundario" style="margin-top:12px;padding:10px" data-alternar>${App.ICONOS.check} Marcar como leído</button>`}</div>`;
+        }
+        return `<div class="pastilla columna" data-clave="${App.escapar(i.clave)}">${cabeza}${desc}${abrir}${alternar}</div>`;
+      }
+
+      function pintar() {
+        contar();
+        const lista = items.filter(i => App.Estados.hecho(i.clave) === (ver === "hechos"));
+        if (!lista.length) {
+          cont.innerHTML = ver === "pendientes"
+            ? `<div class="vacio"><div class="icono-pastilla icono-verde">${App.ICONOS.check}</div>¡Lo tienes todo al día!</div>`
+            : `<div class="vacio"><div class="icono-pastilla icono-azul">${App.ICONOS.libro}</div>Aquí aparecerá lo que vayas leyendo y viendo.</div>`;
+          return;
+        }
+        const tipos = [...new Set(lista.map(i => i.tipo))].sort((a, b) => ORDEN.indexOf(a) - ORDEN.indexOf(b));
+        cont.innerHTML = tipos.map(t => `<h3 class="titulo-grupo">${PLURAL[t] || t}</h3>` + lista.filter(i => i.tipo === t).map(tarjeta).join("")).join("");
+
+        cont.querySelectorAll("[data-clave]").forEach(el => {
+          const i = items.find(x => x.clave === el.dataset.clave);
+          const marcarHecho = () => {
+            if (App.Estados.hecho(i.clave)) return;
+            App.Estados.marcar(i.clave, true);
+            el.querySelector(".hueco-insignia").innerHTML = insignia(i);
+            const alt = el.querySelector("[data-alternar]");
+            if (alt) { alt.className = "enlace-suave"; alt.removeAttribute("style"); alt.textContent = `Marcar como no ${VERBO[i.tipo]}`; }
+            contar();
+          };
+          const alt = el.querySelector("[data-alternar]");
+          if (alt) alt.onclick = (ev) => { ev.preventDefault(); App.Estados.marcar(i.clave, !App.Estados.hecho(i.clave)); pintar(); };
+          const abrir = el.querySelector("[data-abrir]");
+          if (abrir) abrir.addEventListener("click", marcarHecho);
+          const play = el.querySelector(".boton-play");
+          if (play) play.onclick = () => Videos.reproducir(el.querySelector(".video-caja"), i.enlace, marcarHecho);
+        });
+      }
+      pintar();
     })();
   </script>
 </body>
