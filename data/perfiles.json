@@ -64,6 +64,19 @@
       "aprobado": false,
       "actualizado": "2026-10-28T10:57:41.947Z",
       "claveHash": "8dc3bdb00a5fc6bfbbd5341a91d0a4dbe077b807ca6cfee4c68960665bd6e2cc"
+    },
+    {
+      "id": "19d24ef444ee",
+      "nombre": "Alba",
+      "emoji": "🔥",
+      "color": "#FDECEC",
+      "sobreMi": "Oposito a Policía Nacional y tengo una banda de Rock",
+      "gustos": "Melendi, bailar, el Madrid y el padeeeel",
+      "intencion": "Para que el Espíritu Santo me dé fortaleza, aliento y serenidad en mis momentos de flaqueza física y mental",
+      "foto": "img/perfiles/19d24ef444ee.jpg?v=1793185143807",
+      "aprobado": false,
+      "actualizado": "2026-10-28T10:59:04.112Z",
+      "claveHash": "8ebfee072ba8719c1297f52377cafc7b4be534d8c8e8eba01e0a7bae11d90222"
     }
   ]
 }
