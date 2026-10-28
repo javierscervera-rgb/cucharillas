@@ -129,6 +129,19 @@
       "aprobado": true,
       "actualizado": "2026-10-28T12:20:55.105Z",
       "claveHash": "e1ac2bc9c756bd32ed3cc3f09ac3b70b499364e31066f338328bac8a2a2d69c2"
+    },
+    {
+      "id": "359ff481912c",
+      "nombre": "Natalia",
+      "emoji": "🌻",
+      "color": "#FDECEC",
+      "sobreMi": "Soy historiadora del arte, librera y potencial boxeadora",
+      "gustos": "El arte, los museos y los libros",
+      "intencion": "Para que aprenda a tener un corazón de león capaz de amar a todos",
+      "foto": "img/perfiles/359ff481912c.jpg?v=1793198370408",
+      "aprobado": false,
+      "actualizado": "2026-10-28T14:39:30.737Z",
+      "claveHash": "9dd0cd24387376cdbdc2da0918d220467921d068a7f1c45842e6369ae7d347da"
     }
   ]
 }
