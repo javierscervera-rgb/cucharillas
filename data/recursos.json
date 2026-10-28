@@ -2,11 +2,11 @@
   "entradas": [
     {
       "id": "rec-2",
-      "titulo": "Vídeo de ejemplo",
+      "titulo": "Historia de un secuestro",
       "tipo": "Vídeo",
-      "autor": "",
-      "enlace": "",
-      "descripcion": "Pega un enlace de YouTube o Vimeo desde el panel y se verá aquí mismo."
+      "autor": "Bosco Gutiérrez Cortina",
+      "enlace": "https://youtu.be/HqNvisIwQWc?si=i7GJoMrDmotQMLoa",
+      "descripcion": "brutal testimonio sobre filiación divina y muchas enseñanzas para nuestra vida"
     }
   ]
 }
