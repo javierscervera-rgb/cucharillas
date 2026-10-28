@@ -1,15 +1,3 @@
 {
-  "perfiles": [
-    {
-      "id": "ejemplo-2",
-      "nombre": "Pablo",
-      "emoji": "⚽",
-      "color": "#E6F7F0",
-      "sobreMi": "Primero de Bachillerato. Juego al fútbol en el equipo del barrio.",
-      "gustos": "El fútbol y los videojuegos.",
-      "intencion": "Por mi abuelo, que está enfermo.",
-      "aprobado": true,
-      "actualizado": "2026-10-22T10:00:00Z"
-    }
-  ]
+  "perfiles": []
 }
