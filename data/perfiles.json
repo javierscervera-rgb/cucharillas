@@ -25,6 +25,19 @@
       "aprobado": true,
       "actualizado": "2026-10-28T10:34:40.018Z",
       "claveHash": "02fff3d1471022cd1eea5af2190531685e202d16e73c206c9ee50fa4d4f5fc3f"
+    },
+    {
+      "id": "c85aa75901fc",
+      "nombre": "Miki",
+      "emoji": "🎸",
+      "color": "#FDECEC",
+      "sobreMi": "El cocinero y un poco gracioso",
+      "gustos": "Música, la cocina, los coches y los momentos de paz",
+      "intencion": "Por las familias y que nadie se quede solo en el camino",
+      "foto": "img/perfiles/c85aa75901fc.jpg?v=1793184097047",
+      "aprobado": false,
+      "actualizado": "2026-10-28T10:41:37.343Z",
+      "claveHash": "93fe809e254e77cfc06c13808a6967bea7918fc3f5c6bee5cc2590cd004ab234"
     }
   ]
 }
