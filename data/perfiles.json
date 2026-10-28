@@ -142,6 +142,19 @@
       "aprobado": true,
       "actualizado": "2026-10-28T14:39:30.737Z",
       "claveHash": "9dd0cd24387376cdbdc2da0918d220467921d068a7f1c45842e6369ae7d347da"
+    },
+    {
+      "id": "846b5d8e0184",
+      "nombre": "David",
+      "emoji": "🌊",
+      "color": "#E8F4FD",
+      "sobreMi": "Oposito y trabajo en un vivero",
+      "gustos": "El deporte, la música y pescar",
+      "intencion": "Para qué aumente mi fe",
+      "foto": "img/perfiles/846b5d8e0184.jpg?v=1793203170998",
+      "aprobado": false,
+      "actualizado": "2026-10-28T15:59:31.363Z",
+      "claveHash": "0438b66c4c163e0e550682670b380e840dfcaef10a4564267eac7fb9caaf6afb"
     }
   ]
 }
