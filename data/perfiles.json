@@ -194,6 +194,19 @@
       "aprobado": false,
       "actualizado": "2026-10-29T19:24:59.324Z",
       "claveHash": "db8bbb3523c1a09aaa632a5ebad5d315d4d823743b5a95ab6066fe85e9f4c862"
+    },
+    {
+      "id": "3c492c9f62bf",
+      "nombre": "Emilio",
+      "emoji": "⚽",
+      "color": "#E8F4FD",
+      "sobreMi": "Si no estudio me aburro jeje",
+      "gustos": "La F1 y las motos, estudiar y estar en la naturaleza",
+      "intencion": "Por aprender realmente a amar a Dios y no dejarme llevar por la corriente",
+      "foto": "img/perfiles/3c492c9f62bf.jpg?v=1793302650950",
+      "aprobado": false,
+      "actualizado": "2026-10-29T19:37:31.211Z",
+      "claveHash": "30ba49aad48c68e10bf75dda25360aecc0bc35d581f6d6ffa0c0301d900382d3"
     }
   ]
 }
