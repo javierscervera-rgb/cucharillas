@@ -207,6 +207,19 @@
       "aprobado": false,
       "actualizado": "2026-10-29T19:37:31.211Z",
       "claveHash": "30ba49aad48c68e10bf75dda25360aecc0bc35d581f6d6ffa0c0301d900382d3"
+    },
+    {
+      "id": "55bbf6167738",
+      "nombre": "Manuel",
+      "emoji": "🌻",
+      "color": "#E8F4FD",
+      "sobreMi": "Estudio audiovisuales",
+      "gustos": "El cine, el fútbol, conducir",
+      "intencion": "",
+      "foto": "img/perfiles/55bbf6167738.jpg?v=1793311274271",
+      "aprobado": false,
+      "actualizado": "2026-10-29T22:01:14.948Z",
+      "claveHash": "dc6dc2fd230d45efe9b86fbc41eded4151ae0822a1c769f400e27077b27abcf2"
     }
   ]
 }
