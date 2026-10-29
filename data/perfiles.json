@@ -220,6 +220,19 @@
       "aprobado": false,
       "actualizado": "2026-10-29T22:01:14.948Z",
       "claveHash": "dc6dc2fd230d45efe9b86fbc41eded4151ae0822a1c769f400e27077b27abcf2"
+    },
+    {
+      "id": "ce4c8ac872b5",
+      "nombre": "Lucía",
+      "emoji": "🌻",
+      "color": "#E8F4FD",
+      "sobreMi": "Farmacéutica agobiada con el TFG, las prácticas y la preparación de una boda",
+      "gustos": "Las historias y aprender",
+      "intencion": "Por la salud y el bienestar de mis seres queridos",
+      "foto": "img/perfiles/ce4c8ac872b5.jpg?v=1793314850615",
+      "aprobado": false,
+      "actualizado": "2026-10-29T23:00:50.945Z",
+      "claveHash": "c764eddb42c595d8f4e1959bf0c363bb9574a0ef91c19908bf9ce17eae53acde"
     }
   ]
 }
