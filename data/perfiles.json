@@ -155,6 +155,19 @@
       "aprobado": true,
       "actualizado": "2026-10-28T15:59:31.363Z",
       "claveHash": "0438b66c4c163e0e550682670b380e840dfcaef10a4564267eac7fb9caaf6afb"
+    },
+    {
+      "id": "d2648f61e945",
+      "nombre": "Martis",
+      "emoji": "🌻",
+      "color": "#FDECEC",
+      "sobreMi": "Preparo las oposiciones a Inspector de Hacienda",
+      "gustos": "Deporte, viajar, los margaritas",
+      "intencion": "Para que aprenda a dejar mis preocupaciones en manos de Dios y a confiar en sus tiempos y en su voluntad",
+      "foto": "img/perfiles/d2648f61e945.jpg?v=1793265206814",
+      "aprobado": false,
+      "actualizado": "2026-10-29T09:13:27.141Z",
+      "claveHash": "94470c51f23eae58fe0fecd9fb5cfb26f3fec34fc6439156bf3051943679407e"
     }
   ]
 }
