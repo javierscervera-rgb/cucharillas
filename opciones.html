@@ -136,8 +136,6 @@ body.sin-scroll { overflow: hidden; }
 .pluma::after { content: ""; position: absolute; left: 1px; top: 0; width: 2px; height: 1.05em; background: var(--tinta); animation: parpadeo 1s steps(1) infinite; }
 .pergamino-texto p { margin: 0 0 14px; }
 .pergamino-texto h3, .pergamino-texto h4, .pergamino-texto h5 { font-weight: 600; margin: 0 0 10px; color: #5A3A17; }
-.pergamino-texto blockquote { border-left-color: rgba(122,82,38,.4); }
-.pergamino-texto hr { border-top-color: rgba(122,82,38,.3); }
 
 /* ---------- Formato Markdown en los textos largos ---------- */
 .texto-largo h3, .texto-largo h4, .texto-largo h5,
@@ -160,6 +158,13 @@ body.sin-scroll { overflow: hidden; }
 .texto-largo hr, .oracion hr, .pergamino-texto hr { border: 0; border-top: 1px solid var(--gris-borde); margin: 20px 0; }
 .texto-largo a, .oracion a { color: var(--azul-cielo); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
 .texto-largo del, .oracion del { color: var(--texto-secundario); }
+/* En el pergamino, citas y separadores en tono tinta y apareciendo al escribirse */
+.pergamino-texto blockquote { border-left: 3px solid transparent; transition: border-color .6s ease; }
+.pergamino-texto blockquote.vista { border-left-color: rgba(122,82,38,.45); }
+.pergamino-texto hr { border-top: 1px solid rgba(122,82,38,.35); opacity: 0; transition: opacity .6s ease; }
+.pergamino-texto hr.vista { opacity: 1; }
+.pergamino-texto.completo blockquote { border-left-color: rgba(122,82,38,.45); }
+.pergamino-texto.completo hr { opacity: 1; }
 @keyframes parpadeo { 50% { opacity: 0; } }
 .pergamino-cita {
   margin: 18px 0 0; text-align: right; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-weight: 600;
@@ -554,7 +559,109 @@ body.sin-scroll { overflow: hidden; }
 </nav>
 
 <script src="opciones-contenido.js"></script>
-<script src="markdown.js"></script>
+<script>
+/* Cucharillas · Markdown sencillo y seguro (va incrustado en opciones.html y admin-opciones.html).
+   Admite: # títulos, **negrita**, *cursiva*, _cursiva_, ~~tachado~~, [enlace](https://…),
+   listas con - o 1., > citas y --- separador. Es tolerante: acepta espacios junto a los
+   asteriscos (** así **) y negritas que continúan en la línea siguiente del mismo párrafo.
+   Todo el HTML que se escriba se escapa: no se puede inyectar código. */
+(function () {
+  'use strict';
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function normalizar(s) {
+    // Asteriscos "raros" que a veces introducen teclados o al copiar de otros sitios
+    return String(s).replace(/\r\n?/g, '\n').replace(/[∗＊⁎]/g, '*').replace(/ /g, ' ');
+  }
+  function urlSegura(u) {
+    var limpia = u.replace(/&amp;/g, '&').replace(/\s/g, '');
+    return /^(javascript|data|vbscript):/i.test(limpia) ? null : u;
+  }
+  function formato(t) {
+    // **negrita** (también con espacios por dentro y cruzando saltos de línea)
+    t = t.replace(/\*\*([^*]+?)\*\*/g, function (m, x) {
+      return x.trim() ? '<strong>' + x.trim() + '</strong>' : m;
+    });
+    t = t.replace(/__([^_]+?)__/g, function (m, x) { return x.trim() ? '<strong>' + x.trim() + '</strong>' : m; });
+    // *cursiva*: vale con espacio en uno de los lados, no en los dos; no toca 2*3*4
+    t = t.replace(/(^|[\s\S])\*([^*\n]+?)\*(?=([\s\S]?))/g, function (m, antes, x, despues) {
+      if (!x.trim() || (/^\s/.test(x) && /\s$/.test(x))) return m;
+      if (/\d/.test(antes) && /^\d/.test(x)) return m;
+      return antes + '<em>' + x.trim() + '</em>';
+    });
+    t = t.replace(/(^|[^\w])_(?=\S)([^_\n]*?\S)_(?![\w])/g, '$1<em>$2</em>');
+    t = t.replace(/~~([^~]+?)~~/g, function (m, x) { return x.trim() ? '<del>' + x.trim() + '</del>' : m; });
+    return t;
+  }
+  function inline(t) {
+    var enlaces = [];
+    t = esc(t);
+    t = t.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (m, txt, url) {
+      var u = urlSegura(url);
+      if (!u) return txt;
+      enlaces.push({ u: u, t: txt });
+      return '\u0000' + (enlaces.length - 1) + '\u0000';
+    });
+    t = formato(t).replace(/\n/g, '<br>');
+    return t.replace(/\u0000(\d+)\u0000/g, function (m, k) {
+      var e = enlaces[+k];
+      return '<a href="' + e.u + '" target="_blank" rel="noopener">' + formato(e.t) + '</a>';
+    });
+  }
+  var RE = {
+    titulo: /^\s{0,3}(#{1,3})\s+(.*)$/,
+    separador: /^\s*(-{3,}|\*{3,}|_{3,})\s*$/,
+    cita: /^\s*>\s?/,
+    vineta: /^\s*[-*•+]\s+/,
+    numero: /^\s*\d+[.)]\s+/
+  };
+  function esBloque(l) {
+    return RE.titulo.test(l) || RE.separador.test(l) || RE.cita.test(l) || RE.vineta.test(l) || RE.numero.test(l);
+  }
+  function md(src) {
+    if (!src) return '';
+    var L = normalizar(src).split('\n'), html = '', i = 0, m;
+    while (i < L.length) {
+      var l = L[i];
+      if (!l.trim()) { i++; continue; }
+      if ((m = l.match(RE.titulo))) {
+        var n = m[1].length;
+        html += '<h' + (n + 2) + ' class="md-t' + n + '">' + inline(m[2]) + '</h' + (n + 2) + '>';
+        i++; continue;
+      }
+      if (RE.separador.test(l)) { html += '<hr>'; i++; continue; }
+      if (RE.cita.test(l)) {
+        var c = [];
+        while (i < L.length && RE.cita.test(L[i])) { c.push(L[i].replace(RE.cita, '')); i++; }
+        html += '<blockquote>' + md(c.join('\n')) + '</blockquote>';
+        continue;
+      }
+      if (RE.vineta.test(l) || RE.numero.test(l)) {
+        var ord = RE.numero.test(l), re = ord ? RE.numero : RE.vineta, items = [];
+        while (i < L.length && re.test(L[i])) {
+          var item = L[i].replace(re, ''); i++;
+          while (i < L.length && L[i].trim() && /^\s{2,}/.test(L[i]) && !esBloque(L[i])) { item += '\n' + L[i].trim(); i++; }
+          items.push('<li>' + inline(item) + '</li>');
+        }
+        html += (ord ? '<ol>' : '<ul>') + items.join('') + (ord ? '</ol>' : '</ul>');
+        continue;
+      }
+      var p = [];
+      while (i < L.length && L[i].trim() && !(p.length && esBloque(L[i]))) { p.push(L[i]); i++; }
+      html += '<p>' + inline(p.join('\n')) + '</p>';
+    }
+    return html;
+  }
+  /* Para títulos y textos de una línea: solo negrita, cursiva, tachado (sin bloques) */
+  md.linea = function (s) { return s ? formato(esc(normalizar(s))).replace(/\n/g, ' ') : ''; };
+  /* Texto sin marcas, para sitios donde no cabe formato (título de la pestaña…) */
+  md.plano = function (s) { return String(s || '').replace(/(\*\*|__|~~|\*)/g, '').trim(); };
+  window.CucharillasMD = md;
+})();
+</script>
 <script>
 (function () {
   'use strict';
@@ -617,14 +724,17 @@ body.sin-scroll { overflow: hidden; }
 
   /* ---------- Utilidades ---------- */
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-  /* Textos largos: Markdown (markdown.js). Si faltara el archivo, texto plano en párrafos. */
+  /* Textos largos: Markdown (intérprete incrustado más arriba en esta misma página). */
   function parrafos(s) {
     if (!s) return '';
     if (window.CucharillasMD) return window.CucharillasMD(s);
     return s.split(/\n\s*\n/).map(function (p) { return '<p>' + esc(p.trim()).replace(/\n/g, '<br>') + '</p>'; }).join('');
   }
+  /* Títulos y textos de una línea: negrita y cursiva; plano() quita las marcas */
+  function lin(s) { return window.CucharillasMD ? window.CucharillasMD.linea(s || '') : esc(s || ''); }
+  function plano(s) { return window.CucharillasMD ? window.CucharillasMD.plano(s) : String(s || ''); }
   function imagen(src, alt, tono) {
-    if (src) return '<img src="' + esc(src) + '" alt="' + esc(alt || '') + '">';
+    if (src) return '<img src="' + esc(src) + '" alt="' + esc(plano(alt)) + '">';
     var color = tono === 'verde' ? '#7BC6A4' : tono === 'rojo' ? '#E5484D' : '#4A90E2';
     return '<div class="imagen-vacia ' + (tono || 'azul') + '"><svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="' + color +
       '" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity=".55"><rect x="3" y="4.5" width="18" height="15" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8.5 8.5"/></svg></div>';
@@ -637,13 +747,13 @@ body.sin-scroll { overflow: hidden; }
   /* ---------- Pantalla 1 ---------- */
   var tonos = ['icono-rojo', 'icono-azul', 'icono-lila', 'icono-verde'];
   function pintarIntro() {
-    $('introTitulo').textContent = D.tituloJuego;
-    document.title = D.tituloJuego + ' · Cucharillas';
+    $('introTitulo').innerHTML = lin(D.tituloJuego);
+    document.title = plano(D.tituloJuego) + ' · Cucharillas';
     $('introTexto').innerHTML = parrafos(D.explicacion);
     $('introLista').innerHTML = D.opciones.map(function (o, i) {
-      var ruta = (o.subtitulo1 && o.subtitulo2) ? esc(o.subtitulo1) + ' → ' + esc(o.subtitulo2) : '';
+      var ruta = (o.subtitulo1 && o.subtitulo2) ? lin(o.subtitulo1) + ' → ' + lin(o.subtitulo2) : '';
       return '<div class="pastilla"><div class="icono-pastilla ' + tonos[i] + '">' + (i + 1) + '</div>' +
-        '<div class="pastilla-txt"><strong>' + esc(o.titulo) + '</strong>' + (ruta ? '<small>' + ruta + '</small>' : '') + '</div></div>';
+        '<div class="pastilla-txt"><strong>' + lin(o.titulo) + '</strong>' + (ruta ? '<small>' + ruta + '</small>' : '') + '</div></div>';
     }).join('');
   }
   pintarIntro();
@@ -672,7 +782,7 @@ body.sin-scroll { overflow: hidden; }
     })(caja);
     var pluma = document.createElement('span'); pluma.className = 'pluma';
     if (letras.length) letras[0].parentNode.insertBefore(pluma, letras[0]); else caja.appendChild(pluma);
-    $('bibliaCita').textContent = D.citaBiblica;
+    $('bibliaCita').innerHTML = lin(D.citaBiblica);
     $('bibliaCita').classList.remove('visible');
     $('btnBibliaSeguir').classList.add('oculto');
     $('btnSaltar').classList.remove('oculto');
@@ -680,9 +790,11 @@ body.sin-scroll { overflow: hidden; }
 
     var i = 0;
     clearTimeout(tEscritura);
+    caja.classList.remove('completo');
     function terminar() {
       clearTimeout(tEscritura);
       pluma.remove();
+      caja.classList.add('completo');
       $('bibliaCita').classList.add('visible');
       $('btnSaltar').classList.add('oculto');
       $('btnBibliaSeguir').classList.remove('oculto');
@@ -692,6 +804,10 @@ body.sin-scroll { overflow: hidden; }
       if (i >= letras.length) { terminar(); return; }
       var s = letras[i++], c = s.textContent;
       s.classList.add('vista');
+      var bq = s.closest('blockquote'); if (bq) bq.classList.add('vista');
+      var bloque = s.closest('p,li,h3,h4,h5,ul,ol,blockquote');
+      while (bloque && bloque.parentNode !== caja) bloque = bloque.parentNode;
+      if (bloque && bloque.previousElementSibling && bloque.previousElementSibling.nodeName === 'HR') bloque.previousElementSibling.classList.add('vista');
       s.parentNode.insertBefore(pluma, s.nextSibling);
       var pausa = 34;
       if (/[,;:]/.test(c)) pausa = 220; else if (/[.!?»]/.test(c)) pausa = 420;
@@ -722,7 +838,7 @@ body.sin-scroll { overflow: hidden; }
     var et = $('opEtiqueta');
     et.textContent = n === 1 ? 'Punto de partida' : 'Punto de llegada';
     et.className = 'chip ' + (n === 1 ? 'chip-rojo' : 'chip-verde');
-    $('opSubtitulo').textContent = n === 1 ? o.subtitulo1 : o.subtitulo2;
+    $('opSubtitulo').innerHTML = lin(n === 1 ? o.subtitulo1 : o.subtitulo2);
     $('opImagen').innerHTML = imagen(n === 1 ? o.imagen1 : o.imagen2, n === 1 ? o.subtitulo1 : o.subtitulo2, n === 1 ? 'rojo' : 'verde');
   }
   function abrirOpcion(i) {
@@ -730,11 +846,11 @@ body.sin-scroll { overflow: hidden; }
     var o = D.opciones[i];
     $('opNumero').textContent = 'Opción fundamental ' + (i + 1) + ' de 4';
     $('opPuntos').innerHTML = D.opciones.map(function (_, k) { return '<i class="' + (k < i ? 'hecho' : k === i ? 'actual' : '') + '"></i>'; }).join('');
-    $('opTitulo').textContent = o.titulo;
+    $('opTitulo').innerHTML = lin(o.titulo);
     pintarArriba(1);
     $('opTexto').innerHTML = parrafos(o.texto1);
-    $('sliderDesde').textContent = o.subtitulo1;
-    $('sliderHasta').textContent = o.subtitulo2;
+    $('sliderDesde').innerHTML = lin(o.subtitulo1);
+    $('sliderHasta').innerHTML = lin(o.subtitulo2);
     slider.className = 'slider bloqueado';
     setP(0, false);
     $('sliderAyuda').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Lee el texto completo para activarlo';
@@ -808,7 +924,7 @@ body.sin-scroll { overflow: hidden; }
       seg.className = k < paso ? 'hecho' : k === paso ? 'actual' : '';
     });
     $('hojaImagen').innerHTML = imagen(p.imagen, p.titulo, 'rojo');
-    $('hojaTitulo').textContent = p.titulo;
+    $('hojaTitulo').innerHTML = lin(p.titulo);
     $('hojaTexto').innerHTML = parrafos(p.texto);
     nota.value = notas[clave] || '';
     nota.oninput = function () { notas[clave] = nota.value; guardarNotas(); };
@@ -861,7 +977,7 @@ body.sin-scroll { overflow: hidden; }
       arriba.classList.remove('saliendo'); texto.classList.remove('saliendo');
       var btn = $('btnSiguienteOpcion');
       if (op < 3) {
-        btn.innerHTML = '<small>Pasa a la opción fundamental nº ' + (op + 2) + ':</small><span>' + esc(D.opciones[op + 1].titulo) + '</span>';
+        btn.innerHTML = '<small>Pasa a la opción fundamental nº ' + (op + 2) + ':</small><span>' + lin(D.opciones[op + 1].titulo) + '</span>';
       } else {
         btn.innerHTML = '<small>Has recorrido las 4 opciones fundamentales</small><span>Ir a la oración final</span>';
       }
@@ -880,9 +996,9 @@ body.sin-scroll { overflow: hidden; }
     D.opciones.forEach(function (o, i) {
       var items = o.pasos.map(function (p, j) {
         var n = (notas['o' + i + 'p' + j] || '').trim();
-        return n ? '<p class="nota-item"><b>' + esc(p.titulo) + ':</b> ' + esc(n).replace(/\n/g, '<br>') + '</p>' : '';
+        return n ? '<p class="nota-item"><b>' + lin(p.titulo) + ':</b> ' + esc(n).replace(/\n/g, '<br>') + '</p>' : '';
       }).join('');
-      if (items) html += '<div class="notas-grupo"><h4>' + (i + 1) + '. ' + esc(o.titulo) + '</h4>' + items + '</div>';
+      if (items) html += '<div class="notas-grupo"><h4>' + (i + 1) + '. ' + lin(o.titulo) + '</h4>' + items + '</div>';
     });
     $('finalNotas').innerHTML = html ? '<h3 class="seccion-titulo">Tus notas del recorrido</h3>' + html + '<div style="height:10px"></div>' : '';
     mostrar('pFinal');
