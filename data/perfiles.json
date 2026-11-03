@@ -246,6 +246,19 @@
       "aprobado": true,
       "actualizado": "2026-11-01T17:06:02.672Z",
       "claveHash": "49f14a72937ec47bbc2775dd7e7fbc665f2c83a564f526dd73e18040859a5714"
+    },
+    {
+      "id": "7fc3a65a809b",
+      "nombre": "Carmen",
+      "emoji": "🌻",
+      "color": "#E8F4FD",
+      "sobreMi": "Dios me mueve a servir y a estar para los demás, donde sea y cuando sea. Tengo un libro y hablo de Jesús en redes sociales para que llegue a quien no lo conoce. ♥️",
+      "gustos": "Pasar tiempo con mis amigos y familia. Pasear por la playa y viajar.",
+      "intencion": "Por los que sufren, para que encuentren el consuelo en Dios. \nPara que pueda seguir sirviendo donde haga falta. \nPor este grupo de gente buena.",
+      "foto": "img/perfiles/7fc3a65a809b.jpg?v=1793703509998",
+      "aprobado": false,
+      "actualizado": "2026-11-03T10:58:30.359Z",
+      "claveHash": "c164f54f31033b7a64441011b53c0b5a21e8f4586122835889f31d7997059a09"
     }
   ]
 }
