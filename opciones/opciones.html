@@ -464,11 +464,32 @@ body.sin-scroll { overflow: hidden; }
       })
     };
   }
-  function cargar() {
-    try { var l = localStorage.getItem(CLAVE_CONTENIDO); if (l) return normalizar(JSON.parse(l)); } catch (e) {}
-    return normalizar(window.OPCIONES_CONTENIDO);
+  /* Borrador del admin (solo en el dispositivo del administrador): IndexedDB, o localStorage antiguo */
+  function leerBorrador() {
+    return new Promise(function (ok) {
+      try {
+        if (!window.indexedDB) { ok(null); return; }
+        var r = indexedDB.open('cucharillas', 1);
+        r.onupgradeneeded = function () { r.result.createObjectStore('datos'); };
+        r.onerror = function () { ok(null); };
+        r.onsuccess = function () {
+          try {
+            var q = r.result.transaction('datos').objectStore('datos').get(CLAVE_CONTENIDO);
+            q.onsuccess = function () { ok(q.result || null); };
+            q.onerror = function () { ok(null); };
+          } catch (e) { ok(null); }
+        };
+      } catch (e) { ok(null); }
+    });
   }
-  var D = cargar();
+  function cargar() {
+    return leerBorrador().then(function (d) {
+      if (d) return normalizar(d);
+      try { var l = localStorage.getItem(CLAVE_CONTENIDO); if (l) return normalizar(JSON.parse(l)); } catch (e) {}
+      return normalizar(window.OPCIONES_CONTENIDO);
+    });
+  }
+  var D = normalizar(window.OPCIONES_CONTENIDO);
   var notas = {};
   try { notas = JSON.parse(localStorage.getItem(CLAVE_NOTAS)) || {}; } catch (e) {}
   function guardarNotas() { try { localStorage.setItem(CLAVE_NOTAS, JSON.stringify(notas)); } catch (e) {} }
@@ -492,14 +513,18 @@ body.sin-scroll { overflow: hidden; }
 
   /* ---------- Pantalla 1 ---------- */
   var tonos = ['icono-rojo', 'icono-azul', 'icono-lila', 'icono-verde'];
-  $('introTitulo').textContent = D.tituloJuego;
-  document.title = D.tituloJuego + ' · Cucharillas';
-  $('introTexto').innerHTML = parrafos(D.explicacion);
-  $('introLista').innerHTML = D.opciones.map(function (o, i) {
-    var ruta = (o.subtitulo1 && o.subtitulo2) ? esc(o.subtitulo1) + ' → ' + esc(o.subtitulo2) : '';
-    return '<div class="pastilla"><div class="icono-pastilla ' + tonos[i] + '">' + (i + 1) + '</div>' +
-      '<div class="pastilla-txt"><strong>' + esc(o.titulo) + '</strong>' + (ruta ? '<small>' + ruta + '</small>' : '') + '</div></div>';
-  }).join('');
+  function pintarIntro() {
+    $('introTitulo').textContent = D.tituloJuego;
+    document.title = D.tituloJuego + ' · Cucharillas';
+    $('introTexto').innerHTML = parrafos(D.explicacion);
+    $('introLista').innerHTML = D.opciones.map(function (o, i) {
+      var ruta = (o.subtitulo1 && o.subtitulo2) ? esc(o.subtitulo1) + ' → ' + esc(o.subtitulo2) : '';
+      return '<div class="pastilla"><div class="icono-pastilla ' + tonos[i] + '">' + (i + 1) + '</div>' +
+        '<div class="pastilla-txt"><strong>' + esc(o.titulo) + '</strong>' + (ruta ? '<small>' + ruta + '</small>' : '') + '</div></div>';
+    }).join('');
+  }
+  pintarIntro();
+  cargar().then(function (d) { D = d; pintarIntro(); });
   $('btnComenzar').onclick = function () { mostrar('pBiblia'); escribirBiblia(); };
 
   /* ---------- Pantalla 2: pergamino ---------- */

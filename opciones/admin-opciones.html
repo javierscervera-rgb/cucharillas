@@ -174,12 +174,54 @@ details.tarjeta[open] > summary::after { transform: rotate(90deg); }
       })
     };
   }
-  function hayBorrador() { try { return !!localStorage.getItem(CLAVE); } catch (e) { return false; } }
+  /* Almacén del borrador: IndexedDB (cientos de MB) con respaldo en localStorage */
+  var BD = (function () {
+    var bd = null;
+    function abrir() {
+      if (bd) return bd;
+      bd = new Promise(function (ok, ko) {
+        if (!window.indexedDB) { ko(new Error('sin indexedDB')); return; }
+        var r = indexedDB.open('cucharillas', 1);
+        r.onupgradeneeded = function () { r.result.createObjectStore('datos'); };
+        r.onsuccess = function () { ok(r.result); };
+        r.onerror = function () { ko(r.error); };
+      });
+      return bd;
+    }
+    function tx(modo, fn) {
+      return abrir().then(function (db) {
+        return new Promise(function (ok, ko) {
+          var t = db.transaction('datos', modo), almacen = t.objectStore('datos'), q = fn(almacen);
+          t.oncomplete = function () { ok(q && q.result); };
+          t.onerror = t.onabort = function () { ko(t.error); };
+        });
+      });
+    }
+    return {
+      leer: function (k) { return tx('readonly', function (a) { return a.get(k); }); },
+      escribir: function (k, v) { return tx('readwrite', function (a) { return a.put(v, k); }); },
+      borrar: function (k) { return tx('readwrite', function (a) { return a.delete(k); }); }
+    };
+  })();
+  var borrador = false;
+  function hayBorrador() { return borrador; }
   function cargar() {
-    try { var l = localStorage.getItem(CLAVE); if (l) return normalizar(JSON.parse(l)); } catch (e) {}
-    return normalizar(window.OPCIONES_CONTENIDO);
+    var antiguo = null;
+    try { var l = localStorage.getItem(CLAVE); if (l) antiguo = JSON.parse(l); } catch (e) {}
+    return BD.leer(CLAVE).then(function (d) {
+      if (d) { borrador = true; return normalizar(d); }
+      if (antiguo) {           // borrador de la versión anterior: se pasa a IndexedDB
+        borrador = true;
+        return BD.escribir(CLAVE, antiguo).then(function () { try { localStorage.removeItem(CLAVE); } catch (e) {} return normalizar(antiguo); },
+                                                function () { return normalizar(antiguo); });
+      }
+      return normalizar(window.OPCIONES_CONTENIDO);
+    }, function () {
+      if (antiguo) { borrador = true; return normalizar(antiguo); }
+      return normalizar(window.OPCIONES_CONTENIDO);
+    });
   }
-  var D = cargar();
+  var D = normalizar(window.OPCIONES_CONTENIDO);
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function obtener(ruta) { return ruta.split('.').reduce(function (o, k) { return o[k]; }, D); }
@@ -192,9 +234,17 @@ details.tarjeta[open] > summary::after { transform: rotate(90deg); }
   function estado(txt, tipo) { var b = $('barraEstado'); b.textContent = txt; b.className = 'barra-estado' + (tipo ? ' ' + tipo : ''); }
   function cambiado() { estado('Guardando…'); clearTimeout(tGuardar); tGuardar = setTimeout(guardar, 500); actualizarResumenes(); }
   function guardar() {
-    try { localStorage.setItem(CLAVE, JSON.stringify(D)); estado('Guardado en este dispositivo ✓', 'ok'); }
-    catch (e) { estado('⚠ No hay espacio suficiente. Usa enlaces a imágenes en vez de subir fotos.', 'error'); }
-    pintarEstadoLocal();
+    var copia = JSON.parse(JSON.stringify(D));
+    return BD.escribir(CLAVE, copia).then(function () {
+      borrador = true;
+      try { localStorage.removeItem(CLAVE); } catch (e) {}
+      estado('Guardado en este dispositivo ✓', 'ok');
+      pintarEstadoLocal();
+    }, function () {
+      try { localStorage.setItem(CLAVE, JSON.stringify(D)); borrador = true; estado('Guardado en este dispositivo ✓', 'ok'); }
+      catch (e) { estado('⚠ No se pudo guardar. Pulsa «Descargar archivo» para no perder los cambios.', 'error'); }
+      pintarEstadoLocal();
+    });
   }
   function pintarEstadoLocal() {
     var c = $('estadoLocal');
@@ -222,11 +272,11 @@ details.tarjeta[open] > summary::after { transform: rotate(90deg); }
         var img = new Image();
         img.onerror = ko;
         img.onload = function () {
-          var max = 1000, s = Math.min(1, max / Math.max(img.width, img.height));
+          var max = 900, s = Math.min(1, max / Math.max(img.width, img.height));
           var c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
           var ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
           ctx.drawImage(img, 0, 0, c.width, c.height);
-          ok(c.toDataURL('image/jpeg', 0.8));
+          ok(c.toDataURL('image/jpeg', 0.75));
         };
         img.src = r.result;
       };
@@ -325,7 +375,11 @@ details.tarjeta[open] > summary::after { transform: rotate(90deg); }
   }
 
   /* ---------- Acciones ---------- */
-  $('vistaPrevia').onclick = function () { clearTimeout(tGuardar); guardar(); window.open('opciones.html', '_blank'); };
+  $('vistaPrevia').onclick = function () {
+    clearTimeout(tGuardar);
+    var v = window.open('', '_blank');
+    guardar().then(function () { if (v) v.location.href = 'opciones.html'; else location.href = 'opciones.html'; });
+  };
 
   $('descargar').onclick = function () {
     clearTimeout(tGuardar); guardar();
@@ -357,11 +411,12 @@ details.tarjeta[open] > summary::after { transform: rotate(90deg); }
   $('descartar').onclick = function () {
     if (!confirm('¿Descartar los cambios guardados en este dispositivo y volver al contenido publicado?')) return;
     try { localStorage.removeItem(CLAVE); } catch (e) {}
-    D = normalizar(window.OPCIONES_CONTENIDO);
-    construir(); estado('Cambios descartados');
+    var fin = function () { borrador = false; D = normalizar(window.OPCIONES_CONTENIDO); construir(); estado('Cambios descartados'); };
+    BD.borrar(CLAVE).then(fin, fin);
   };
 
-  construir();
+  estado('Cargando…');
+  cargar().then(function (d) { D = d; construir(); estado(''); });
 })();
 </script>
 </body>
