@@ -275,6 +275,62 @@ body.sin-scroll { overflow: hidden; }
 .notas-grupo .nota-item { font-size: 14px; color: var(--texto-secundario); margin: 6px 0 0; line-height: 1.5; }
 .notas-grupo .nota-item b { color: var(--texto-principal); font-weight: 600; }
 
+/* ---------- Pantalla de firma ---------- */
+.firma-cabecera { text-align: center; margin: 4px 0 18px; }
+.firma-cabecera h2 { margin: 0 0 8px; font-size: 26px; font-weight: 700; }
+.firma-cabecera p { margin: 0; color: var(--texto-secundario); font-size: 15px; line-height: 1.5; }
+.compromiso-texto {
+  font-family: "Cormorant Garamond", Georgia, serif; font-size: 20px; line-height: 1.5; text-align: center;
+  color: #17305C; margin: 0 0 18px; padding: 0 6px;
+}
+.firma-marco {
+  position: relative; border-radius: 20px; padding: 6px;
+  background: linear-gradient(135deg, #E9C66B, #C9963A 50%, #F1D78E);
+  box-shadow: 0 8px 22px rgba(150,105,30,.22);
+}
+.firma-lienzo-caja { position: relative; border-radius: 15px; overflow: hidden; background: #FCF6E8; }
+#firmaLienzo { display: block; width: 100%; height: 190px; touch-action: none; cursor: crosshair; }
+.firma-pista {
+  position: absolute; left: 22px; right: 22px; bottom: 44px; border-bottom: 1.5px dashed rgba(23,48,92,.25);
+  pointer-events: none;
+}
+.firma-placeholder {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 8px;
+  color: rgba(23,48,92,.38); font-size: 15px; font-weight: 600; pointer-events: none; transition: opacity .25s;
+}
+.firma-placeholder.oculto-suave { opacity: 0; }
+.firma-acciones { display: flex; gap: 10px; margin-top: 16px; }
+.firma-acciones .boton-secundario { margin-top: 0; flex: 0 0 34%; }
+.firma-acciones .boton-principal:disabled { opacity: .4; box-shadow: none; cursor: default; }
+
+/* ---------- Pantalla del Award ---------- */
+#pAward { text-align: center; }
+.award-titulo { margin: 6px 0 4px; font-size: 28px; font-weight: 700; color: #1E63B8; }
+.award-sub { margin: 0 0 8px; color: var(--texto-secundario); font-size: 15px; }
+.award-boton {
+  position: relative; display: block; width: 78%; max-width: 300px; margin: 18px auto 10px; padding: 0;
+  border: 0; background: none; cursor: pointer; -webkit-touch-callout: none;
+}
+.award-boton::before {
+  content: ""; position: absolute; inset: 8%; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,214,90,.55), rgba(255,214,90,0) 70%);
+  animation: brillo 2.6s ease-in-out infinite; z-index: 0;
+}
+.award-boton img {
+  position: relative; z-index: 1; width: 100%; height: auto; display: block;
+  filter: drop-shadow(0 14px 22px rgba(120,80,10,.32));
+  animation: aparecerAward .9s cubic-bezier(.2,1.4,.4,1) both, flotar 3.2s ease-in-out .9s infinite;
+}
+.award-boton:active img { transform: scale(.96); }
+@keyframes aparecerAward { from { opacity: 0; transform: scale(.4) rotate(-12deg); } to { opacity: 1; transform: none; } }
+@keyframes flotar { 50% { transform: translateY(-8px); } }
+@keyframes brillo { 50% { transform: scale(1.12); opacity: .7; } }
+.award-mensaje {
+  display: inline-flex; align-items: center; gap: 8px; margin: 6px 0 22px; padding: 12px 18px; border-radius: 999px;
+  background: #FFF6DC; color: #8A5A00; font-weight: 600; font-size: 15px;
+}
+.award-mensaje.listo { background: var(--verde-suave); color: var(--verde-oscuro); }
+
 /* ---------- Navegación inferior ---------- */
 .nav-inferior {
   position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around;
@@ -377,8 +433,46 @@ body.sin-scroll { overflow: hidden; }
       <div class="oracion" id="finalTexto"></div>
     </div>
     <div id="finalNotas"></div>
-    <a class="boton-principal" href="index.html" style="display:block;text-align:center;text-decoration:none;">Volver al inicio</a>
+    <button class="boton-principal" id="btnIrFirma">Firmar mi compromiso ✍️</button>
     <button class="boton-secundario" id="btnRepetir">Repetir el recorrido</button>
+  </section>
+
+  <!-- PANTALLA FIRMA -->
+  <section class="pantalla" id="pFirma">
+    <div class="firma-cabecera">
+      <h2>Mi compromiso</h2>
+      <p>Firma con el dedo dentro del recuadro.</p>
+    </div>
+    <p class="compromiso-texto">Con la gracia de Dios, me comprometo a vivir mi opción fundamental.</p>
+    <div class="firma-marco">
+      <div class="firma-lienzo-caja">
+        <canvas id="firmaLienzo" aria-label="Recuadro para firmar"></canvas>
+        <div class="firma-pista"></div>
+        <div class="firma-placeholder" id="firmaPlaceholder">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>
+          Firma aquí
+        </div>
+      </div>
+    </div>
+    <div class="firma-acciones">
+      <button class="boton-secundario" id="btnBorrarFirma" type="button">Borrar</button>
+      <button class="boton-principal" id="btnFirmar" type="button" disabled>Firmar</button>
+    </div>
+  </section>
+
+  <!-- PANTALLA AWARD -->
+  <section class="pantalla" id="pAward">
+    <h2 class="award-titulo">¡Enhorabuena!</h2>
+    <p class="award-sub">Has firmado tu compromiso.</p>
+    <button class="award-boton" id="btnAward" type="button" aria-label="Descargar el Award">
+      <img src="award-insignia.png" alt="Award Opciones fundamentales" draggable="false">
+    </button>
+    <div class="award-mensaje" id="awardMensaje">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+      <span>Pulsa sobre la imagen para descargar el Award</span>
+    </div>
+    <a class="boton-secundario" href="index.html" style="display:block;text-decoration:none;box-sizing:border-box;">Volver al inicio</a>
+    <button class="boton-texto" id="btnRefirmar" type="button" style="margin-top:6px">Volver a firmar</button>
   </section>
 </main>
 
@@ -748,6 +842,148 @@ body.sin-scroll { overflow: hidden; }
     mostrar('pFinal');
   }
   $('btnRepetir').onclick = function () { mostrar('pIntro'); };
+
+  /* ---------- Firma ---------- */
+  var AWARD = {
+    insignia: 'award-insignia.png',
+    certificado: 'award-certificado.jpg',
+    anchoBase: 1024,                                  // ancho original del certificado
+    caja: { x: 140, y: 1224, w: 744, h: 114 },        // zona de firma dentro del recuadro dorado
+    nombreArchivo: 'Mi-compromiso.png'
+  };
+  var TINTA = '#17305C';
+  var lienzo = $('firmaLienzo'), ctxF = null, trazos = [], trazo = null;
+
+  function prepararLienzo() {
+    var r = lienzo.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    lienzo.width = Math.round(r.width * dpr);
+    lienzo.height = Math.round(r.height * dpr);
+    ctxF = lienzo.getContext('2d');
+    ctxF.setTransform(dpr, 0, 0, dpr, 0, 0);
+    redibujar();
+  }
+  function dibujarTrazos(ctx, lista, s, dx, dy, grosor) {
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = TINTA; ctx.fillStyle = TINTA; ctx.lineWidth = grosor;
+    lista.forEach(function (t) {
+      var X = function (p) { return dx + p.x * s; }, Y = function (p) { return dy + p.y * s; };
+      if (t.length === 1) { ctx.beginPath(); ctx.arc(X(t[0]), Y(t[0]), grosor / 2, 0, Math.PI * 2); ctx.fill(); return; }
+      ctx.beginPath(); ctx.moveTo(X(t[0]), Y(t[0]));
+      for (var i = 1; i < t.length - 1; i++) {
+        ctx.quadraticCurveTo(X(t[i]), Y(t[i]), (X(t[i]) + X(t[i + 1])) / 2, (Y(t[i]) + Y(t[i + 1])) / 2);
+      }
+      ctx.lineTo(X(t[t.length - 1]), Y(t[t.length - 1]));
+      ctx.stroke();
+    });
+  }
+  function redibujar() {
+    if (!ctxF) return;
+    ctxF.clearRect(0, 0, lienzo.width, lienzo.height);
+    dibujarTrazos(ctxF, trazos, 1, 0, 0, 2.6);
+  }
+  function puntosTotales() { return trazos.reduce(function (n, t) { return n + t.length; }, 0); }
+  function actualizarFirma() {
+    $('firmaPlaceholder').classList.toggle('oculto-suave', trazos.length > 0);
+    $('btnFirmar').disabled = puntosTotales() < 8;
+  }
+  function punto(e) { var r = lienzo.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+  lienzo.addEventListener('pointerdown', function (e) {
+    e.preventDefault();
+    try { lienzo.setPointerCapture(e.pointerId); } catch (err) {}
+    trazo = [punto(e)]; trazos.push(trazo);
+    redibujar(); actualizarFirma();
+  });
+  lienzo.addEventListener('pointermove', function (e) {
+    if (!trazo) return;
+    var evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    (evs.length ? evs : [e]).forEach(function (ev) { trazo.push(punto(ev)); });
+    redibujar();
+  });
+  function finTrazo() { trazo = null; actualizarFirma(); }
+  lienzo.addEventListener('pointerup', finTrazo);
+  lienzo.addEventListener('pointercancel', finTrazo);
+  window.addEventListener('resize', function () { if ($('pFirma').classList.contains('activa')) prepararLienzo(); });
+
+  function abrirFirma() {
+    trazos = []; trazo = null;
+    mostrar('pFirma');
+    requestAnimationFrame(function () { prepararLienzo(); actualizarFirma(); });
+  }
+  $('btnIrFirma').onclick = abrirFirma;
+  $('btnRefirmar').onclick = abrirFirma;
+  $('btnBorrarFirma').onclick = function () { trazos = []; redibujar(); actualizarFirma(); };
+
+  /* ---------- Award: certificado con la firma ---------- */
+  var certificadoListo = null;   // Promise<Blob>
+  function cargarImagen(src) {
+    return new Promise(function (ok, ko) { var i = new Image(); i.onload = function () { ok(i); }; i.onerror = ko; i.src = src; });
+  }
+  function generarCertificado() {
+    var firma = trazos.slice();
+    return cargarImagen(AWARD.certificado).then(function (img) {
+      var c = document.createElement('canvas');
+      c.width = img.naturalWidth; c.height = img.naturalHeight;
+      var ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      var k = img.naturalWidth / AWARD.anchoBase;
+      var caja = { x: AWARD.caja.x * k, y: AWARD.caja.y * k, w: AWARD.caja.w * k, h: AWARD.caja.h * k };
+      var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      firma.forEach(function (t) { t.forEach(function (p) {
+        if (p.x < minX) minX = p.x; if (p.y < minY) minY = p.y; if (p.x > maxX) maxX = p.x; if (p.y > maxY) maxY = p.y;
+      }); });
+      var bw = Math.max(maxX - minX, 1), bh = Math.max(maxY - minY, 1);
+      var s = Math.min(caja.w / bw, caja.h / bh, 3 * k);
+      var dx = caja.x + (caja.w - bw * s) / 2 - minX * s;
+      var dy = caja.y + (caja.h - bh * s) / 2 - minY * s;
+      var grosor = Math.min(Math.max(2.6 * s, 2.4 * k), 6 * k);
+      dibujarTrazos(ctx, firma, s, dx, dy, grosor);
+      return new Promise(function (ok, ko) {
+        try { c.toBlob(function (b) { b ? ok(b) : ko(new Error('sin imagen')); }, 'image/png'); } catch (e) { ko(e); }
+      });
+    });
+  }
+  $('btnFirmar').onclick = function () {
+    if ($('btnFirmar').disabled) return;
+    blobListo = null;
+    certificadoListo = generarCertificado();
+    // Se deja preparado para que la descarga sea instantánea al pulsar
+    certificadoListo.then(function (b) { blobListo = b; }, function () {});
+    var m = $('awardMensaje'); m.classList.remove('listo');
+    m.querySelector('span').textContent = 'Pulsa sobre la imagen para descargar el Award';
+    mostrar('pAward');
+  };
+  function descargaDirecta(blob) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = AWARD.nombreArchivo;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+  }
+  function hecho() {
+    var m = $('awardMensaje'); m.classList.add('listo');
+    m.querySelector('span').textContent = '¡Award descargado! Puedes pulsar de nuevo si lo necesitas';
+  }
+  function entregar(blob) {
+    var archivo = null;
+    try { archivo = new File([blob], AWARD.nombreArchivo, { type: 'image/png' }); } catch (e) {}
+    var movil = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    // En el móvil, el menú de compartir permite "Guardar imagen" directamente en la galería
+    if (movil && archivo && navigator.canShare && navigator.canShare({ files: [archivo] })) {
+      navigator.share({ files: [archivo], title: 'Mi compromiso' }).then(hecho, function (e) {
+        if (!e || e.name !== 'AbortError') { descargaDirecta(blob); hecho(); }
+      });
+      return;
+    }
+    descargaDirecta(blob); hecho();
+  }
+  var blobListo = null;
+  $('btnAward').onclick = function () {
+    if (!certificadoListo) return;
+    if (blobListo) { entregar(blobListo); return; }
+    var m = $('awardMensaje'); m.querySelector('span').textContent = 'Preparando tu Award…';
+    certificadoListo.then(function (b) { blobListo = b; entregar(b); }, function () {
+      m.querySelector('span').textContent = 'No se pudo crear la imagen. Comprueba que la app está publicada en la web.';
+    });
+  };
 })();
 </script>
 </body>
