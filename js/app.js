@@ -33,6 +33,25 @@
     check: s('<path d="m5 12.5 4.5 4.5L19 7.5"/>'),
     foto: s('<rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M8.5 6 10 3.5h4L15.5 6"/>'),
     articulo: s('<path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14.5 3v4.5H19M8.5 12h7M8.5 15.5h7M8.5 8.5h3"/>'),
+    devocionario: s('<path d="M6 3.5h11.5a1 1 0 0 1 1 1V17H7.5A2 2 0 0 0 5.5 19V5a1.5 1.5 0 0 1 .5-1.5Z"/><path d="M5.5 19a2 2 0 0 0 2 2h11v-4"/><path d="M12 6.5v7M9.5 9h5"/>'),
+    paloma: s('<path d="M3.5 13.5c2.5.5 5-.5 6.5-2.5l1.5-5c.4-1.3 2.2-1.5 2.9-.3l.6 1.1 3.5 1.2-3 1.5c.3 5-3.3 8.5-8.5 8.5L5 20v-3.2C4 16 3.5 15 3.5 13.5Z"/><path d="M14.3 7.3h.01"/><path d="M10 11c1 1.5 3 2 5 1.5"/>'),
+    llama: s('<path d="M12 3c.8 3 5 5.2 5 10a5 5 0 0 1-10 0c0-2.6 1.6-3.8 2-6 1.2 1 2 2.2 2 3.5C12.6 8.3 12.4 5.5 12 3Z"/><path d="M12 20a2 2 0 0 1-2-2c0-1.5 2-3 2-3s2 1.5 2 3a2 2 0 0 1-2 2Z"/>'),
+    custodia: s('<circle cx="12" cy="8.5" r="3"/><path d="M12 2.5v1.5M12 13v1.5M6 8.5h1.5M16.5 8.5H18M7.8 4.3l1 1M15.2 11.7l1 1M7.8 12.7l1-1M15.2 5.3l1-1"/><path d="M12 14.5V19M9.5 16.5h5M8 21h8"/>'),
+    hostia: s('<circle cx="12" cy="12" r="8"/><path d="M12 8v8M8.5 11h7"/>'),
+    caliz: s('<path d="M6.5 4h11c0 5-2.5 8-5.5 8S6.5 9 6.5 4Z"/><path d="M12 12v6M8.5 20.5h7"/><path d="M8.5 20.5c0-1.5 1.5-2.5 3.5-2.5s3.5 1 3.5 2.5"/>'),
+    sol: s('<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>'),
+    luna: s('<path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10Z"/><path d="M17 3.5v3M15.5 5h3"/>'),
+    angel: s('<ellipse cx="12" cy="3.6" rx="2.8" ry="1"/><circle cx="12" cy="8" r="2.4"/><path d="M9.2 20.5 10 12.5h4l.8 8Z"/><path d="M10 13 4 9.5c0 3.5 2 6 5.5 6.5M14 13l6-3.5c0 3.5-2 6-5.5 6.5"/>'),
+    lupa: s('<circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5.5 5.5"/><path d="M10.5 8v5M8 10.5h5"/>'),
+    cruz: s('<path d="M12 3v18M7 8.5h10"/>'),
+    corona: s('<path d="M4.5 17.5 3.5 8l4.8 3.8L12 6l3.7 5.8L20.5 8l-1 9.5Z"/><path d="M5 20.5h14"/><circle cx="12" cy="4" r=".6"/>'),
+    rosa: s('<path d="M12 13.5c-3 0-5-2.2-5-5 1.8 0 3 1 3 1s.3-3 2-4.5c1.7 1.5 2 4.5 2 4.5s1.2-1 3-1c0 2.8-2 5-5 5Z"/><path d="M12 13.5V21M12 17.5c-1.8 0-3.2-.8-4-2.2M12 18.5c1.8 0 3.2-.8 4-2.2"/>'),
+    campana: s('<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15Z"/><path d="M10 20.5a2 2 0 0 0 4 0M12 3v2"/>'),
+    lirio: s('<path d="M12 21V10"/><path d="M12 10c-2.2-.8-3.5-3-3.5-6.5 1.7.8 3 2 3.5 3.3.5-1.3 1.8-2.5 3.5-3.3 0 3.5-1.3 5.7-3.5 6.5Z"/><path d="M12 16c-2.3 0-4-1.2-5-3.2M12 17.5c2.3 0 4-1.2 5-3.2"/>'),
+    espada: s('<path d="M19.5 4.5 9.5 14.5"/><path d="M19.5 4.5h-3.8M19.5 4.5v3.8"/><path d="m7 12 5 5M9.5 14.5 4 20"/>'),
+    manos: s('<path d="M12 4c-1.6 2-3 5-3 8.5V15l-3 3v2.5h4l2-3"/><path d="M12 4c1.6 2 3 5 3 8.5V15l3 3v2.5h-4l-2-3"/><path d="M12 4v13.5"/>'),
+    brillo: s('<circle cx="12" cy="12" r="2.5"/><path d="M12 2.5v5M12 16.5v5M2.5 12h5M16.5 12h5M5.6 5.6l2.4 2.4M16 16l2.4 2.4M5.6 18.4 8 16M16 8l2.4-2.4"/>'),
+    expandir: s('<path d="m6 9 6 6 6-6"/>'),
     vela: s('<path d="M12 3c1.5 1.8 2 3 2 4a2 2 0 0 1-4 0c0-1 .5-2.2 2-4Z"/><rect x="9" y="10.5" width="6" height="10.5" rx="1.5"/>'),
     ajustes: s('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 0 1-4 0v-.1a1.6 1.6 0 0 0-2.7-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3.6 14H3a2 2 0 0 1 0-4h.1a1.6 1.6 0 0 0 1.1-2.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 10 3.6V3a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7h.1a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/>')
   };
@@ -50,6 +69,7 @@
     { id: "inicio",    nombre: "Inicio",    href: "index.html",     icono: "casa" },
     { id: "lectio",    nombre: "Lectio",    href: "lectio.html",    icono: "libro" },
     { id: "retiro",    nombre: "Retiros",   href: "retiro.html",    icono: "montana" },
+    { id: "devocionario", nombre: "Oraciones", href: "devocionario.html", icono: "devocionario" },
     { id: "agenda",    nombre: "Agenda",    href: "agenda.html",    icono: "calendario" },
     { id: "comunidad", nombre: "Comunidad", href: "comunidad.html", icono: "personas" }
   ];
@@ -111,7 +131,7 @@
 
   // ---------- Carga de contenidos ----------
   async function cargar(tipo) {
-    const archivo = tipo === "perfiles" ? "data/perfiles.json" : CONFIG.esquemas[tipo].archivo;
+    const archivo = CONFIG.esquemas[tipo] ? CONFIG.esquemas[tipo].archivo : `data/${tipo}.json`;
     const clave = "cucharillas_cache_" + tipo;
     try {
       const r = await fetch(archivo + "?t=" + Date.now(), { cache: "no-store" });
@@ -122,7 +142,7 @@
     } catch (e) {
       // Sin conexión: usamos la última copia guardada
       try { const c = localStorage.getItem(clave); if (c) return JSON.parse(c); } catch (e2) {}
-      return tipo === "perfiles" ? { perfiles: [] } : { entradas: [] };
+      return tipo === "perfiles" ? { perfiles: [] } : tipo === "devocionario" ? { temas: [] } : { entradas: [] };
     }
   }
 
