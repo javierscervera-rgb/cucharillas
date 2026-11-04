@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cucharillas">
+  <meta name="theme-color" content="#FFFFFF">
+  <title>Devocionario · Cucharillas</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="icon" href="img/icono-192.png">
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</head>
+<body data-pagina="devocionario">
+  <main class="contenedor">
+    <header class="cabecera-pagina">
+      <a class="btn-volver" href="index.html" aria-label="Volver" data-icono="atras"></a>
+      <h1>Devocionario</h1>
+    </header>
+    <p class="subtitulo">Oraciones para cada momento.</p>
+    <div class="buscador">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5.5 5.5"/></svg>
+      <input type="search" id="buscar" placeholder="Buscar una oración…" autocomplete="off">
+    </div>
+    <div id="contenido"><div class="cargando">Cargando…</div></div>
+  </main>
+
+  <script>
+    (async function () {
+      const { escapar, ICONOS } = App;
+      const cont = document.getElementById("contenido");
+      const { temas } = await App.cargar("devocionario");
+      if (!temas.length) { cont.innerHTML = `<div class="vacio">No se pudo cargar el devocionario.</div>`; return; }
+
+      // Formato del texto de cada oración:
+      //   **negrita**   {{cita bíblica en azul}}   línea "V. …" / "R. …"
+      //   párrafo "_…" = indicación en cursiva   "## …" = subtítulo
+      //   "> texto | referencia" = cita bíblica destacada   "Amén." = amén
+      const enLinea = t => escapar(t)
+        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+        .replace(/\{\{(.+?)\}\}/g, '<span class="biblia">$1</span>');
+
+      function formatear(texto) {
+        return texto.split(/\n\s*\n/).map(bloque => {
+          const b = bloque.trim();
+          if (b.startsWith("## ")) return `<h4>${enLinea(b.slice(3))}</h4>`;
+          if (b.startsWith("> ")) {
+            const [t, ref] = b.slice(2).split(" | ");
+            return `<blockquote>«${enLinea(t.trim())}»${ref ? `<cite>${escapar(ref.trim())}</cite>` : ""}</blockquote>`;
+          }
+          if (/^Amén\.?( Aleluya\.)?$/.test(b)) return `<p class="amen">${escapar(b)}</p>`;
+          const lineas = b.split("\n").map(l => {
+            const vr = l.match(/^([VR])\. (.*)$/);
+            if (vr) return `<span class="linea-vr"><span class="vr">${vr[1]}.</span>${enLinea(vr[2])}</span>`;
+            if (l.startsWith("_")) return `<span class="rubrica">${enLinea(l.slice(1))}</span>`;
+            return enLinea(l);
+          });
+          if (lineas.every(l => l.startsWith('<span class="rubrica">'))) return `<p class="rubrica">${lineas.join("<br>").replace(/<\/?span[^>]*>/g, "")}</p>`;
+          return `<p>${lineas.map(l => l.startsWith('<span class="linea-vr">') ? l : l + "<br>").join("").replace(/<br>$/, "")}</p>`;
+        }).join("");
+      }
+
+      const icono = (n) => ICONOS[n] || ICONOS.cruz;
+      let buscando = false;
+
+      cont.innerHTML = temas.map(t => `
+        <details class="tema" id="tema-${escapar(t.id)}">
+          <summary>
+            <div class="icono-pastilla icono-${escapar(t.color)}">${icono(t.icono)}</div>
+            <div class="texto">
+              <div class="titulo">${escapar(t.nombre)}</div>
+              <div class="detalle">${t.oraciones.length} oracion${t.oraciones.length > 1 ? "es" : ""}</div>
+            </div>
+            <span class="chevron">${ICONOS.expandir}</span>
+          </summary>
+          <div class="tema-cuerpo">
+            ${t.cita ? `<p class="tema-cita">«${escapar(t.cita)}»<cite>${escapar(t.ref || "")}</cite></p>` : ""}
+            ${t.oraciones.map(o => `
+              <details class="oracion" id="${escapar(o.id)}" data-buscar="${escapar((o.titulo + " " + o.texto).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[*{}_#>|]/g, ""))}">
+                <summary>
+                  <span class="icono-mini icono-${escapar(t.color)}">${icono(o.icono)}</span>
+                  <span class="texto">${escapar(o.titulo)}</span>
+                  <span class="chevron">${ICONOS.expandir}</span>
+                </summary>
+                <div class="oracion-cuerpo">${formatear(o.texto)}</div>
+                <div class="oracion-acciones"><button type="button" data-compartir>${ICONOS.enlace} Compartir</button></div>
+              </details>`).join("")}
+          </div>
+        </details>`).join("");
+
+      // Al abrir un tema se cierran los demás, para no perderse
+      cont.querySelectorAll(".tema").forEach(d => d.addEventListener("toggle", () => {
+        if (d.open && !buscando) cont.querySelectorAll(".tema[open]").forEach(o => { if (o !== d) o.open = false; });
+      }));
+      // Al abrir una oración, la colocamos arriba para empezar a leer
+      cont.querySelectorAll(".oracion").forEach(d => d.addEventListener("toggle", () => {
+        if (!d.open || buscando) return;
+        d.parentElement.querySelectorAll(".oracion[open]").forEach(o => { if (o !== d) o.open = false; });
+        setTimeout(() => d.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+        try { history.replaceState(null, "", "#" + d.id); } catch (e) {}
+      }));
+
+      // Compartir enlace directo a la oración
+      cont.querySelectorAll("[data-compartir]").forEach(b => b.onclick = async () => {
+        const d = b.closest(".oracion");
+        const url = location.href.split("#")[0] + "#" + d.id;
+        const titulo = d.querySelector("summary .texto").textContent;
+        try {
+          if (navigator.share) await navigator.share({ title: titulo, url });
+          else { await navigator.clipboard.writeText(url); App.aviso("Enlace copiado"); }
+        } catch (e) {}
+      });
+
+      // Abrir directamente si llega con #id
+      function abrirAncla() {
+        const id = decodeURIComponent(location.hash.slice(1));
+        const d = id && document.getElementById(id);
+        if (!d) return;
+        if (d.classList.contains("oracion")) { d.closest(".tema").open = true; d.open = true; }
+        else d.open = true;
+        setTimeout(() => d.scrollIntoView({ block: "start" }), 80);
+      }
+      abrirAncla();
+
+      // Buscador
+      const input = document.getElementById("buscar");
+      const sinAcentos = t => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      input.addEventListener("input", () => {
+        const q = sinAcentos(input.value.trim());
+        buscando = !!q;
+        let hay = 0;
+        cont.querySelectorAll(".tema").forEach(t => {
+          let enTema = 0;
+          t.querySelectorAll(".oracion").forEach(o => {
+            const si = !q || o.dataset.buscar.includes(q);
+            o.hidden = !si; if (si) enTema++;
+            if (q) o.open = false;
+          });
+          t.hidden = q && !enTema;
+          t.open = !!q && enTema > 0;
+          hay += enTema;
+        });
+        let vacio = document.getElementById("sin-resultados");
+        if (q && !hay) {
+          if (!vacio) { vacio = document.createElement("div"); vacio.id = "sin-resultados"; vacio.className = "vacio"; cont.appendChild(vacio); }
+          vacio.textContent = "No hay ninguna oración con esas palabras.";
+        } else if (vacio) vacio.remove();
+      });
+    })();
+  </script>
+</body>
+</html>
