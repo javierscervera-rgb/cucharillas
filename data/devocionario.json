@@ -1,0 +1,218 @@
+{
+  "temas": [
+    {
+      "id": "espiritu-santo",
+      "nombre": "Espíritu Santo",
+      "icono": "paloma",
+      "color": "ambar",
+      "cita": "Recibiréis la fuerza del Espíritu Santo, que vendrá sobre vosotros.",
+      "ref": "Hch 1, 8",
+      "oraciones": [
+        {
+          "id": "invocacion-espiritu-santo",
+          "titulo": "Invocación al Espíritu Santo",
+          "icono": "llama",
+          "texto": "**Ven, Espíritu Santo,**\nllena los corazones de tus fieles\ny enciende en ellos **el fuego de tu amor.**\n\nV. {{Envía, Señor, tu Espíritu.}}\nR. {{Y se renovará la faz de la tierra.}}\n\n**Oh Dios,** que has iluminado\nlos corazones de tus hijos\ncon la luz del Espíritu Santo;\nconcédenos **ser dóciles a sus inspiraciones**\npara buscar siempre el bien\ny gozar de su consuelo.\nPor Cristo nuestro Señor.\n\nAmén."
+        },
+        {
+          "id": "secuencia-pentecostes",
+          "titulo": "Secuencia de Pentecostés",
+          "icono": "paloma",
+          "texto": "_Se canta o se reza el día de Pentecostés, y cualquier día para pedir la luz del Espíritu Santo.\n\n**Ven, Espíritu divino,**\nmanda tu luz desde el cielo.\nPadre amoroso del pobre;\ndon, en tus dones espléndido;\nluz que penetra las almas;\n**fuente del mayor consuelo.**\n\n**Ven, dulce huésped del alma,**\ndescanso de nuestro esfuerzo,\ntregua en el duro trabajo,\nbrisa en las horas de fuego,\ngozo que enjuga las lágrimas\ny reconforta en los duelos.\n\n**Entra hasta el fondo del alma,**\ndivina luz, y enriquécenos.\nMira el vacío del hombre,\nsi tú le faltas por dentro;\nmira el poder del pecado,\ncuando no envías tu aliento.\n\n**Riega la tierra en sequía,**\nsana el corazón enfermo,\nlava las manchas, infunde\ncalor de vida en el hielo,\ndoma el espíritu indómito,\nguía al que tuerce el sendero.\n\n**Reparte tus siete dones,**\nsegún la fe de tus siervos;\npor tu bondad y tu gracia,\ndale al esfuerzo su mérito;\nsalva al que busca salvarse\ny **danos tu gozo eterno.**\n\nAmén. Aleluya."
+        }
+      ]
+    },
+    {
+      "id": "eucaristia",
+      "nombre": "Jesús Eucaristía",
+      "icono": "custodia",
+      "color": "azul",
+      "cita": "Yo soy el pan vivo que ha bajado del cielo; el que coma de este pan vivirá para siempre.",
+      "ref": "Jn 6, 51",
+      "oraciones": [
+        {
+          "id": "comunion-espiritual",
+          "titulo": "Comunión espiritual",
+          "icono": "hostia",
+          "texto": "**Creo, Jesús mío,**\nque estás realmente presente\nen el Santísimo Sacramento del Altar.\n**Te amo sobre todas las cosas**\ny deseo recibirte en mi alma.\nPero como ahora no puedo hacerlo sacramentalmente,\n**ven a lo menos espiritualmente a mi pobre corazón.**\nY como si ya te hubiese recibido,\nte abrazo y me uno del todo a Ti.\nSeñor, **no permitas que jamás me aparte de Ti.**\n\nAmén."
+        },
+        {
+          "id": "alma-de-cristo",
+          "titulo": "Alma de Cristo",
+          "icono": "caliz",
+          "texto": "_Oración para después de la Comunión (también después de la comunión espiritual).\n\n**Alma de Cristo,** santifícame.\n**Cuerpo de Cristo,** sálvame.\n**Sangre de Cristo,** embriágame.\n**Agua del costado de Cristo,** lávame.\n**Pasión de Cristo,** confórtame.\n**Oh buen Jesús,** óyeme.\nDentro de tus llagas, escóndeme.\n**No permitas que me separe de ti.**\nDel enemigo malo, defiéndeme.\nEn la hora de mi muerte, llámame.\nY mándame ir a ti,\npara que con tus santos\nte alabe y te bendiga\npor los siglos de los siglos.\n\nAmén."
+        },
+        {
+          "id": "quince-minutos",
+          "titulo": "15 minutos con Jesús Sacramentado",
+          "icono": "reloj",
+          "texto": "_Ponte delante del Sagrario, o donde estés, y deja que Jesús te hable. Lee despacio y contesta en tu corazón.\n\n> Venid a mí todos los que estáis cansados y agobiados, y yo os aliviaré. | Mt 11, 28\n\nNo necesitas, hijo mío, saber mucho para agradarme mucho; **quiéreme con fuerza, es suficiente.** Háblame sencillamente, como hablarías con tu madre, con tu hermano.\n\n## Pide por los demás\n\n¿Necesitas pedirme por alguien en especial? Dime su nombre, o el de tus padres, tus hermanos y amigos; dime enseguida qué quieres que haga por ellos. **Pide mucho, mucho, no dudes en pedir;** me gustan los corazones generosos que llegan a olvidarse de sí mismos para atender a las necesidades de los demás.\n\nHáblame así, con sencillez, sin complicarte, de los pobres a quienes quieres consolar, de los enfermos a quienes ves sufrir, de los que andan perdidos y quieres que vuelvan al buen camino, de los amigos a los que echas de menos y que querrías ver otra vez a tu lado.\n\nDime por todos una palabra de amigo, cariñosa y fervorosa. Recuérdame que he prometido **escuchar toda súplica que salga del corazón;** y ¿cómo no va a salir del corazón lo que me pidas por todos los que amas?\n\n## Lo que tú necesitas\n\nY tú, ¿qué necesitas? Hazme, si quieres, una lista, y ven, léela aquí, delante de Mí. Dime de verdad lo que te hace sufrir, lo que te cuesta, lo que sientes —soberbia, tentaciones…; a lo mejor eres un poco egoísta, descuidado, a veces te cuesta acabar lo que empiezas…—, y luego pídeme que te ayude a esforzarte para intentar mejorar esas cosas que te quitan la paz.\n\n**No te avergüences, ¡Yo te quiero!** ¡Hay en el Cielo tantos justos, tantos santos «de primera», que también tuvieron esos mismos defectos! Pero vinieron aquí, al Sagrario, a contármelo, sin mentiras, sencillos, con humildad…; y poco a poco los corrigieron.\n\nTampoco dudes en pedirme que te ayude para conseguir bienes espirituales y corporales: salud, memoria, éxito en tus trabajos, negocios o estudios; todo eso puedo darte, y lo doy, y quiero que me lo pidas siempre que sea lo que te conviene para que llegues a ser santo, claro. Ahora mismo, piensa: ¿qué necesitas? ¿Qué puedo hacer por tu bien? **¡Si supieras qué ganas tengo de ayudarte!**\n\n¿Qué traes ahora entre manos? ¿Exámenes? ¿Estás pensando en buscar algún trabajo? ¿Qué planes tienes? **Cuéntamelo todo, sin prisas.** ¿Qué te preocupa? ¿Qué piensas? ¿Qué deseas? ¿Qué quieres que haga por tu familia, por tus amigos, por las personas con las que te relacionas cada día? ¿Qué quieres hacer por ellos?\n\n## ¿Y por Mí?\n\n¿Y por Mí? ¿No te gustaría darme una alegría, alabarme? ¿Sabes cómo? A lo mejor te apetecería hacer algo bueno por alguien, conocido o no; personas a las que quieres muchísimo pero que igual me fueron dejando al margen de sus vidas y, sin saberlo, **están deseando volver a contar conmigo.**\n\nHoy, por ejemplo, ¿qué pasa por tu cabeza? ¿Qué planes tienes, y con qué medios cuentas para conseguirlos? ¿Has empezado algún proyecto y no salió como esperabas? Cuéntamelo: yo te puedo decir en qué falló, aconsejarte, respetando tu libertad. ¡Pídeme! **Te llevo en mi Corazón** y quiero para ti lo que más te convenga para que puedas llegar a ser santo.\n\n## Tus penas\n\n¿Estás triste o de mal humor? ¿Te han dado alguna mala noticia? ¿Tienes enfermo a alguien de tu familia, a algún amigo? Venga, **cuéntame tus tristezas con todos sus detalles.** ¿Quién te ha hecho daño? ¿Quién te hizo sentir mal? ¿Quién te ha dejado de lado? Acércate a mi Corazón, que tiene **el mejor bálsamo para curar todas esas heridas** del tuyo, y ya verás cómo me dices enseguida que, igual que yo, lo perdonas y lo olvidas todo. En ese momento te bendeciré.\n\n¿Tienes miedo de algo? ¿Sientes en tu alma cierta tristeza sin saber por qué? ¿O tienes, de verdad, motivos para estar triste: la enfermedad de un familiar, de un amigo? Ven, sigue contándome. **Estoy aquí, contigo, a tu lado.** Todo lo veo, lo oigo, no te dejo ni un momento. ¡Tranquilo!\n\n¿Te sientes mal por algunas personas que antes te querían y ahora te dan de lado sin motivo? **Reza por ellas,** y yo, si son buenas para ti y te ayudan a ser santo, las acercaré otra vez a tu lado.\n\n## Tus alegrías\n\n¿Y no tienes alguna alegría que contarme? Anda, dímelo, como harías con un buen amigo.\n\nDime lo que desde ayer, desde la última visita que me hiciste, te ha alegrado, animado: ¿alguna muestra de cariño? ¿Te encontraste con alguien al que hacía tiempo que no veías? ¿Recibiste un mensaje de un amigo que pensabas que ya ni tenía tu número? Cuéntame eso que hizo desaparecer esos miedos que tenías, que te hacían temer e imaginar cosas que solo estaban en tu cabeza.\n\nTodo esto es obra mía, y yo te lo he dado: ¿por qué no vas a agradecérmelo y decirme sencillamente, como un hijo a su padre: **«¡Gracias, Papá, gracias!»**? El agradecimiento trae consigo nuevos beneficios, porque al bienhechor le gusta verse correspondido.\n\n## Tus propósitos\n\n¿Tampoco tienes algo que ofrecerme? Veo, ya lo sabes, el fondo de tu corazón. A los hombres se les engaña fácilmente; a Dios, no. Así que **háblame con toda sinceridad.** ¿Estás decidido a no exponerte más a aquella ocasión de pecado? ¿A apartarte de aquello que te dañó? ¿A no leer más aquel libro que «disparó» tu imaginación? ¿A no tratar más a aquella persona que te quitó la paz?\n\n¿Volverás a ser dulce y amable con aquella otra a quien, por haberte molestado, has mirado hasta hoy como enemiga?\n\n## Vuelve mañana\n\nAhora, hijo mío, vuelve a tus ocupaciones habituales, al colegio, a la familia, al estudio…; pero **no olvides los quince minutos de grata conversación que hemos tenido aquí los dos,** en la soledad del Sagrario. Guarda, en cuanto puedas, silencio, humildad, recogimiento, resignación, caridad con el prójimo. **Ama a mi Madre, que lo es también tuya,** la Virgen Santísima, y vuelve otra vez mañana con el corazón más amoroso, más entregado a mi servicio.\n\n**En mi Corazón encontrarás cada día nuevo amor, nuevos beneficios, nuevos consuelos.**\n\n_Recomendación: reza todos los días los 15 minutos en compañía de Jesús Sacramentado."
+        },
+        {
+          "id": "primeros-viernes",
+          "titulo": "Primeros viernes de mes",
+          "icono": "corazon",
+          "texto": "La Iglesia ha bendecido esta piadosa costumbre, iniciada con las promesas de Jesucristo a **santa Margarita María de Alacoque,** indicando el **espíritu de reparación y de conversión** con que hay que vivirla.\n\n> Te prometo, en la excesiva misericordia de mi Corazón, que su Amor omnipotente concederá a todos los que comulguen los nueve primeros viernes de mes seguidos la gracia de la penitencia final. | Promesa del Sagrado Corazón\n\n_Benedicto XV, en la bula de canonización de santa Margarita María de Alacoque, recoge estas palabras de Cristo."
+        }
+      ]
+    },
+    {
+      "id": "cada-dia",
+      "nombre": "Al empezar y acabar el día",
+      "icono": "sol",
+      "color": "verde",
+      "cita": "Este es el día en que actuó el Señor: sea nuestra alegría y nuestro gozo.",
+      "ref": "Sal 118, 24",
+      "oraciones": [
+        {
+          "id": "oracion-manana",
+          "titulo": "Oración de la mañana",
+          "icono": "sol",
+          "texto": "**Señor, en el silencio de este día que nace,**\nvengo a pedirte **paz, sabiduría y fuerza.**\nHoy quiero mirar al mundo con ojos llenos de amor.\nSer paciente, comprensivo, humilde, suave y bueno.\n**Ver a tus hijos detrás de las apariencias,**\ncomo los ves tú mismo,\npara así poder apreciar la bondad de cada uno.\nCierra mis oídos a toda murmuración.\nGuarda mi lengua de toda maledicencia.\nQue solo los pensamientos que bendigan permanezcan en mí.\nQuiero ser tan bienintencionado y bueno\nque todos los que se acerquen a mí **sientan tu presencia.**\nRevísteme de tu bondad, Señor,\ny **haz que en este día yo te refleje.**\n\nAmén."
+        },
+        {
+          "id": "angel-de-la-guarda",
+          "titulo": "Ángel de mi guarda",
+          "icono": "angel",
+          "texto": "**Ángel de mi guarda,** dulce compañía,\nno me desampares **ni de noche ni de día.**\nNo me dejes solo, que me perdería."
+        },
+        {
+          "id": "antes-de-dormir",
+          "titulo": "Oración para antes de dormirse",
+          "icono": "luna",
+          "texto": "**Visita, Señor, esta habitación:**\naleja de ella las insidias del enemigo;\nque tus santos ángeles habiten en ella\ny **nos guarden en paz,**\ny que tu bendición permanezca\nsiempre con nosotros.\nPor Jesucristo nuestro Señor.\n\nAmén."
+        }
+      ]
+    },
+    {
+      "id": "perdon",
+      "nombre": "Perdón y confesión",
+      "icono": "corazon",
+      "color": "lila",
+      "cita": "Habrá más alegría en el cielo por un solo pecador que se convierta.",
+      "ref": "Lc 15, 7",
+      "oraciones": [
+        {
+          "id": "examen-de-conciencia",
+          "titulo": "Oración para el examen de conciencia",
+          "icono": "lupa",
+          "texto": "**Señor y Dios mío,** que conoces el corazón de cada hombre,\ndame la gracia de **examinar sinceramente**\ny conocer verdaderamente el mío,\nde manera que descubra todos mis pecados,\na fin de que, confesándome bien\ny enmendándome de ellos,\n**merezca tu perdón y gracia en la tierra**\ny la vida eterna en el cielo.\nPor Cristo nuestro Señor.\n\nAmén."
+        },
+        {
+          "id": "acto-de-contricion",
+          "titulo": "Acto de contrición",
+          "icono": "cruz",
+          "texto": "**Señor mío, Jesucristo,**\nDios y hombre verdadero, Creador y Redentor mío;\npor ser tú quien eres y porque te amo sobre todas las cosas,\n**me arrepiento de todo corazón**\nde todo lo malo que he hecho\ny de todo lo bueno que he dejado de hacer;\nsobre todo porque te he ofendido a ti,\nque eres la bondad infinita\ny a quien amo sobre todas las cosas.\n**Propongo firmemente,** con la ayuda de tu gracia,\nhacer penitencia, no volver a pecar\ny huir de las ocasiones de pecado.\nSeñor, por los méritos de tu pasión y muerte,\n**apiádate de mí,**\ny dame tu gracia para nunca más volverte a ofender.\n\nAmén."
+        },
+        {
+          "id": "acto-de-contricion-breve",
+          "titulo": "Acto de contrición breve",
+          "icono": "corazon",
+          "texto": "**¡Oh, Jesús mío!**\nMe arrepiento de haberte ofendido\nporque eres **infinitamente bueno;**\npadeciste y moriste por mí, clavado en la cruz.\n**Te amo con todo mi corazón,**\ny propongo con tu gracia no volver a pecar.\n\nAmén.\n\n_Obispo san Rafael Guízar Valencia."
+        }
+      ]
+    },
+    {
+      "id": "maria",
+      "nombre": "Virgen María",
+      "icono": "corona",
+      "color": "azul",
+      "cita": "He aquí la esclava del Señor; hágase en mí según tu palabra.",
+      "ref": "Lc 1, 38",
+      "oraciones": [
+        {
+          "id": "ave-maria",
+          "titulo": "Ave María",
+          "icono": "rosa",
+          "texto": "**Dios te salve, María,**\n{{llena eres de gracia;}}\n{{el Señor es contigo.}}\n{{Bendita tú eres entre todas las mujeres,}}\n{{y bendito es el fruto de tu vientre,}} **Jesús.**\n**Santa María, Madre de Dios,**\nruega por nosotros, pecadores,\nahora y en la hora de nuestra muerte.\n\nAmén.\n\n_En azul, las palabras del Evangelio (Lc 1, 28. 42)."
+        },
+        {
+          "id": "angelus",
+          "titulo": "El Ángelus",
+          "icono": "campana",
+          "texto": "_El rezo del Ángelus se puede hacer todos los días, al llegar el mediodía.\n\nV. {{El Ángel del Señor anunció a María.}}\nR. {{Y concibió por obra del Espíritu Santo.}}\n_Ave María…\n\nV. {{He aquí la esclava del Señor.}}\nR. {{Hágase en mí según tu palabra.}}\n_Ave María…\n\nV. {{Y el Verbo se hizo carne.}}\nR. {{Y habitó entre nosotros.}}\n_Ave María…\n\nV. Ruega por nosotros, Santa Madre de Dios.\nR. Para que seamos dignos de alcanzar las promesas de nuestro Señor Jesucristo.\n\n## Oración\n\nV. **Te suplicamos, Señor,** que derrames tu gracia en nuestras almas para que los que, por el anuncio del Ángel, hemos conocido la encarnación de tu Hijo Jesucristo, **por su Pasión y Cruz seamos llevados a la gloria de su Resurrección.** Por el mismo Jesucristo nuestro Señor.\nR. Amén."
+        },
+        {
+          "id": "salve",
+          "titulo": "Antífona a la Virgen María (Salve)",
+          "icono": "corona",
+          "texto": "**Dios te salve, Reina y Madre de misericordia,**\nvida, dulzura y esperanza nuestra;\n¡Dios te salve!\nA ti llamamos los desterrados hijos de Eva;\na ti suspiramos, gimiendo y llorando\nen este valle de lágrimas.\n¡Ea, pues, Señora, abogada nuestra!,\n**vuelve a nosotros esos tus ojos misericordiosos,**\ny después de este destierro **muéstranos a Jesús,**\nfruto bendito de tu vientre.\n**¡Oh clemente, oh piadosa, oh dulce Virgen María!**\n\nV. Ruega por nosotros, Santa Madre de Dios.\nR. Para que seamos dignos de alcanzar las divinas gracias y promesas de nuestro Señor Jesucristo.\n\nAmén."
+        },
+        {
+          "id": "consagracion-maria",
+          "titulo": "Consagración a la Santísima Virgen",
+          "icono": "corazon",
+          "texto": "**¡Oh Señora mía! ¡Oh Madre mía!**\nYo me ofrezco enteramente a ti,\ny en prueba de mi filial afecto\nte consagro en este día\nmis ojos, mis oídos, mi lengua, mi corazón;\nen una palabra, **todo mi ser.**\nYa que soy todo tuyo (toda tuya),\n**¡oh Madre de bondad!,**\nguárdame y defiéndeme\ncomo cosa y posesión tuya.\n\nAmén."
+        },
+        {
+          "id": "virgen-de-guadalupe",
+          "titulo": "Oración a la Virgen de Guadalupe",
+          "icono": "estrella",
+          "texto": "**Dios, Padre de misericordia,**\nque has puesto a este pueblo tuyo\nbajo la especial protección\nde la siempre Virgen María de Guadalupe,\nMadre de tu Hijo,\nconcédenos, por su intercesión,\n**profundizar en nuestra fe**\ny buscar el progreso de nuestra patria\npor caminos de **justicia y de paz.**\nPor Jesucristo nuestro Señor.\n\nAmén."
+        },
+        {
+          "id": "primeros-sabados",
+          "titulo": "Primeros sábados de mes",
+          "icono": "calendario",
+          "texto": "Muy unida a la práctica de los primeros viernes, y con el mismo **espíritu de desagravio** por los pecados personales y por los pecados de los hombres, se encuentra esta piadosa costumbre de los primeros sábados de mes. En ellos **se honra a María de una manera especial,** se la contempla en el ejercicio de su fidelidad a la voluntad de Dios y se le tributa un homenaje filial.\n\nSiguiendo los deseos de la Santísima Virgen, **la confesión y la comunión** en esos días y **los quince minutos de meditación sobre los misterios del rosario** deben robustecer en el alma el esfuerzo por el cumplimiento fiel de la voluntad de Dios, avivar el amor a María y el deseo de imitarla en su admirable colaboración a la obra redentora de su Hijo."
+        }
+      ]
+    },
+    {
+      "id": "santos",
+      "nombre": "San José y los ángeles",
+      "icono": "angel",
+      "color": "verde",
+      "cita": "A sus ángeles ha dado órdenes para que te guarden en tus caminos.",
+      "ref": "Sal 91, 11",
+      "oraciones": [
+        {
+          "id": "san-jose",
+          "titulo": "Oración a San José",
+          "icono": "lirio",
+          "texto": "**Oh Dios,** que en tu inefable providencia\nte dignaste elegir a **San José**\npor esposo de tu Santísima Madre:\nconcédenos, te rogamos,\nque merezcamos tener por intercesor en el cielo\nal que veneramos como **protector en la tierra.**\nTú que vives y reinas por los siglos de los siglos.\n\nAmén."
+        },
+        {
+          "id": "san-jose-favor",
+          "titulo": "A San José, para pedir un favor",
+          "icono": "lirio",
+          "texto": "**Amado Padre mío San José:**\nconfiando en el valioso poder que tienes\nante el trono de la Santísima Trinidad\ny de María, tu esposa y nuestra Madre,\nte suplico intercedas por mí\ny me alcances la gracia…\n\n_(Hágase aquí la petición).\n\n**José, con Jesús y María,**\nviva siempre en el alma mía.\n**José, con Jesús y María,**\nasísteme en mi última agonía.\n**José, con Jesús y María,**\nlleva al cielo el alma mía."
+        },
+        {
+          "id": "san-miguel",
+          "titulo": "Oración a San Miguel Arcángel",
+          "icono": "espada",
+          "texto": "**San Miguel Arcángel,**\ndefiéndenos en la lucha.\nSé nuestro amparo\ncontra la perversidad y las acechanzas del demonio;\nque Dios manifieste sobre él su poder,\nes nuestra humilde súplica.\nY tú, **oh príncipe de la milicia celestial,**\ncon el poder que Dios te ha conferido,\narroja al infierno a Satanás\ny a los demás espíritus malignos\nque vagan por el mundo\npara la perdición de las almas.\n\nAmén."
+        }
+      ]
+    },
+    {
+      "id": "diversas",
+      "nombre": "Oraciones diversas",
+      "icono": "manos",
+      "color": "lila",
+      "cita": "Brille así vuestra luz delante de los hombres, para que vean vuestras buenas obras y den gloria a vuestro Padre que está en los cielos.",
+      "ref": "Mt 5, 16",
+      "oraciones": [
+        {
+          "id": "irradiar-a-cristo",
+          "titulo": "Oración para irradiar a Cristo",
+          "icono": "brillo",
+          "texto": "_Del cardenal san John Henry Newman. Santa Teresa de Calcuta y sus hermanas la rezaban cada día.\n\n**Amado Jesús,**\n**ayúdame a esparcir tu fragancia** dondequiera que vaya.\nInunda mi alma de tu espíritu y vida.\nPenetra y posee todo mi ser hasta tal punto\nque toda mi vida solo sea **un reflejo de la tuya.**\n\nBrilla a través de mí, y mora en mí de tal manera\nque todas las almas que entren en contacto conmigo\npuedan sentir tu presencia en mi alma.\n**Haz que me miren y ya no me vean a mí,**\n**sino solamente a ti,** oh Señor.\n\nQuédate conmigo y entonces comenzaré a brillar como brillas tú;\na brillar para servir de luz a los demás.\nLa luz, oh Señor, irradiará toda de ti, no de mí;\nserás tú quien ilumine a los demás a través de mí.\n\nPermíteme pues alabarte de la manera que más te gusta,\n**brillando para quienes me rodean.**\nHaz que predique sin predicar,\n**no con palabras sino con mi ejemplo,**\npor la fuerza contagiosa,\npor la influencia de lo que hago,\npor la evidente plenitud del amor que te tiene mi corazón.\n\nAmén."
+        },
+        {
+          "id": "sagrada-familia",
+          "titulo": "Oración a la Sagrada Familia",
+          "icono": "casa",
+          "texto": "**Sagrada Familia de Nazaret:**\nenséñanos el recogimiento y la interioridad;\ndanos la disposición de **escuchar las buenas inspiraciones**\ny las palabras de los verdaderos maestros;\nenséñanos la necesidad del trabajo, de la preparación,\ndel estudio, de la vida interior,\nde **la oración que solo Dios ve en lo secreto;**\nenséñanos lo que es la familia,\n**su comunión de amor,**\nsu belleza simple y austera,\nsu carácter sagrado e inviolable.\n\nAmén."
+        },
+        {
+          "id": "vocaciones",
+          "titulo": "Oración por las vocaciones",
+          "icono": "vela",
+          "texto": "**¡Oh Jesús, Pastor eterno de las almas!**\nDígnate mirar con ojos de misericordia\na esta porción de tu grey amada.\nSeñor, gemimos en la orfandad.\n**Danos vocaciones, danos sacerdotes**\ny religiosos santos.\nTe lo pedimos por la Inmaculada Virgen María de Guadalupe,\ntu dulce y santa Madre.\n**¡Oh Jesús, danos sacerdotes y religiosos según tu corazón!**\n\nAmén."
+        }
+      ]
+    }
+  ]
+}
