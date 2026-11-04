@@ -73,6 +73,7 @@ lectio.html       Lectio Divina (lista y detalle)
 retiro.html       Retiro mensual (abre el último)
 notas.html        Mis notas (locales) + copia de seguridad
 articulo.html     Lectura de un artículo
+devocionario.html Devocionario (temas y oraciones desplegables, buscador)
 agenda.html       Agenda (con "Añadir a mi calendario")
 comunidad.html    Todos por todos + Mi perfil
 recursos.html     Para leer y ver: pestañas Pendientes / Leídos y vistos
@@ -83,9 +84,22 @@ js/app.js         Código común (menú, notas, carga de datos)
 js/entradas.js    Lectio y Retiro (lista, bloques y notas por bloque)
 js/videos.js      Reproductor de vídeo integrado
 js/admin.js       Panel de administración
-data/*.json       Contenidos
+data/*.json       Contenidos (data/devocionario.json: oraciones; ver formato abajo)
 img/subidas/      Imágenes subidas desde el panel
 img/perfiles/     Fotos de perfil
 worker/           Servidor de perfiles (Cloudflare)
 sw.js, manifest.json   Instalación como app y modo sin conexión
 ```
+
+## Editar el devocionario
+
+Las oraciones están en `data/devocionario.json` (se edita directamente en GitHub, no desde el panel). Formato del texto:
+
+- `**texto**` → negrita
+- `{{texto}}` → cita de la Biblia en azul
+- `> texto | Mt 11, 28` → cita bíblica destacada en recuadro
+- Línea que empieza por `V. ` o `R. ` → versículo y respuesta
+- Línea que empieza por `_` → indicación en cursiva gris
+- `## Título` → subtítulo dentro de la oración
+- Línea en blanco → párrafo nuevo · `Amén.` solo en su línea → amén destacado
+- Iconos disponibles: paloma, llama, custodia, hostia, caliz, sol, luna, angel, lupa, cruz, corona, rosa, campana, lirio, espada, manos, brillo, corazon, estrella, calendario, casa, vela, reloj
