@@ -35,15 +35,10 @@
       const ORD = ["Primer", "Segundo", "Tercer", "Cuarto", "Quinto"];
       const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
       const hoyNum = new Date().getDay();
-      const hoyISO = new Date().toLocaleDateString("sv");
       const serieDeHoy = R.series.find(s => s.dias.includes(hoyNum)).id;
 
-      // ---------- Progreso (se guarda en el móvil y se reinicia cada día) ----------
-      const CLAVE = "cucharillas_rosario";
-      let estado;
-      try { estado = JSON.parse(localStorage.getItem(CLAVE)); } catch (e) {}
-      if (!estado || estado.fecha !== hoyISO) estado = { fecha: hoyISO, serie: serieDeHoy, actual: 0 };
-      const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify(estado)); } catch (e) {} };
+      // ---------- Progreso: cada vez que se abre la pantalla empieza un rosario nuevo ----------
+      const estado = { serie: serieDeHoy, actual: 0 };
 
       // ---------- Construye la lista de pasos ----------
       let pasos = [], filas = [];
@@ -83,7 +78,6 @@
             <span class="paso-titulo">${escapar(p.titulo)}</span>
           </div>
           <div class="oracion-cuerpo">${Oraciones.formatear(p.texto)}</div>
-          <div class="paso-pista">${ICONOS.check} Toca al terminar</div>
         </div>`;
       }
 
@@ -103,9 +97,6 @@
         const actual = pasos[estado.actual];
 
         let html = `
-          <div class="aviso info rosario-ayuda">
-            <b>Cómo usarlo.</b> ${Oraciones.enLinea(R.indicacion)}
-          </div>
           <div class="series">
             ${R.series.map(s => `<button data-serie="${s.id}" class="${s.id === estado.serie ? "activa" : ""}">
               ${escapar(s.nombre)}${s.id === serieDeHoy ? "<em>Hoy</em>" : ""}</button>`).join("")}
@@ -141,7 +132,7 @@
           ir(i === estado.actual ? i + 1 : i);
         }));
         cont.querySelectorAll("[data-serie]").forEach(b => b.onclick = () => {
-          estado.serie = b.dataset.serie; guardar(); construir(); pintar();
+          estado.serie = b.dataset.serie; construir(); pintar();
         });
         document.getElementById("reiniciar").onclick = () => {
           if (estado.actual > 0 && !confirm("¿Empezar el Rosario desde el principio?")) return;
@@ -151,17 +142,33 @@
 
       // Cambia de oración y centra la nueva pastilla en la pantalla
       function ir(i) {
+        const avanza = i > estado.actual;
         estado.actual = Math.max(0, Math.min(i, pasos.length));
-        guardar(); pintar();
+        // Vibración muy corta al terminar cada oración (solo en móviles que lo permiten)
+        if (avanza) try { navigator.vibrate && navigator.vibrate(12); } catch (e) {}
+        pintar();
         const objetivo = cont.querySelector(".paso.actual") || cont.querySelector(".rosario-fin");
         if (objetivo) requestAnimationFrame(() => objetivo.scrollIntoView({ behavior: "smooth", block: "center" }));
       }
 
       construir(); pintar();
-      if (estado.actual > 0) {
-        const el = cont.querySelector(".paso.actual") || cont.querySelector(".rosario-fin");
-        if (el) setTimeout(() => el.scrollIntoView({ block: "center" }), 50);
-      }
+
+      // Ventana de "Cómo usarlo": hay que cerrarla para empezar
+      const ventana = document.createElement("div");
+      ventana.className = "ventana-fondo";
+      ventana.innerHTML = `<div class="ventana" role="dialog" aria-modal="true" aria-labelledby="ventana-titulo">
+          <div class="icono-pastilla icono-azul">${ICONOS.rosario}</div>
+          <h2 id="ventana-titulo">Cómo usarlo</h2>
+          <p>${Oraciones.enLinea(R.indicacion)}</p>
+          <button class="boton ancho" id="empezar">Empezar el Rosario</button>
+        </div>`;
+      document.body.appendChild(ventana);
+      document.body.style.overflow = "hidden";
+      document.getElementById("empezar").onclick = () => {
+        ventana.classList.add("saliendo");
+        document.body.style.overflow = "";
+        setTimeout(() => ventana.remove(), 200);
+      };
     })();
   </script>
 </body>

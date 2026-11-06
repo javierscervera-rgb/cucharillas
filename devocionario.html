@@ -52,11 +52,6 @@
       (function () {
         const SERIES = ["gloriosos", "gozosos", "dolorosos", "gloriosos", "luminosos", "dolorosos", "gozosos"];
         document.getElementById("rosario-hoy").textContent = `Hoy: misterios ${SERIES[new Date().getDay()]}`;
-        try {
-          const e = JSON.parse(localStorage.getItem("cucharillas_rosario"));
-          if (e && e.fecha === new Date().toLocaleDateString("sv") && e.actual > 0)
-            document.getElementById("rosario-chip").textContent = e.actual >= 79 ? "Rezado hoy ✓" : "Continuar";
-        } catch (er) {}
       })();
 
       const icono = (n) => ICONOS[n] || ICONOS.cruz;

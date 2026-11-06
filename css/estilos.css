@@ -393,3 +393,16 @@ mark { background: #FDF0C4; color: inherit; border-radius: 3px; padding: 0 1px; 
 .pastilla-rosario .icono-grande { width: 64px; height: 64px; }
 .pastilla-rosario .icono-grande svg { width: 44px; height: 44px; color: var(--azul-cielo); }
 .pastilla-rosario .titulo { font-size: 21px !important; }
+
+/* Ventana emergente */
+.ventana-fondo { position: fixed; inset: 0; z-index: 300; background: rgba(31,42,68,.45); display: flex; align-items: center; justify-content: center; padding: 20px; animation: aparecer .2s ease; }
+.ventana { background: white; border-radius: 24px; padding: 24px 22px 20px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,.2); animation: subir .25s ease; }
+.ventana .icono-pastilla { margin: 0 auto 12px; width: 56px; height: 56px; border-radius: 18px; }
+.ventana .icono-pastilla svg { width: 32px; height: 32px; }
+.ventana h2 { margin: 0 0 8px; font-size: 21px; }
+.ventana p { margin: 0 0 20px; color: var(--texto-secundario); font-size: 15.5px; line-height: 1.55; }
+.ventana p strong { color: var(--texto-principal); }
+.ventana-fondo.saliendo { opacity: 0; transition: opacity .2s ease; }
+@keyframes aparecer { from { opacity: 0; } to { opacity: 1; } }
+@keyframes subir { from { transform: translateY(16px); opacity: .5; } to { transform: none; opacity: 1; } }
+.paso.actual { padding-bottom: 8px; }

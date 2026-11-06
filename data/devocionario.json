@@ -124,7 +124,7 @@
           "id": "ave-maria",
           "titulo": "Ave María",
           "icono": "rosa",
-          "texto": "**Dios te salve, María,**\n{{llena eres de gracia;}}\n{{el Señor es contigo.}}\n{{Bendita tú eres entre todas las mujeres,}}\n{{y bendito es el fruto de tu vientre,}} **Jesús.**\n**Santa María, Madre de Dios,**\nruega por nosotros, pecadores,\nahora y en la hora de nuestra muerte.\n\nAmén.\n\n_En azul, las palabras del Evangelio (Lc 1, 28. 42)."
+          "texto": "**Dios te salve, María,**\n{{llena eres de gracia;}}\n{{el Señor es contigo.}}\n{{Bendita tú eres entre todas las mujeres,}}\n{{y bendito es el fruto de tu vientre,}} **{{Jesús.}}**\n**Santa María, Madre de Dios,**\nruega por nosotros, pecadores,\nahora y en la hora de nuestra muerte.\n\nAmén.\n\n_En azul, las palabras del Evangelio (Lc 1, 28. 42)."
         },
         {
           "id": "angelus",

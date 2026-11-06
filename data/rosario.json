@@ -164,9 +164,9 @@
   ],
   "decena": {
     "padrenuestro": "**Padre nuestro,** que estás en el cielo,\nsantificado sea tu Nombre;\nvenga a nosotros tu reino;\nhágase tu voluntad\nen la tierra como en el cielo.\n**Danos hoy nuestro pan de cada día;**\nperdona nuestras ofensas,\ncomo también nosotros perdonamos\na los que nos ofenden;\nno nos dejes caer en la tentación,\ny líbranos del mal.\n\nAmén.",
-    "avemaria": "**Dios te salve, María,**\n{{llena eres de gracia;}}\n{{el Señor es contigo.}}\n{{Bendita tú eres entre todas las mujeres,}}\n{{y bendito es el fruto de tu vientre,}} **Jesús.**\n**Santa María, Madre de Dios,**\nruega por nosotros, pecadores,\nahora y en la hora de nuestra muerte.\n\nAmén.",
+    "avemaria": "**Dios te salve, María,**\n{{llena eres de gracia;}}\n{{el Señor es contigo.}}\n{{Bendita tú eres entre todas las mujeres,}}\n{{y bendito es el fruto de tu vientre,}} **{{Jesús.}}**\n**Santa María, Madre de Dios,**\nruega por nosotros, pecadores,\nahora y en la hora de nuestra muerte.\n\nAmén.",
     "gloria": "**Gloria al Padre, y al Hijo, y al Espíritu Santo.**\nComo era en el principio, ahora y siempre,\npor los siglos de los siglos.\n\nAmén.",
-    "mariaMadre": "**María, Madre de gracia,**\nMadre de misericordia,\nen la vida y en la muerte\n**ampáranos, oh gran Señora.**"
+    "mariaMadre": "**María, Madre de gracia,**\nMadre de misericordia,\ndefiéndenos de nuestros enemigos\ny **ampáranos ahora y en la hora de nuestra muerte.**\n\nAmén."
   },
   "final": [
     {
@@ -187,7 +187,7 @@
     {
       "id": "papa",
       "titulo": "Por las intenciones del Santo Padre",
-      "texto": "_Se reza un Padrenuestro, un Avemaría y un Gloria por las intenciones del Papa, para ganar las indulgencias.\n\n## Padrenuestro\n\n**Padre nuestro,** que estás en el cielo,\nsantificado sea tu Nombre;\nvenga a nosotros tu reino;\nhágase tu voluntad\nen la tierra como en el cielo.\n**Danos hoy nuestro pan de cada día;**\nperdona nuestras ofensas,\ncomo también nosotros perdonamos\na los que nos ofenden;\nno nos dejes caer en la tentación,\ny líbranos del mal.\n\nAmén.\n\n## Avemaría\n\n**Dios te salve, María,**\n{{llena eres de gracia;}}\n{{el Señor es contigo.}}\n{{Bendita tú eres entre todas las mujeres,}}\n{{y bendito es el fruto de tu vientre,}} **Jesús.**\n**Santa María, Madre de Dios,**\nruega por nosotros, pecadores,\nahora y en la hora de nuestra muerte.\n\nAmén.\n\n## Gloria\n\n**Gloria al Padre, y al Hijo, y al Espíritu Santo.**\nComo era en el principio, ahora y siempre,\npor los siglos de los siglos.\n\nAmén."
+      "texto": "_Se reza un Padrenuestro, un Avemaría y un Gloria por las intenciones del Papa, para ganar las indulgencias.\n\n## Padrenuestro\n\n**Padre nuestro,** que estás en el cielo,\nsantificado sea tu Nombre;\nvenga a nosotros tu reino;\nhágase tu voluntad\nen la tierra como en el cielo.\n**Danos hoy nuestro pan de cada día;**\nperdona nuestras ofensas,\ncomo también nosotros perdonamos\na los que nos ofenden;\nno nos dejes caer en la tentación,\ny líbranos del mal.\n\nAmén.\n\n## Avemaría\n\n**Dios te salve, María,**\n{{llena eres de gracia;}}\n{{el Señor es contigo.}}\n{{Bendita tú eres entre todas las mujeres,}}\n{{y bendito es el fruto de tu vientre,}} **{{Jesús.}}**\n**Santa María, Madre de Dios,**\nruega por nosotros, pecadores,\nahora y en la hora de nuestra muerte.\n\nAmén.\n\n## Gloria\n\n**Gloria al Padre, y al Hijo, y al Espíritu Santo.**\nComo era en el principio, ahora y siempre,\npor los siglos de los siglos.\n\nAmén."
     },
     {
       "id": "salve",
