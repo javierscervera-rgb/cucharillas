@@ -14,7 +14,7 @@
    ========================================================= */
 
 const MAX_PERFILES = 300;
-const LIMITES = { nombre: 30, emoji: 8, color: 9, sobreMi: 300, gustos: 120, intencion: 200 };
+const LIMITES = { nombre: 30, emoji: 8, color: 9, sobreMi: 300, gustos: 120, intencion: 200, cumple: 5 };
 
 export default {
   async fetch(request, env) {
@@ -79,6 +79,8 @@ export default {
         for (const [campo, max] of Object.entries(LIMITES)) limpio[campo] = String((perfil || {})[campo] || "").trim().slice(0, max);
         if (!limpio.nombre) return responder({ error: "Falta el nombre" }, 400);
         if (!/^#[0-9a-fA-F]{6}$/.test(limpio.color)) limpio.color = "#E8F4FD";
+        // Cumpleaños como "MM-DD" (sin año)
+        if (!/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(limpio.cumple)) limpio.cumple = "";
 
         // Cada cambio vuelve a quedar pendiente de aprobación por un responsable
         const fotoFinal = nuevaFoto !== null ? nuevaFoto : (i >= 0 ? lista[i].foto || "" : "");

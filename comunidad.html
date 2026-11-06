@@ -46,22 +46,46 @@
     });
 
     let perfiles = [];
+    const MESES_MAY = App.MESES.map(m => m[0].toUpperCase() + m.slice(1));
+    const DIAS_MES = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    const cumpleValido = (c) => /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(c || "") && Number(c.slice(3)) <= DIAS_MES[Number(c.slice(0, 2)) - 1];
+    const textoCumple = (c) => `${Number(c.slice(3))} de ${App.MESES[Number(c.slice(0, 2)) - 1]}`;
 
     async function pintarGrupo() {
       const g = document.getElementById("grupo");
       const datos = await App.cargar("perfiles");
       perfiles = datos.perfiles || [];
-      const visibles = perfiles.filter(p => p.aprobado).sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+      const visibles = perfiles.filter(p => p.aprobado);
       if (!visibles.length) {
         g.innerHTML = `<div class="vacio"><div class="icono-pastilla icono-verde">${App.ICONOS.personas}</div>Aún no hay perfiles.<br>¡Sé el primero en crear el tuyo!</div>`;
         return;
       }
-      g.innerHTML = visibles.map(p => `
-        <div class="pastilla columna" role="button" tabindex="0">
+
+      // Días que faltan para el próximo cumpleaños (0 = hoy)
+      const hoy = App.hoy();
+      const faltan = (c) => {
+        const [m, d] = c.split("-").map(Number);
+        // El 29 de febrero, en los años que no es bisiesto, se celebra el 28
+        const fecha = (y) => { const f = new Date(y, m - 1, d); return f.getMonth() === m - 1 ? f : new Date(y, 1, 28); };
+        let f = fecha(hoy.getFullYear());
+        if (f < hoy) f = fecha(hoy.getFullYear() + 1);
+        return Math.round((f - hoy) / 86400000);
+      };
+      const conCumple = visibles.filter(p => cumpleValido(p.cumple))
+        .map(p => Object.assign({ _faltan: faltan(p.cumple) }, p))
+        .sort((a, b) => a._faltan - b._faltan || a.nombre.localeCompare(b.nombre, "es"));
+      const sinCumple = visibles.filter(p => !cumpleValido(p.cumple)).sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+
+      const aviso = (n) => n === 0 ? "¡Hoy es su cumpleaños! 🎉" : n === 1 ? "Mañana" : n < 31 ? `Dentro de ${n} días` : "";
+      const tarjeta = (p) => {
+        const cuando = p.cumple ? aviso(p._faltan) : "";
+        return `
+        <div class="pastilla columna${p._faltan === 0 ? " cumple-hoy" : ""}" role="button" tabindex="0">
           <div class="fila">
             ${App.avatar(p)}
             <div class="texto">
               <div class="titulo">${App.escapar(p.nombre)}</div>
+              ${p.cumple ? `<div class="cumple">🎂 ${textoCumple(p.cumple)}${cuando ? ` <span>· ${cuando}</span>` : ""}</div>` : ""}
               <div class="detalle">${App.escapar(p.sobreMi ? (p.sobreMi.length > 60 ? p.sobreMi.slice(0, 60) + "…" : p.sobreMi) : "")}</div>
             </div>
             <span class="flecha">${App.ICONOS.flecha}</span>
@@ -71,7 +95,25 @@
             ${p.gustos ? `<div class="dato"><b>Me gusta</b>${App.escapar(p.gustos)}</div>` : ""}
             ${p.intencion ? `<div class="dato" style="background:var(--verde-suave);border-radius:14px;padding:12px 14px"><b>Reza por mí</b>${App.escapar(p.intencion)}</div>` : ""}
           </div>
-        </div>`).join("");
+        </div>`;
+      };
+
+      let html = "", mesActual = null;
+      conCumple.forEach(p => {
+        const mes = Number(p.cumple.split("-")[0]);
+        // Si el próximo cumpleaños de este mes cae el año que viene, el mes se repite al final
+        const clave = mes + (p._faltan > 330 && mes === hoy.getMonth() + 1 ? "+" : "");
+        if (clave !== mesActual) {
+          mesActual = clave;
+          html += `<h3 class="separador-mes"><span>${MESES_MAY[mes - 1]}</span></h3>`;
+        }
+        html += tarjeta(p);
+      });
+      if (sinCumple.length) {
+        if (conCumple.length) html += `<h3 class="separador-mes"><span>Sin cumpleaños</span></h3>`;
+        html += sinCumple.map(tarjeta).join("");
+      }
+      g.innerHTML = html;
       g.querySelectorAll(".pastilla").forEach(el => el.onclick = () => {
         el.classList.toggle("abierta");
         el.querySelector(".flecha").style.transform = el.classList.contains("abierta") ? "rotate(90deg)" : "";
@@ -102,6 +144,11 @@
 
           <label class="campo" for="f-nombre">Nombre <small>(solo el nombre, sin apellidos)</small></label>
           <input id="f-nombre" maxlength="30" value="${App.escapar(yo.nombre || "")}" placeholder="¿Cómo te llamamos?">
+          <label class="campo" for="f-dia">Cumpleaños <small>(día y mes, sin año)</small></label>
+          <div class="fila-cumple">
+            <select id="f-dia" aria-label="Día"><option value="">Día</option>${Array.from({ length: 31 }, (_, k) => `<option value="${String(k + 1).padStart(2, "0")}"${yo.cumple && yo.cumple.slice(3) === String(k + 1).padStart(2, "0") ? " selected" : ""}>${k + 1}</option>`).join("")}</select>
+            <select id="f-mes" aria-label="Mes"><option value="">Mes</option>${MESES_MAY.map((m, k) => `<option value="${String(k + 1).padStart(2, "0")}"${yo.cumple && yo.cumple.slice(0, 2) === String(k + 1).padStart(2, "0") ? " selected" : ""}>${m}</option>`).join("")}</select>
+          </div>
           <label class="campo" for="f-sobre">Sobre mí</label>
           <textarea id="f-sobre" maxlength="300" style="min-height:90px" placeholder="Qué estudias, a qué te dedicas, algo que te defina…">${App.escapar(yo.sobreMi || "")}</textarea>
           <label class="campo" for="f-gustos">Me gusta</label>
@@ -149,12 +196,17 @@
         yo.sobreMi = document.getElementById("f-sobre").value.trim();
         yo.gustos = document.getElementById("f-gustos").value.trim();
         yo.intencion = document.getElementById("f-int").value.trim();
+        const dia = document.getElementById("f-dia").value, mes = document.getElementById("f-mes").value;
+        yo.cumple = dia && mes ? `${mes}-${dia}` : "";
       }
 
       document.getElementById("enviar").onclick = async (ev) => {
         const boton = ev.currentTarget;
         leerFormulario();
         if (!yo.nombre) return App.aviso("Escribe al menos tu nombre");
+        const d = document.getElementById("f-dia").value, m = document.getElementById("f-mes").value;
+        if ((d && !m) || (!d && m)) return App.aviso("Elige el día y el mes de tu cumpleaños");
+        if (yo.cumple && !cumpleValido(yo.cumple)) return App.aviso("Esa fecha de cumpleaños no existe");
         if (!yo.id) { yo.id = aleatorio(6); yo.clave = aleatorio(16); }
         guardarYo(yo);
         if (!CONFIG.urlPerfiles) return App.aviso("Guardado en tu móvil");
@@ -164,7 +216,7 @@
           const r = await fetch(CONFIG.urlPerfiles, {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ accion: "guardar", id: yo.id, clave: yo.clave,
-              perfil: { nombre: yo.nombre, emoji: yo.emoji, color: yo.color, sobreMi: yo.sobreMi, gustos: yo.gustos, intencion: yo.intencion },
+              perfil: { nombre: yo.nombre, emoji: yo.emoji, color: yo.color, sobreMi: yo.sobreMi, gustos: yo.gustos, intencion: yo.intencion, cumple: yo.cumple || "" },
               foto: yo.fotoCambiada && yo.foto ? yo.foto.split(",")[1] : undefined,
               quitarFoto: yo.fotoQuitada || undefined })
           });

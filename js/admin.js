@@ -301,6 +301,7 @@
             <div class="texto"><div class="titulo">${escapar(p.nombre)}</div>
             <div class="detalle">${p.aprobado ? "✓ Publicado" : "⏳ Pendiente"} · ${escapar(App.horaRelativa(p.actualizado))}</div></div>
           </div>
+          ${/^\d\d-\d\d$/.test(p.cumple || "") ? `<div class="dato"><b>Cumpleaños</b>🎂 ${Number(p.cumple.slice(3))} de ${App.MESES[Number(p.cumple.slice(0, 2)) - 1]}</div>` : ""}
           ${p.sobreMi ? `<div class="dato"><b>Sobre mí</b>${escapar(p.sobreMi)}</div>` : ""}
           ${p.gustos ? `<div class="dato"><b>Me gusta</b>${escapar(p.gustos)}</div>` : ""}
           ${p.intencion ? `<div class="dato"><b>Reza por mí</b>${escapar(p.intencion)}</div>` : ""}

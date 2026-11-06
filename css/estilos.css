@@ -406,3 +406,15 @@ mark { background: #FDF0C4; color: inherit; border-radius: 3px; padding: 0 1px; 
 @keyframes aparecer { from { opacity: 0; } to { opacity: 1; } }
 @keyframes subir { from { transform: translateY(16px); opacity: .5; } to { transform: none; opacity: 1; } }
 .paso.actual { padding-bottom: 8px; }
+
+/* ---------- Cumpleaños en Comunidad ---------- */
+.pastilla .cumple { font-size: 13.5px; color: #B07A1C; font-weight: 600; margin-top: 1px; }
+.pastilla .cumple span { font-weight: 500; color: var(--texto-secundario); }
+.pastilla.cumple-hoy { background: linear-gradient(135deg, #FDF4E3, #FFFBF2); border-color: #F3DFB4; }
+.pastilla.cumple-hoy .cumple span { color: #B07A1C; font-weight: 700; }
+.separador-mes { display: flex; align-items: center; gap: 10px; margin: 20px 4px 10px; font-size: 13px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--azul-cielo); }
+.separador-mes:first-child { margin-top: 2px; }
+.separador-mes::after { content: ""; flex: 1; height: 1px; background: var(--gris-borde); }
+.fila-cumple { display: flex; gap: 10px; }
+.fila-cumple select { flex: 1; background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235A6A85' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px; padding-right: 34px; }
+.fila-cumple select:first-child { flex: 0 0 96px; }
