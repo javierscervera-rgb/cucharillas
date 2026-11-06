@@ -329,3 +329,67 @@ details[open] > summary .chevron { transform: rotate(180deg); }
 .buscador input { padding-left: 42px; border-radius: 16px; background: #F4F7FB; border-color: transparent; }
 .buscador svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 19px; height: 19px; color: var(--texto-secundario); }
 mark { background: #FDF0C4; color: inherit; border-radius: 3px; padding: 0 1px; }
+
+/* ---------- Santo Rosario ---------- */
+.rosario-ayuda { font-size: 14px; line-height: 1.5; }
+.rosario-ayuda b { display: block; margin-bottom: 2px; }
+.series { display: flex; gap: 6px; background: #F4F7FB; border-radius: 14px; padding: 4px; margin-bottom: 6px; }
+.series button { flex: 1; min-width: 0; border: none; background: none; font: inherit; font-size: 13px; font-weight: 600; color: var(--texto-secundario); padding: 8px 2px; border-radius: 11px; display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
+.series button em { font-style: normal; font-size: 10px; font-weight: 700; color: var(--verde-menta); text-transform: uppercase; letter-spacing: .5px; }
+.series button.activa { background: white; color: var(--azul-cielo); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.series-dias { font-size: 13px; color: var(--texto-secundario); margin: 0 4px 12px; }
+
+.progreso-rosario { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.96); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); padding: 10px 2px 10px; margin: 0 -2px 4px; border-bottom: 1px solid var(--gris-borde); }
+.progreso-rosario .barra { height: 6px; background: #EEF2F7; border-radius: 99px; overflow: hidden; }
+.progreso-rosario .barra span { display: block; height: 100%; background: linear-gradient(90deg, var(--verde-menta), #5DB48C); border-radius: 99px; transition: width .3s ease; }
+.progreso-texto { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; color: var(--texto-secundario); margin-top: 6px; }
+.progreso-texto span { font-weight: 500; }
+.rosario-grupo { margin-top: 24px !important; }
+
+.paso { display: flex; align-items: center; gap: 12px; border-radius: 14px; padding: 11px 14px; margin-bottom: 6px; font-size: 15px; cursor: pointer; transition: background .2s ease, color .2s ease; }
+.paso .paso-titulo { flex: 1; min-width: 0; font-weight: 600; line-height: 1.3; }
+.paso .paso-titulo small { display: block; font-weight: 400; font-size: 13px; margin-top: 1px; }
+.paso .paso-marca { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.paso .paso-marca svg { width: 15px; height: 15px; }
+.paso.pendiente { background: #FAFBFD; border: 1px solid var(--gris-borde); color: #8592A8; }
+.paso.pendiente .paso-marca { border: 1.5px solid #D3DCE8; }
+.paso.rezado { background: var(--verde-suave); border: 1px solid transparent; color: #3E8A66; }
+.paso.rezado .paso-marca { background: #7BC6A4; color: white; }
+.paso.rezado .paso-titulo small { color: #5FA484; }
+
+.paso.actual { display: block; cursor: pointer; background: linear-gradient(135deg, #E8F4FD, #F3FAFF); border: 1.5px solid #B9D8F6; border-radius: 22px; box-shadow: 0 8px 24px rgba(74,144,226,0.18); padding: 16px 4px 12px; margin: 10px 0 12px; scroll-margin: 90px; animation: entrar .3s ease; }
+.paso.actual .paso-cabeza { display: flex; align-items: center; gap: 10px; padding: 0 14px 6px; }
+.paso.actual .paso-marca { width: 30px; height: 30px; background: var(--azul-cielo); color: white; font-size: 13px; font-weight: 700; }
+.paso.actual .paso-marca svg { width: 17px; height: 17px; }
+.paso.actual .paso-titulo { font-size: 17px; color: var(--azul-cielo); font-weight: 700; }
+.paso.actual .oracion-cuerpo { padding: 6px 14px 4px; }
+.paso.actual .oracion-cuerpo blockquote { background: rgba(255,255,255,.7); }
+.paso-pista { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 4px 14px 0; padding: 10px; border-radius: 12px; background: white; color: var(--azul-cielo); font-weight: 600; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+.paso-pista svg { width: 17px; height: 17px; }
+.paso.actual:active { transform: scale(0.985); }
+@keyframes entrar { from { opacity: .4; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.cuentas-mini { display: flex; gap: 6px; padding: 2px 14px 4px 54px; }
+.cuentas-mini i { width: 9px; height: 9px; border-radius: 50%; background: #D3DCE8; }
+.cuentas-mini i.r { background: var(--verde-menta); }
+.cuentas-mini i.a { background: var(--azul-cielo); box-shadow: 0 0 0 3px rgba(74,144,226,.25); }
+
+.decena { border: 1px solid var(--gris-borde); border-radius: 18px; padding: 12px 12px 6px; margin-bottom: 6px; background: #FAFBFD; }
+.decena.completa { background: var(--verde-suave); border-color: transparent; }
+.decena-cabeza { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--texto-secundario); margin: 0 2px 10px; }
+.decena.completa .decena-cabeza { color: #3E8A66; }
+.cuentas { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; margin-bottom: 6px; }
+.cuenta { aspect-ratio: 1; border-radius: 50%; border: 1.5px solid #D3DCE8; background: white; font: inherit; font-size: 11px; font-weight: 600; color: #9AA6B8; padding: 0; display: flex; align-items: center; justify-content: center; }
+.cuenta.rezado { background: var(--verde-menta); border-color: var(--verde-menta); color: white; }
+.cuenta.actual { background: var(--azul-cielo); border-color: var(--azul-cielo); color: white; box-shadow: 0 0 0 3px rgba(74,144,226,.25); }
+.decena .paso.actual { margin: 10px -4px 8px; }
+
+.rosario-fin { text-align: center; padding: 26px 16px; background: var(--verde-suave); border-radius: 22px; margin-top: 14px; }
+.rosario-fin .icono-pastilla { margin: 0 auto 10px; width: 56px; height: 56px; border-radius: 18px; background: white; }
+.rosario-fin h2 { margin: 0 0 4px; font-size: 21px; color: #2F8A60; }
+.rosario-fin p { margin: 0; color: var(--texto-secundario); }
+
+.pastilla-rosario { width: 100%; }
+.pastilla-rosario .icono-grande { width: 64px; height: 64px; }
+.pastilla-rosario .icono-grande svg { width: 44px; height: 44px; color: var(--azul-cielo); }
+.pastilla-rosario .titulo { font-size: 21px !important; }

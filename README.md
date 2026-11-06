@@ -74,6 +74,7 @@ retiro.html       Retiro mensual (abre el último)
 notas.html        Mis notas (locales) + copia de seguridad
 articulo.html     Lectura de un artículo
 devocionario.html Devocionario (temas y oraciones desplegables, buscador)
+rosario.html      Santo Rosario guiado (data/rosario.json: textos y misterios)
 agenda.html       Agenda (con "Añadir a mi calendario")
 comunidad.html    Todos por todos + Mi perfil
 recursos.html     Para leer y ver: pestañas Pendientes / Leídos y vistos

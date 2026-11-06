@@ -1,0 +1,203 @@
+{
+  "indicacion": "Reza la oración que aparece en la pastilla azul. **Cuando la termines, tócala** y pasará sola a la siguiente; lo ya rezado se queda en verde. Si te saltas algo o quieres volver atrás, toca cualquier oración de la lista.",
+  "inicio": [
+    {
+      "id": "senal-cruz",
+      "titulo": "Señal de la cruz",
+      "texto": "_Haz una cruz en la frente, otra en la boca y otra en el pecho, y después santíguate.\n\n**Por la señal de la Santa Cruz,**\nde nuestros enemigos\nlíbranos, Señor, Dios nuestro.\n**En el nombre del Padre, y del Hijo,**\n**y del Espíritu Santo.**\n\nAmén."
+    },
+    {
+      "id": "contricion",
+      "titulo": "Acto de contrición",
+      "texto": "**Señor mío, Jesucristo,**\nDios y hombre verdadero, Creador y Redentor mío;\npor ser tú quien eres y porque te amo sobre todas las cosas,\n**me arrepiento de todo corazón**\nde todo lo malo que he hecho\ny de todo lo bueno que he dejado de hacer;\nsobre todo porque te he ofendido a ti,\nque eres la bondad infinita.\n**Propongo firmemente,** con la ayuda de tu gracia,\nhacer penitencia, no volver a pecar\ny huir de las ocasiones de pecado.\nSeñor, por los méritos de tu pasión y muerte,\n**apiádate de mí.**\n\nAmén."
+    },
+    {
+      "id": "versiculos",
+      "titulo": "Invocación inicial",
+      "texto": "V. {{Señor, ábreme los labios.}}\nR. {{Y mi boca proclamará tu alabanza.}}\n\nV. **Dios mío, ven en mi auxilio.**\nR. Señor, date prisa en socorrerme.\n\nV. **Gloria al Padre, y al Hijo, y al Espíritu Santo.**\nR. Como era en el principio, ahora y siempre, por los siglos de los siglos. Amén."
+    }
+  ],
+  "series": [
+    {
+      "id": "gozosos",
+      "nombre": "Gozosos",
+      "dias": [
+        1,
+        6
+      ],
+      "diasTexto": "lunes y sábado",
+      "misterios": [
+        [
+          "La Encarnación del Hijo de Dios",
+          "Concebirás en tu vientre y darás a luz un hijo, y le pondrás por nombre Jesús.",
+          "Lc 1, 31"
+        ],
+        [
+          "La Visitación de Nuestra Señora a su prima santa Isabel",
+          "Bendita tú entre las mujeres, y bendito el fruto de tu vientre.",
+          "Lc 1, 42"
+        ],
+        [
+          "El Nacimiento del Hijo de Dios en Belén",
+          "Dio a luz a su hijo primogénito, lo envolvió en pañales y lo acostó en un pesebre.",
+          "Lc 2, 7"
+        ],
+        [
+          "La Presentación de Jesús en el Templo",
+          "Lo llevaron a Jerusalén para presentarlo al Señor.",
+          "Lc 2, 22"
+        ],
+        [
+          "El Niño Jesús perdido y hallado en el Templo",
+          "¿No sabíais que yo debía estar en las cosas de mi Padre?",
+          "Lc 2, 49"
+        ]
+      ]
+    },
+    {
+      "id": "luminosos",
+      "nombre": "Luminosos",
+      "dias": [
+        4
+      ],
+      "diasTexto": "jueves",
+      "misterios": [
+        [
+          "El Bautismo de Jesús en el Jordán",
+          "Este es mi Hijo, el amado, en quien me complazco.",
+          "Mt 3, 17"
+        ],
+        [
+          "La autorrevelación de Jesús en las bodas de Caná",
+          "Haced lo que él os diga.",
+          "Jn 2, 5"
+        ],
+        [
+          "El anuncio del Reino de Dios invitando a la conversión",
+          "Convertíos y creed en el Evangelio.",
+          "Mc 1, 15"
+        ],
+        [
+          "La Transfiguración del Señor",
+          "Este es mi Hijo, el amado; escuchadlo.",
+          "Mc 9, 7"
+        ],
+        [
+          "La institución de la Eucaristía",
+          "Tomad, comed: esto es mi cuerpo.",
+          "Mt 26, 26"
+        ]
+      ]
+    },
+    {
+      "id": "dolorosos",
+      "nombre": "Dolorosos",
+      "dias": [
+        2,
+        5
+      ],
+      "diasTexto": "martes y viernes",
+      "misterios": [
+        [
+          "La Oración de Jesús en el Huerto",
+          "Padre, si quieres, aparta de mí este cáliz; pero que no se haga mi voluntad, sino la tuya.",
+          "Lc 22, 42"
+        ],
+        [
+          "La Flagelación del Señor",
+          "Entonces Pilato tomó a Jesús y lo mandó azotar.",
+          "Jn 19, 1"
+        ],
+        [
+          "La Coronación de espinas",
+          "Los soldados trenzaron una corona de espinas y se la pusieron en la cabeza.",
+          "Jn 19, 2"
+        ],
+        [
+          "Jesús con la Cruz a cuestas camino del Calvario",
+          "Y, cargando él mismo con la cruz, salió al sitio llamado de la Calavera.",
+          "Jn 19, 17"
+        ],
+        [
+          "La Crucifixión y muerte del Señor",
+          "Padre, a tus manos encomiendo mi espíritu.",
+          "Lc 23, 46"
+        ]
+      ]
+    },
+    {
+      "id": "gloriosos",
+      "nombre": "Gloriosos",
+      "dias": [
+        3,
+        0
+      ],
+      "diasTexto": "miércoles y domingo",
+      "misterios": [
+        [
+          "La Resurrección del Hijo de Dios",
+          "No está aquí: ha resucitado.",
+          "Lc 24, 6"
+        ],
+        [
+          "La Ascensión del Señor a los cielos",
+          "Mientras los bendecía, se separó de ellos y fue llevado hacia el cielo.",
+          "Lc 24, 51"
+        ],
+        [
+          "La Venida del Espíritu Santo sobre los Apóstoles",
+          "Se llenaron todos de Espíritu Santo.",
+          "Hch 2, 4"
+        ],
+        [
+          "La Asunción de Nuestra Señora a los cielos",
+          "Desde ahora me felicitarán todas las generaciones.",
+          "Lc 1, 48"
+        ],
+        [
+          "La Coronación de la Santísima Virgen como Reina de cielos y tierra",
+          "Una gran señal apareció en el cielo: una mujer vestida de sol, y una corona de doce estrellas sobre su cabeza.",
+          "Ap 12, 1"
+        ]
+      ]
+    }
+  ],
+  "decena": {
+    "padrenuestro": "**Padre nuestro,** que estás en el cielo,\nsantificado sea tu Nombre;\nvenga a nosotros tu reino;\nhágase tu voluntad\nen la tierra como en el cielo.\n**Danos hoy nuestro pan de cada día;**\nperdona nuestras ofensas,\ncomo también nosotros perdonamos\na los que nos ofenden;\nno nos dejes caer en la tentación,\ny líbranos del mal.\n\nAmén.",
+    "avemaria": "**Dios te salve, María,**\n{{llena eres de gracia;}}\n{{el Señor es contigo.}}\n{{Bendita tú eres entre todas las mujeres,}}\n{{y bendito es el fruto de tu vientre,}} **Jesús.**\n**Santa María, Madre de Dios,**\nruega por nosotros, pecadores,\nahora y en la hora de nuestra muerte.\n\nAmén.",
+    "gloria": "**Gloria al Padre, y al Hijo, y al Espíritu Santo.**\nComo era en el principio, ahora y siempre,\npor los siglos de los siglos.\n\nAmén.",
+    "mariaMadre": "**María, Madre de gracia,**\nMadre de misericordia,\nen la vida y en la muerte\n**ampáranos, oh gran Señora.**"
+  },
+  "final": [
+    {
+      "id": "letanias",
+      "titulo": "Letanías de la Santísima Virgen",
+      "texto": "_Se puede rezar a dos coros: uno dice la invocación y el otro responde.\n\nV. Señor, ten piedad.\nR. **Señor, ten piedad.**\nV. Cristo, ten piedad.\nR. **Cristo, ten piedad.**\nV. Señor, ten piedad.\nR. **Señor, ten piedad.**\nV. Cristo, óyenos.\nR. **Cristo, óyenos.**\nV. Cristo, escúchanos.\nR. **Cristo, escúchanos.**\n\n_A cada invocación se responde: **ten piedad de nosotros.**\n\nDios, Padre celestial,\nDios Hijo, Redentor del mundo,\nDios Espíritu Santo,\nSantísima Trinidad, un solo Dios,\n\n_A cada invocación se responde: **ruega por nosotros.**\n\n**Santa María,**\nSanta Madre de Dios,\nSanta Virgen de las vírgenes,\n\n**Madre de Cristo,**\nMadre de la Iglesia,\nMadre de la misericordia,\nMadre de la divina gracia,\nMadre de la esperanza,\nMadre purísima,\nMadre castísima,\nMadre siempre virgen,\nMadre inmaculada,\nMadre amable,\nMadre admirable,\nMadre del buen consejo,\nMadre del Creador,\nMadre del Salvador,\n\n**Virgen prudentísima,**\nVirgen digna de veneración,\nVirgen digna de alabanza,\nVirgen poderosa,\nVirgen clemente,\nVirgen fiel,\n\n**Espejo de justicia,**\nTrono de la sabiduría,\nCausa de nuestra alegría,\nVaso espiritual,\nVaso digno de honor,\nVaso de insigne devoción,\nRosa mística,\nTorre de David,\nTorre de marfil,\nCasa de oro,\nArca de la alianza,\nPuerta del cielo,\nEstrella de la mañana,\nSalud de los enfermos,\nRefugio de los pecadores,\nConsuelo de los migrantes,\nConsuelo de los afligidos,\nAuxilio de los cristianos,\n\n**Reina de los ángeles,**\nReina de los patriarcas,\nReina de los profetas,\nReina de los apóstoles,\nReina de los mártires,\nReina de los confesores,\nReina de las vírgenes,\nReina de todos los santos,\nReina concebida sin pecado original,\nReina asunta a los cielos,\nReina del santísimo Rosario,\nReina de la familia,\nReina de la paz."
+    },
+    {
+      "id": "cordero",
+      "titulo": "Cordero de Dios",
+      "texto": "**Cordero de Dios,** que quitas el pecado del mundo,\n_perdónanos, Señor.\n**Cordero de Dios,** que quitas el pecado del mundo,\n_escúchanos, Señor.\n**Cordero de Dios,** que quitas el pecado del mundo,\n_ten piedad de nosotros.\n\nV. Ruega por nosotros, Santa Madre de Dios.\nR. Para que seamos dignos de alcanzar las promesas de nuestro Señor Jesucristo."
+    },
+    {
+      "id": "oracion-final",
+      "titulo": "Oración final",
+      "texto": "**Te pedimos, Señor,**\nque nos concedas a nosotros, tus siervos,\ngozar de perpetua salud de alma y cuerpo,\ny que, por la gloriosa intercesión\nde la bienaventurada siempre Virgen María,\n**seamos librados de las tristezas de la vida presente**\n**y disfrutemos de las alegrías eternas.**\nPor Cristo nuestro Señor.\n\nAmén."
+    },
+    {
+      "id": "papa",
+      "titulo": "Por las intenciones del Santo Padre",
+      "texto": "_Se reza un Padrenuestro, un Avemaría y un Gloria por las intenciones del Papa, para ganar las indulgencias.\n\n## Padrenuestro\n\n**Padre nuestro,** que estás en el cielo,\nsantificado sea tu Nombre;\nvenga a nosotros tu reino;\nhágase tu voluntad\nen la tierra como en el cielo.\n**Danos hoy nuestro pan de cada día;**\nperdona nuestras ofensas,\ncomo también nosotros perdonamos\na los que nos ofenden;\nno nos dejes caer en la tentación,\ny líbranos del mal.\n\nAmén.\n\n## Avemaría\n\n**Dios te salve, María,**\n{{llena eres de gracia;}}\n{{el Señor es contigo.}}\n{{Bendita tú eres entre todas las mujeres,}}\n{{y bendito es el fruto de tu vientre,}} **Jesús.**\n**Santa María, Madre de Dios,**\nruega por nosotros, pecadores,\nahora y en la hora de nuestra muerte.\n\nAmén.\n\n## Gloria\n\n**Gloria al Padre, y al Hijo, y al Espíritu Santo.**\nComo era en el principio, ahora y siempre,\npor los siglos de los siglos.\n\nAmén."
+    },
+    {
+      "id": "salve",
+      "titulo": "Salve",
+      "texto": "**Dios te salve, Reina y Madre de misericordia,**\nvida, dulzura y esperanza nuestra;\n¡Dios te salve!\nA ti llamamos los desterrados hijos de Eva;\na ti suspiramos, gimiendo y llorando\nen este valle de lágrimas.\n¡Ea, pues, Señora, abogada nuestra!,\n**vuelve a nosotros esos tus ojos misericordiosos,**\ny después de este destierro **muéstranos a Jesús,**\nfruto bendito de tu vientre.\n**¡Oh clemente, oh piadosa, oh dulce Virgen María!**\n\nV. Ruega por nosotros, Santa Madre de Dios.\nR. Para que seamos dignos de alcanzar las promesas de nuestro Señor Jesucristo.\n\nAmén."
+    },
+    {
+      "id": "jaculatoria",
+      "titulo": "Jaculatoria final",
+      "texto": "V. **Ave María Purísima.**\nR. **Sin pecado concebida.**\n\n_Termina santiguándote: En el nombre del Padre, y del Hijo, y del Espíritu Santo. Amén."
+    }
+  ]
+}

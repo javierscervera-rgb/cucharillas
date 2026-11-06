@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cucharillas">
+  <meta name="theme-color" content="#FFFFFF">
+  <title>Santo Rosario · Cucharillas</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="icon" href="img/icono-192.png">
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/oraciones.js"></script>
+</head>
+<body data-pagina="devocionario">
+  <main class="contenedor">
+    <header class="cabecera-pagina">
+      <a class="btn-volver" href="devocionario.html" aria-label="Volver" data-icono="atras"></a>
+      <h1>Santo Rosario</h1>
+    </header>
+    <div id="contenido"><div class="cargando">Cargando…</div></div>
+  </main>
+
+  <script>
+    (async function () {
+      const { escapar, ICONOS } = App;
+      const cont = document.getElementById("contenido");
+      const R = await App.cargar("rosario");
+      if (!R.series) { cont.innerHTML = `<div class="vacio">No se pudo cargar el Rosario.</div>`; return; }
+
+      const ORD = ["Primer", "Segundo", "Tercer", "Cuarto", "Quinto"];
+      const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+      const hoyNum = new Date().getDay();
+      const hoyISO = new Date().toLocaleDateString("sv");
+      const serieDeHoy = R.series.find(s => s.dias.includes(hoyNum)).id;
+
+      // ---------- Progreso (se guarda en el móvil y se reinicia cada día) ----------
+      const CLAVE = "cucharillas_rosario";
+      let estado;
+      try { estado = JSON.parse(localStorage.getItem(CLAVE)); } catch (e) {}
+      if (!estado || estado.fecha !== hoyISO) estado = { fecha: hoyISO, serie: serieDeHoy, actual: 0 };
+      const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify(estado)); } catch (e) {} };
+
+      // ---------- Construye la lista de pasos ----------
+      let pasos = [], filas = [];
+      function construir() {
+        const serie = R.series.find(s => s.id === estado.serie);
+        const singular = serie.nombre.toLowerCase().replace(/s$/, "");
+        pasos = []; filas = [];
+        const nuevo = (p) => { p.i = pasos.length; pasos.push(p); return p; };
+
+        filas.push({ grupo: "Para empezar" });
+        R.inicio.forEach(o => filas.push({ paso: nuevo({ titulo: o.titulo, texto: o.texto, etiqueta: "Inicio" }) }));
+
+        serie.misterios.forEach(([titulo, cita, ref], m) => {
+          const nombreM = `${ORD[m]} misterio ${singular}`;
+          filas.push({ grupo: nombreM, sub: titulo });
+          filas.push({ paso: nuevo({ titulo: nombreM, sub: titulo, misterio: true, etiqueta: `${m + 1}.º misterio`,
+            texto: `**${titulo}**\n\n> ${cita} | ${ref}\n\n_Contempla este misterio en silencio unos instantes. Puedes ofrecer la decena por alguien.` }) });
+          filas.push({ paso: nuevo({ titulo: "Padrenuestro", texto: R.decena.padrenuestro, etiqueta: `${m + 1}.º misterio` }) });
+          const decena = [];
+          for (let k = 1; k <= 10; k++) decena.push(nuevo({ titulo: `Avemaría ${k} de 10`, texto: R.decena.avemaria, cuenta: k, etiqueta: `${m + 1}.º misterio · Avemaría ${k}` }));
+          filas.push({ decena });
+          filas.push({ paso: nuevo({ titulo: "Gloria", texto: R.decena.gloria, etiqueta: `${m + 1}.º misterio` }) });
+          filas.push({ paso: nuevo({ titulo: "María, Madre de gracia", texto: R.decena.mariaMadre, etiqueta: `${m + 1}.º misterio` }) });
+        });
+
+        filas.push({ grupo: "Para terminar" });
+        R.final.forEach(o => filas.push({ paso: nuevo({ titulo: o.titulo, texto: o.texto, etiqueta: "Final" }) }));
+      }
+
+      // ---------- Pintar ----------
+      const estadoDe = i => i < estado.actual ? "rezado" : i === estado.actual ? "actual" : "pendiente";
+
+      function pastilla(p) {
+        return `<div class="paso actual${p.misterio ? " misterio" : ""}" data-i="${p.i}" role="button" tabindex="0">
+          <div class="paso-cabeza">
+            <span class="paso-marca">${p.cuenta ? p.cuenta : p.misterio ? ICONOS.rosario : ICONOS.manos}</span>
+            <span class="paso-titulo">${escapar(p.titulo)}</span>
+          </div>
+          <div class="oracion-cuerpo">${Oraciones.formatear(p.texto)}</div>
+          <div class="paso-pista">${ICONOS.check} Toca al terminar</div>
+        </div>`;
+      }
+
+      function fila(p) {
+        const e = estadoDe(p.i);
+        if (e === "actual") return pastilla(p);
+        return `<div class="paso ${e}" data-i="${p.i}" role="button" tabindex="0">
+          <span class="paso-marca">${e === "rezado" ? ICONOS.check : ""}</span>
+          <span class="paso-titulo">${escapar(p.titulo)}${p.sub ? `<small>${escapar(p.sub)}</small>` : ""}</span>
+        </div>`;
+      }
+
+      function pintar() {
+        const serie = R.series.find(s => s.id === estado.serie);
+        const total = pasos.length;
+        const hecho = Math.min(estado.actual, total);
+        const actual = pasos[estado.actual];
+
+        let html = `
+          <div class="aviso info rosario-ayuda">
+            <b>Cómo usarlo.</b> ${Oraciones.enLinea(R.indicacion)}
+          </div>
+          <div class="series">
+            ${R.series.map(s => `<button data-serie="${s.id}" class="${s.id === estado.serie ? "activa" : ""}">
+              ${escapar(s.nombre)}${s.id === serieDeHoy ? "<em>Hoy</em>" : ""}</button>`).join("")}
+          </div>
+          <p class="series-dias">Misterios ${escapar(serie.nombre.toLowerCase())}: se rezan el ${escapar(serie.diasTexto)}.</p>
+          <div class="progreso-rosario">
+            <div class="barra"><span style="width:${(hecho / total * 100).toFixed(1)}%"></span></div>
+            <div class="progreso-texto">${actual ? escapar(actual.etiqueta) : "Terminado"} <span>${hecho} / ${total}</span></div>
+          </div>`;
+
+        filas.forEach(f => {
+          if (f.grupo) { html += `<h3 class="titulo-grupo rosario-grupo">${escapar(f.grupo)}</h3>`; return; }
+          if (f.paso) { html += fila(f.paso); return; }
+          // Decena: las diez cuentas en una fila y, si toca, la pastilla del Avemaría
+          const enCurso = f.decena.find(p => p.i === estado.actual);
+          const rezadas = f.decena.filter(p => p.i < estado.actual).length;
+          html += `<div class="decena${rezadas === 10 ? " completa" : ""}">
+            <div class="decena-cabeza"><span>Diez Avemarías</span><span>${rezadas}/10</span></div>
+            <div class="cuentas">${f.decena.map(p => `<button class="cuenta ${estadoDe(p.i)}" data-i="${p.i}" aria-label="Avemaría ${p.cuenta}">${p.cuenta}</button>`).join("")}</div>
+            ${enCurso ? pastilla(enCurso) : ""}
+          </div>`;
+        });
+
+        if (estado.actual >= total) {
+          html += `<div class="rosario-fin"><div class="icono-pastilla icono-verde">${ICONOS.rosario}</div>
+            <h2>¡Rosario terminado!</h2><p>Que la Virgen te acompañe hoy.</p></div>`;
+        }
+        html += `<button class="boton suave ancho" id="reiniciar" style="margin-top:18px">Empezar de nuevo</button>`;
+        cont.innerHTML = html;
+
+        cont.querySelectorAll("[data-i]").forEach(el => el.addEventListener("click", () => {
+          const i = +el.dataset.i;
+          ir(i === estado.actual ? i + 1 : i);
+        }));
+        cont.querySelectorAll("[data-serie]").forEach(b => b.onclick = () => {
+          estado.serie = b.dataset.serie; guardar(); construir(); pintar();
+        });
+        document.getElementById("reiniciar").onclick = () => {
+          if (estado.actual > 0 && !confirm("¿Empezar el Rosario desde el principio?")) return;
+          ir(0);
+        };
+      }
+
+      // Cambia de oración y centra la nueva pastilla en la pantalla
+      function ir(i) {
+        estado.actual = Math.max(0, Math.min(i, pasos.length));
+        guardar(); pintar();
+        const objetivo = cont.querySelector(".paso.actual") || cont.querySelector(".rosario-fin");
+        if (objetivo) requestAnimationFrame(() => objetivo.scrollIntoView({ behavior: "smooth", block: "center" }));
+      }
+
+      construir(); pintar();
+      if (estado.actual > 0) {
+        const el = cont.querySelector(".paso.actual") || cont.querySelector(".rosario-fin");
+        if (el) setTimeout(() => el.scrollIntoView({ block: "center" }), 50);
+      }
+    })();
+  </script>
+</body>
+</html>
