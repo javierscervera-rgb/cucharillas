@@ -259,6 +259,19 @@
       "aprobado": true,
       "actualizado": "2026-11-03T10:58:30.359Z",
       "claveHash": "c164f54f31033b7a64441011b53c0b5a21e8f4586122835889f31d7997059a09"
+    },
+    {
+      "id": "076912872957",
+      "nombre": "Mario",
+      "emoji": "🙏",
+      "color": "#E6F7F0",
+      "sobreMi": "Curioso por naturaleza. \n\nConsultor en una headhunter por las mañanas y profesor de padel por las tardes. \n\nPolitólogo por la UCM. Me dio clase Pablo Iglesias. Ambas cosas son irrelevantes en mi vida actual.",
+      "gustos": "Mil cosas. Deporte, gimnasio, cine, planes con amigos y familia, conversaciones reflexivas,...",
+      "intencion": "Para que cada día estemos un poco más cerca de Dios y de la fe, y superar así el desafío de renunciar a la normalización de la sociedad de los comportamientos que son contrarios a ella.",
+      "foto": "img/perfiles/076912872957.jpg?v=1793980101680",
+      "aprobado": false,
+      "actualizado": "2026-11-06T15:48:21.959Z",
+      "claveHash": "601f2886e3b14d5d1bf8a3278580a206fab9b1384804b4f6f484e9cf3f9ea971"
     }
   ]
 }
