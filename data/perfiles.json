@@ -296,6 +296,20 @@
       "aprobado": true,
       "actualizado": "2026-11-07T09:18:55.641Z",
       "claveHash": "ed4c8580ac7054a1e894fcc75dade54802e081319eb15f8dfd30ccc2dec122b4"
+    },
+    {
+      "id": "2d05cb2fc041",
+      "nombre": "Jaime",
+      "emoji": "🌻",
+      "color": "#E8F4FD",
+      "sobreMi": "Estudio psicología, soy orientadora en un colegio y trabajo de fotógrafo.",
+      "gustos": "Música indie, gimnasio, moda, cine...",
+      "intencion": "Por mí docilidad a la Voluntad.",
+      "cumple": "02-16",
+      "foto": "img/perfiles/2d05cb2fc041.jpg?v=1794050082879",
+      "aprobado": false,
+      "actualizado": "2026-11-07T11:14:43.239Z",
+      "claveHash": "0b3614d292f82f05cb30da4bc261eb46e707b683f779af3f1a5cef17d80f7eab"
     }
   ]
 }
