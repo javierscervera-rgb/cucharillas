@@ -280,6 +280,20 @@
       "aprobado": true,
       "actualizado": "2026-11-06T15:48:21.959Z",
       "claveHash": "601f2886e3b14d5d1bf8a3278580a206fab9b1384804b4f6f484e9cf3f9ea971"
+    },
+    {
+      "id": "c3c9bc598067",
+      "nombre": "Pablo",
+      "emoji": "🌻",
+      "color": "#E8F4FD",
+      "sobreMi": "Estoy opositando a policía local y preparándome para recibir la comunión",
+      "gustos": "Los deportes y la música",
+      "intencion": "",
+      "cumple": "06-27",
+      "foto": "img/perfiles/c3c9bc598067.jpg?v=1794043135389",
+      "aprobado": false,
+      "actualizado": "2026-11-07T09:18:55.641Z",
+      "claveHash": "ed4c8580ac7054a1e894fcc75dade54802e081319eb15f8dfd30ccc2dec122b4"
     }
   ]
 }
