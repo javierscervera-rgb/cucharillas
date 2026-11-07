@@ -176,14 +176,15 @@
     {
       "id": "6868f8c705cb",
       "nombre": "Valeria",
-      "emoji": "🌻",
-      "color": "#E8F4FD",
+      "emoji": "🌊",
+      "color": "#FDECEC",
       "sobreMi": "",
       "gustos": "Me gusta la medicina, el gimnasio y los viajes",
       "intencion": "Por fortalecer mi fe en él",
+      "cumple": "09-29",
       "foto": "img/perfiles/6868f8c705cb.jpg?v=1793270104872",
-      "aprobado": true,
-      "actualizado": "2026-11-01T03:11:07.222Z",
+      "aprobado": false,
+      "actualizado": "2026-11-07T09:15:09.867Z",
       "claveHash": "2ca5cf96df83045aa1347eb93efe06f5139e6be92b8424aa77360952baae791c"
     },
     {
