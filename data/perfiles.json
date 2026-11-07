@@ -310,6 +310,20 @@
       "aprobado": false,
       "actualizado": "2026-11-07T11:14:43.239Z",
       "claveHash": "0b3614d292f82f05cb30da4bc261eb46e707b683f779af3f1a5cef17d80f7eab"
+    },
+    {
+      "id": "c3b7a1f5948c",
+      "nombre": "Williams",
+      "emoji": "🏔️",
+      "color": "#E8F4FD",
+      "sobreMi": "Soy feliz, me aman y yo amo.",
+      "gustos": "Jugar y ver futbol, y las reuniones familiares.",
+      "intencion": "Por una vida llena de amor y que se haga la voluntad de Dios.",
+      "cumple": "05-23",
+      "foto": "img/perfiles/c3b7a1f5948c.jpg?v=1794054584604",
+      "aprobado": false,
+      "actualizado": "2026-11-07T12:29:44.857Z",
+      "claveHash": "bef4b8a2885e8154346e6c31739d27717b91826cc5f8d780ce0c555e07a4de09"
     }
   ]
 }
