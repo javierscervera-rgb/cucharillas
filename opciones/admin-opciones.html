@@ -64,6 +64,7 @@ details.tarjeta[open] > summary::after { transform: rotate(90deg); }
 .grupo.rojo { background: #FFF7F7; } .grupo.rojo h3 { color: var(--rojo-oscuro); }
 .grupo.verde { background: #F3FBF7; } .grupo.verde h3 { color: var(--verde-oscuro); }
 .grupo.lila { background: #F9F7FF; } .grupo.lila h3 { color: #7B61D1; }
+.grupo.azul { background: #F2F8FE; } .grupo.azul h3 { color: #1E63B8; }
 .paso { background: #fff; border: 1px solid var(--gris-borde); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
 .paso:last-child { margin-bottom: 0; }
 .paso h4 { margin: 0 0 10px; font-size: 14px; }
@@ -145,7 +146,7 @@ details.tarjeta[open] > summary::after { transform: rotate(90deg); }
       <path d="M15 6.5v12M10.5 11h9" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
     </svg>
     <h1>Admin · Opciones</h1>
-    <a href="index.html">Inicio</a>
+    <a href="../index.html">Inicio</a>
   </header>
   <p class="lead">Edita el contenido del juego. Los cambios se guardan solos.</p>
   <details class="ayuda-md">
@@ -309,7 +310,8 @@ details.tarjeta[open] > summary::after { transform: rotate(90deg); }
       opciones: [0, 1, 2, 3].map(function (i) {
         var o = ops[i] || {}; var ps = Array.isArray(o.pasos) ? o.pasos : [];
         return {
-          titulo: t(o.titulo), subtitulo1: t(o.subtitulo1), imagen1: t(o.imagen1), texto1: t(o.texto1),
+          titulo: t(o.titulo), textoBiblico: t(o.textoBiblico), citaBiblica: t(o.citaBiblica),
+          subtitulo1: t(o.subtitulo1), imagen1: t(o.imagen1), texto1: t(o.texto1),
           subtitulo2: t(o.subtitulo2), imagen2: t(o.imagen2), texto2: t(o.texto2),
           pasos: [0, 1, 2].map(function (j) { var p = ps[j] || {}; return { titulo: t(p.titulo), imagen: t(p.imagen), texto: t(p.texto) }; })
         };
@@ -548,6 +550,11 @@ details.tarjeta[open] > summary::after { transform: rotate(90deg); }
         '<div class="resumen-txt"><small>Opción fundamental ' + (i + 1) + '</small><strong data-resumen="' + i + '"></strong></div></summary>';
       var c = el('div', 'cuerpo-opcion');
       c.appendChild(campo(b + 'titulo', 'Título', 'linea'));
+
+      var g0 = el('div', 'grupo azul', '<h3>Texto bíblico de la opción</h3>');
+      g0.appendChild(campo(b + 'textoBiblico', 'Texto bíblico', 'medio', 'Aparece debajo del deslizador, en una pastilla de su mismo color. Si lo dejas vacío, no se muestra.'));
+      g0.appendChild(campo(b + 'citaBiblica', 'Cita', 'linea', 'Ej.: Mateo 6, 33'));
+      c.appendChild(g0);
 
       var g1 = el('div', 'grupo rojo', '<h3>Punto de partida</h3>');
       g1.appendChild(campo(b + 'subtitulo1', 'Subtítulo 1', 'linea', 'También es la etiqueta izquierda del deslizador.'));

@@ -91,8 +91,9 @@ body.sin-scroll { overflow: hidden; }
 .boton-texto { background: none; border: 0; color: var(--texto-secundario); font: 600 14px inherit; font-family: inherit; padding: 10px; cursor: pointer; }
 
 /* ---------- Pantalla 1: Intro ---------- */
-.intro-tarjeta { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 22px; }
-.intro-tarjeta .icono-grande { width: 64px; height: 64px; border-radius: 20px; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(74,144,226,.15); }
+.intro-tarjeta { padding: 0; overflow: hidden; margin-bottom: 22px; }
+.intro-portada { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: 50% 45%; }
+.intro-cuerpo { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 18px 20px 20px; }
 .intro-tarjeta h2 { margin: 6px 0 0; font-size: 26px; font-weight: 700; color: #1E63B8; }
 .intro-tarjeta .lema { margin: 0; color: var(--texto-secundario); font-size: 15px; }
 #introLista { margin-bottom: 22px; }
@@ -191,14 +192,39 @@ body.sin-scroll { overflow: hidden; }
 .imagen-vacia.azul { background: linear-gradient(135deg, #E8F4FD, #F3EFFF); }
 
 /* Slider */
-.slider { margin: 24px 0 22px; transition: opacity .6s ease, filter .6s ease; scroll-margin: 120px; }
-.slider.bloqueado { opacity: .35; filter: saturate(.5); }
-.slider.bloqueado .slider-pista { pointer-events: none; }
-.slider-etiquetas { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; font-weight: 700; margin-bottom: 9px; }
-.slider-etiquetas span:first-child { color: var(--rojo-oscuro); }
-.slider-etiquetas span:last-child { color: var(--texto-secundario); text-align: right; }
-.slider.completo .slider-etiquetas span:first-child { color: var(--texto-secundario); }
-.slider.completo .slider-etiquetas span:last-child { color: var(--verde-oscuro); }
+.slider { margin: 24px 0 16px; scroll-margin: 120px; }
+/* Solo la barra queda traslúcida hasta leer el texto; las etiquetas se ven siempre */
+.slider-pista, .slider-ayuda { transition: opacity .6s ease, filter .6s ease; }
+.slider.bloqueado .slider-pista { opacity: .35; filter: saturate(.5); pointer-events: none; }
+.slider.bloqueado .slider-ayuda { opacity: .6; }
+.slider-etiquetas { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.slider-desde, .slider-hasta { flex: 1 1 0; min-width: 0; font-size: 15px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.slider-desde { color: var(--rojo-oscuro); }
+.slider-hasta { color: var(--verde-oscuro); text-align: right; }
+.slider-flechas { flex: 0 0 auto; display: flex; align-items: center; gap: 0; padding: 8px 12px; border-radius: 999px; background: linear-gradient(90deg, var(--rojo-suave), var(--verde-suave)); box-shadow: 0 3px 10px rgba(31,42,68,.08); }
+.slider-flechas svg { width: 24px; height: 24px; margin: 0 -5px; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; animation: flechaPaso 1.5s ease-in-out infinite; }
+.slider-flechas svg:nth-child(1) { stroke: #E5484D; animation-delay: 0s; }
+.slider-flechas svg:nth-child(2) { stroke: #B0806A; animation-delay: .2s; }
+.slider-flechas svg:nth-child(3) { stroke: #4FAE85; animation-delay: .4s; }
+@keyframes flechaPaso { 0%, 100% { opacity: .35; transform: translateX(-2px); } 40% { opacity: 1; transform: translateX(2px); } }
+.slider.completo .slider-desde { color: var(--texto-secundario); }
+.slider.completo .slider-flechas { background: var(--verde-suave); }
+.slider.completo .slider-flechas svg { stroke: var(--verde-oscuro); animation: none; opacity: 1; }
+
+/* Texto bíblico de cada opción, en pastilla del color de fondo del slider */
+.op-biblia {
+  position: relative; background: var(--rojo-suave); border-radius: 18px; padding: 16px 18px 14px 50px; margin: 0 0 22px;
+  color: #6E1E22; transition: background .6s ease, color .6s ease;
+}
+.op-biblia-icono { position: absolute; left: 18px; top: 18px; color: var(--rojo); transition: color .6s ease; }
+.op-biblia-texto { font-family: "Cormorant Garamond", Georgia, serif; font-size: 19px; line-height: 1.45; font-weight: 500; font-style: italic; }
+.op-biblia-texto p { margin: 0 0 8px; }
+.op-biblia-texto > :last-child { margin-bottom: 0; }
+.op-biblia-texto strong { font-weight: 700; }
+.op-biblia-cita { margin: 8px 0 0; text-align: right; font-size: 13px; font-weight: 700; color: var(--rojo-oscuro); transition: color .6s ease; }
+.op-biblia-cita:empty { display: none; }
+.op-biblia.completo { background: var(--verde-suave); color: #1F5A40; }
+.op-biblia.completo .op-biblia-icono, .op-biblia.completo .op-biblia-cita { color: var(--verde-oscuro); }
 .slider-pista {
   --p: 0; --pomo: 52px;
   position: relative; height: 60px; border-radius: 30px; background: var(--rojo-suave);
@@ -370,9 +396,10 @@ body.sin-scroll { overflow: hidden; }
   position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around;
   padding: 10px 0 18px 0; box-shadow: 0 -4px 16px rgba(0,0,0,0.05); border-top: 1px solid var(--gris-borde); z-index: 100;
 }
-.nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; color: var(--texto-secundario); text-decoration: none; }
-.nav-item.activo { color: var(--azul-cielo); }
-.nav-item svg { width: 26px; height: 26px; }
+.nav-inferior { padding-bottom: max(18px, env(safe-area-inset-bottom)); }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: min(10.5px, 2.6vw); color: var(--texto-secundario); text-decoration: none; flex: 1 1 0; min-width: 0; white-space: nowrap; letter-spacing: -0.1px; }
+.nav-item svg { width: 24px; height: 24px; }
+.nav-item.activo { color: var(--azul-cielo); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -390,12 +417,12 @@ body.sin-scroll { overflow: hidden; }
   <!-- PANTALLA 1 · Explicación -->
   <section class="pantalla activa" id="pIntro">
     <div class="pastilla-destacada intro-tarjeta">
-      <div class="icono-grande">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#4A90E2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M15.8 8.2l-2.1 5.5-5.5 2.1 2.1-5.5z" fill="#E8F4FD"/></svg>
+      <img class="intro-portada" src="opciones-portada.jpg" alt="Un caminante recorre un sendero que sale de una Biblia abierta hacia la cruz">
+      <div class="intro-cuerpo">
+        <h2 id="introTitulo"></h2>
+        <p class="lema">Elige la vida</p>
+        <span class="chip">4 opciones · 3 pasos cada una</span>
       </div>
-      <h2 id="introTitulo"></h2>
-      <p class="lema">Elige la vida</p>
-      <span class="chip">4 opciones · 3 pasos cada una</span>
     </div>
     <div class="texto-largo" id="introTexto"></div>
     <h3 class="seccion-titulo">El recorrido</h3>
@@ -433,7 +460,15 @@ body.sin-scroll { overflow: hidden; }
     </div>
 
     <div class="slider bloqueado" id="slider">
-      <div class="slider-etiquetas"><span id="sliderDesde"></span><span id="sliderHasta"></span></div>
+      <div class="slider-etiquetas">
+        <span class="slider-desde" id="sliderDesde"></span>
+        <span class="slider-flechas" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+        </span>
+        <span class="slider-hasta" id="sliderHasta"></span>
+      </div>
       <div class="slider-pista" id="sliderPista">
         <div class="slider-relleno"></div>
         <i class="slider-marca" style="--k:0.3333"></i>
@@ -444,6 +479,12 @@ body.sin-scroll { overflow: hidden; }
         </button>
       </div>
       <p class="slider-ayuda" id="sliderAyuda"></p>
+    </div>
+
+    <div class="op-biblia oculto" id="opBiblia">
+      <svg class="op-biblia-icono" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.5C10 5 7 4.5 3.5 5v13.5c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5zM12 6.5V20"/></svg>
+      <div class="op-biblia-texto" id="opBibliaTexto"></div>
+      <p class="op-biblia-cita" id="opBibliaCita"></p>
     </div>
 
     <div class="bloque-cambia texto-largo" id="opTexto"></div>
@@ -502,7 +543,7 @@ body.sin-scroll { overflow: hidden; }
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
       <span>Pulsa sobre la imagen para descargar el Award</span>
     </div>
-    <a class="boton-secundario" href="index.html" style="display:block;text-decoration:none;box-sizing:border-box;">Volver al inicio</a>
+    <a class="boton-secundario" href="../index.html" style="display:block;text-decoration:none;box-sizing:border-box;">Volver al inicio</a>
     <button class="boton-texto" id="btnRefirmar" type="button" style="margin-top:6px">Volver a firmar</button>
   </section>
 </main>
@@ -536,26 +577,13 @@ body.sin-scroll { overflow: hidden; }
 </div>
 
 <nav class="nav-inferior">
-  <a href="index.html" class="nav-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3.5 10.5L12 3.5l8.5 7V20a1 1 0 0 1-1 1h-5v-6h-5v6h-5a1 1 0 0 1-1-1z"/></svg>
-    Inicio
-  </a>
-  <a href="lectio.html" class="nav-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 6.5C10 5 7 4.5 3.5 5v13.5c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5zM12 6.5V20"/></svg>
-    Lectio
-  </a>
-  <a href="retiro.html" class="nav-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M2.5 20L9 8l4 7 2.5-4 6 9z"/></svg>
-    Retiros
-  </a>
-  <a href="agenda.html" class="nav-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
-    Agenda
-  </a>
-  <a href="comunidad.html" class="nav-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/><path d="M6.5 20v-1.5a5.5 5.5 0 0 1 11 0V20M2 19.5v-1a3.5 3.5 0 0 1 3.5-3.5M22 19.5v-1a3.5 3.5 0 0 0-3.5-3.5"/></svg>
-    Comunidad
-  </a>
+  <a href="../index.html" class="nav-item"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/></svg><span>Inicio</span></a>
+  <a href="../lectio.html" class="nav-item"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.5C10 5 7 4.5 3 5v13c4-.5 7 0 9 1.5 2-1.5 5-2 9-1.5V5c-4-.5-7 0-9 1.5Z"/><path d="M12 6.5v13"/></svg><span>Lectio</span></a>
+  <a href="../retiro.html" class="nav-item"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 20 7-12 4 6.5L15.5 11 22 20Z"/><path d="m7 11.5 2 1.5 2-1.5"/></svg><span>Retiros</span></a>
+  <a href="../devocionario.html" class="nav-item"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h11.5a1 1 0 0 1 1 1V17H7.5A2 2 0 0 0 5.5 19V5a1.5 1.5 0 0 1 .5-1.5Z"/><path d="M5.5 19a2 2 0 0 0 2 2h11v-4"/><path d="M12 6.5v7M9.5 9h5"/></svg><span>Oraciones</span></a>
+  <a href="../agenda.html" class="nav-item"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"/></svg><span>Agenda</span></a>
+  <a href="opciones.html" class="nav-item activo"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2.2 4.8-4.8 2.2 2.2-4.8Z"/><path d="M12 3v1.5M12 19.5V21M3 12h1.5M19.5 12H21"/></svg><span>Escapadas</span></a>
+  <a href="../comunidad.html" class="nav-item"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 19.5c.5-3.3 3-5.5 6-5.5s5.5 2.2 6 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14c2.5 0 4.2 1.8 4.5 4.5"/></svg><span>Comunidad</span></a>
 </nav>
 
 <script src="opciones-contenido.js"></script>
@@ -682,6 +710,7 @@ body.sin-scroll { overflow: hidden; }
         var o = ops[i] || {}; var ps = Array.isArray(o.pasos) ? o.pasos : [];
         return {
           titulo: t(o.titulo) || ('Opción ' + (i + 1)),
+          textoBiblico: t(o.textoBiblico), citaBiblica: t(o.citaBiblica),
           subtitulo1: t(o.subtitulo1), imagen1: t(o.imagen1), texto1: t(o.texto1),
           subtitulo2: t(o.subtitulo2), imagen2: t(o.imagen2), texto2: t(o.texto2),
           pasos: [0, 1, 2].map(function (j) {
@@ -852,6 +881,11 @@ body.sin-scroll { overflow: hidden; }
     $('sliderDesde').innerHTML = lin(o.subtitulo1);
     $('sliderHasta').innerHTML = lin(o.subtitulo2);
     slider.className = 'slider bloqueado';
+    var bib = $('opBiblia');
+    bib.classList.remove('completo');
+    bib.classList.toggle('oculto', !o.textoBiblico.trim());
+    $('opBibliaTexto').innerHTML = parrafos(o.textoBiblico);
+    $('opBibliaCita').innerHTML = lin(o.citaBiblica);
     setP(0, false);
     $('sliderAyuda').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Lee el texto completo para activarlo';
     $('opSiguiente').classList.add('oculto');
@@ -968,6 +1002,7 @@ body.sin-scroll { overflow: hidden; }
     completo = true;
     slider.classList.remove('activo');
     slider.classList.add('completo');
+    $('opBiblia').classList.add('completo');
     $('sliderAyuda').textContent = '¡Camino recorrido!';
     var arriba = $('bloqueArriba'), texto = $('opTexto');
     arriba.classList.add('saliendo'); texto.classList.add('saliendo');
