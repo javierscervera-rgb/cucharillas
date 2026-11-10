@@ -324,6 +324,20 @@
       "aprobado": true,
       "actualizado": "2026-11-07T12:29:44.857Z",
       "claveHash": "bef4b8a2885e8154346e6c31739d27717b91826cc5f8d780ce0c555e07a4de09"
+    },
+    {
+      "id": "d7a69e2787d8",
+      "nombre": "Karen",
+      "emoji": "🎨",
+      "color": "#E6F7F0",
+      "sobreMi": "Primero actuó y luego pienso",
+      "gustos": "Bailar, todo tipo de deporte, dibujar y la naturaleza",
+      "intencion": "Para poder encontrar mi camino y no sentirme tan desubicada.",
+      "cumple": "06-01",
+      "foto": "img/perfiles/d7a69e2787d8.jpg?v=1794311586836",
+      "aprobado": false,
+      "actualizado": "2026-11-10T11:53:07.103Z",
+      "claveHash": "66275681a89abbb5a16e3b745d1fc4f53ff9658c37ece34ee828a150bfd21602"
     }
   ]
 }
