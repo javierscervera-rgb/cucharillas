@@ -52,15 +52,23 @@
     } catch (e) { if (e.status !== 404) console.warn(e); }
   }
 
-  const archivoDe = (tipo) => tipo === "perfiles" ? "data/perfiles.json" : CONFIG.esquemas[tipo].archivo;
+  const archivoDe = (tipo) => tipo === "perfiles" ? "data/perfiles.json" : tipo === "galeria" ? "data/galeria.json" : CONFIG.esquemas[tipo].archivo;
+  const vacioDe = (tipo) => tipo === "perfiles" ? { perfiles: [] } : tipo === "galeria" ? { eventos: [], fotos: [] } : { entradas: [] };
 
   async function leer(tipo) {
     try {
       const r = await gh(`/contents/${archivoDe(tipo)}?ref=${encodeURIComponent(G.rama)}`);
-      cache[tipo] = { datos: JSON.parse(deBase64(r.content)), sha: r.sha };
+      let texto = r.content ? deBase64(r.content) : "";
+      if (!r.content) {
+        // Archivos de más de 1 MB: GitHub no manda el contenido y hay que pedirlo "en bruto"
+        const raw = await fetch(`${API}/contents/${archivoDe(tipo)}?ref=${encodeURIComponent(G.rama)}`,
+          { headers: { Authorization: "Bearer " + token, Accept: "application/vnd.github.raw" }, cache: "no-store" });
+        texto = await raw.text();
+      }
+      cache[tipo] = { datos: Object.assign(vacioDe(tipo), JSON.parse(texto || "{}")), sha: r.sha };
     } catch (e) {
       if (e.status !== 404) throw e;
-      cache[tipo] = { datos: tipo === "perfiles" ? { perfiles: [] } : { entradas: [] }, sha: null };
+      cache[tipo] = { datos: vacioDe(tipo), sha: null };
     }
     return cache[tipo];
   }
@@ -115,7 +123,7 @@
 
   // ---------- Panel ----------
   const SECCIONES = [
-    ["lectio", "Lectio"], ["retiro", "Retiro"], ["agenda", "Agenda"], ["recursos", "Libros y vídeos"], ["articulos", "Artículos"], ["perfiles", "Perfiles"]
+    ["lectio", "Lectio"], ["retiro", "Retiro"], ["agenda", "Agenda"], ["recursos", "Libros y vídeos"], ["articulos", "Artículos"], ["perfiles", "Perfiles"], ["galeria", "Galería"]
   ];
 
   function pintarPanel() {
@@ -151,6 +159,7 @@
       zona.innerHTML = `<div class="aviso">No se pudo cargar: ${escapar(e.message)}</div>`; return;
     }
     if (seccion === "perfiles") return pintarPerfiles(zona);
+    if (seccion === "galeria") return pintarGaleria(zona);
 
     const esquema = CONFIG.esquemas[seccion];
     const lista = App.ordenarPorFecha(cache[seccion].datos.entradas || [], seccion !== "agenda");
@@ -324,6 +333,143 @@
       cache.perfiles.datos.perfiles = lista.filter(x => x.id !== p.id);
       await publicar(b, `Borra perfil: ${p.nombre}`);
       if (p.foto) borrarArchivo(p.foto, `Borra foto de perfil: ${p.nombre}`);
+    });
+  }
+
+  // ---------- Galería ----------
+  // Los chicos escriben en la galería a la vez que el admin, así que cada cambio
+  // se aplica sobre la versión más reciente y se reintenta si hay choque.
+  const MOMENTOS_G = { "mañana": "🌅 Mañana", "mediodía": "☀️ Mediodía", "tarde": "🌇 Tarde", "noche": "🌙 Noche" };
+  const urlFotoG = (ruta) => `https://raw.githubusercontent.com/${G.usuario}/${G.repo}/${G.rama}/${ruta}`;
+  let albumAbierto = "";
+
+  async function cambiarGaleria(cambio, mensaje) {
+    for (let intento = 0; intento < 5; intento++) {
+      await leer("galeria");
+      const res = cambio(cache.galeria.datos);
+      if (res === false) return false;
+      try { await escribir("galeria", mensaje); return true; }
+      catch (e) { if (!/a la vez/.test(e.message)) throw e; await new Promise(ok => setTimeout(ok, 300 + Math.random() * 500)); }
+    }
+    throw new Error("Hay mucha actividad en la galería. Inténtalo de nuevo en un momento.");
+  }
+  async function accionGaleria(boton, cambio, mensaje, archivos = []) {
+    const texto = boton.innerHTML;
+    boton.disabled = true; boton.textContent = "Guardando…";
+    try {
+      if (await cambiarGaleria(cambio, mensaje) !== false) {
+        for (const a of archivos) if (a) await borrarArchivo(a, mensaje);
+        aviso("Hecho");
+      }
+      pintarGaleria(document.getElementById("zona"));
+    } catch (e) { boton.disabled = false; boton.innerHTML = texto; aviso("Error: " + e.message); }
+  }
+
+  function pintarGaleria(zona) {
+    const g = cache.galeria.datos;
+    const album = g.eventos.find(e => e.id === albumAbierto);
+    if (album) return pintarAlbumAdmin(zona, album);
+    albumAbierto = "";
+    const eventos = [...g.eventos].sort((a, b) => String(b.fecha || b.creado).localeCompare(String(a.fecha || a.creado)));
+    zona.innerHTML = `
+      <div class="aviso info">Cualquiera con la contraseña puede crear álbumes, subir fotos y comentar sin aprobación. Desde aquí puedes borrar lo que no deba estar.
+      La contraseña se cambia en Cloudflare (variable <b>GALERIA_CLAVE</b>).</div>
+      <details class="ficha" style="margin-bottom:16px"><summary style="font-weight:700;cursor:pointer">${ICONOS.mas} Nuevo álbum</summary>
+        <label class="campo" for="ga-titulo">Nombre del evento *</label><input id="ga-titulo" maxlength="60">
+        <label class="campo" for="ga-fecha">Fecha</label><input id="ga-fecha" type="date" value="${new Date().toISOString().slice(0, 10)}">
+        <label class="campo" for="ga-desc">Descripción</label><textarea id="ga-desc" maxlength="300" style="min-height:80px"></textarea>
+        <button class="boton ancho" id="ga-crear" style="margin-top:12px">Crear álbum</button>
+      </details>
+      ${eventos.length ? "" : `<div class="vacio">Todavía no hay álbumes.</div>`}
+      ${eventos.map(e => {
+        const fotos = g.fotos.filter(f => f.evento === e.id);
+        const coms = fotos.reduce((n, f) => n + (f.comentarios || []).length, 0);
+        return `<div class="pastilla" role="button" data-album="${escapar(e.id)}">
+          <div class="texto"><div class="titulo">${escapar(e.titulo)}</div>
+          <div class="detalle">${[e.fecha ? App.fechaCorta(e.fecha) : "", `${fotos.length} foto${fotos.length === 1 ? "" : "s"}`, `${coms} comentario${coms === 1 ? "" : "s"}`, e.autor ? "creado por " + escapar(e.autor) : ""].filter(Boolean).join(" · ")}</div></div>
+          <span class="flecha">${ICONOS.flecha}</span></div>`;
+      }).join("")}
+      <button class="boton suave ancho" id="recargar" style="margin-top:8px">Recargar desde GitHub</button>`;
+    document.getElementById("recargar").onclick = () => pintarSeccion(true);
+    zona.querySelectorAll("[data-album]").forEach(el => el.onclick = () => { albumAbierto = el.dataset.album; pintarGaleria(zona); window.scrollTo(0, 0); });
+    document.getElementById("ga-crear").onclick = (ev) => {
+      const titulo = document.getElementById("ga-titulo").value.trim();
+      if (!titulo) return aviso("Falta el nombre del evento");
+      const base = titulo.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "evento";
+      const nuevo = { id: `${base}-${Date.now().toString(36)}`, titulo, fecha: document.getElementById("ga-fecha").value,
+        descripcion: document.getElementById("ga-desc").value.trim().slice(0, 300), autor: "Responsables", quien: "", creado: new Date().toISOString() };
+      accionGaleria(ev.currentTarget, d => { d.eventos.push(nuevo); }, `Galería: nuevo álbum «${titulo}» (admin)`);
+    };
+  }
+
+  function pintarAlbumAdmin(zona, e) {
+    const fotos = cache.galeria.datos.fotos.filter(f => f.evento === e.id)
+      .sort((a, b) => String(a.dia || "9").localeCompare(String(b.dia || "9")) || String(a.fecha).localeCompare(String(b.fecha)));
+    zona.innerHTML = `
+      <button class="boton suave" id="ga-volver" style="padding:8px 14px;margin-bottom:6px">${ICONOS.atras} Álbumes</button>
+      <div class="ficha">
+        <label class="campo" for="ga-et" style="margin-top:0">Nombre del evento</label><input id="ga-et" maxlength="60" value="${escapar(e.titulo)}">
+        <label class="campo" for="ga-ef">Fecha</label><input id="ga-ef" type="date" value="${escapar(e.fecha || "")}">
+        <label class="campo" for="ga-ed">Descripción</label><textarea id="ga-ed" maxlength="300" style="min-height:70px">${escapar(e.descripcion || "")}</textarea>
+        <div class="fila-botones">
+          <button class="boton" id="ga-guardar">Guardar cambios</button>
+          <button class="boton peligro" id="ga-borrar-album">${ICONOS.papelera} Borrar álbum</button>
+        </div>
+      </div>
+      <h3 class="titulo-grupo">${fotos.length} foto${fotos.length === 1 ? "" : "s"}</h3>
+      ${fotos.length ? "" : `<div class="vacio">Este álbum no tiene fotos.</div>`}
+      ${fotos.map(f => `
+        <div class="pastilla columna" style="align-items:stretch">
+          <div class="fila" style="align-items:flex-start">
+            <img src="${escapar(urlFotoG(f.mini))}" alt="" loading="lazy" style="width:76px;height:76px;border-radius:12px;object-fit:cover;flex-shrink:0;background:var(--azul-suave)">
+            <div class="texto">
+              <div class="titulo" style="font-size:15px">${escapar(f.autor)}</div>
+              <div class="detalle">${[f.dia ? App.fechaCorta(f.dia) : "", MOMENTOS_G[f.momento] || "", f.lugar ? "📍 " + escapar(f.lugar) : ""].filter(Boolean).join(" · ") || "Sin día ni lugar"}</div>
+              ${f.pie ? `<div class="detalle" style="color:var(--texto-principal)">«${escapar(f.pie)}»</div>` : ""}
+              <div class="detalle">❤️ ${(f.likes || []).length} · subida ${escapar(App.horaRelativa(f.fecha))}</div>
+            </div>
+          </div>
+          ${(f.comentarios || []).map(c => `
+            <div class="dato" style="display:flex;gap:10px;align-items:flex-start"><div style="flex:1"><b>${escapar(c.autor)}</b>${escapar(c.texto)}</div>
+            <button class="boton peligro" style="padding:6px 10px;font-size:12.5px" data-borrar-com="${escapar(f.id)}|${escapar(c.id)}">Borrar</button></div>`).join("")}
+          <div class="fila-botones">
+            <a class="boton suave" href="${escapar(urlFotoG(f.ruta))}" target="_blank" rel="noopener">Ver grande</a>
+            <button class="boton peligro" data-borrar-foto="${escapar(f.id)}">${ICONOS.papelera} Borrar foto</button>
+          </div>
+        </div>`).join("")}`;
+
+    document.getElementById("ga-volver").onclick = () => { albumAbierto = ""; pintarGaleria(zona); };
+    document.getElementById("ga-guardar").onclick = (ev) => {
+      const titulo = document.getElementById("ga-et").value.trim();
+      if (!titulo) return aviso("Falta el nombre del evento");
+      accionGaleria(ev.currentTarget, d => {
+        const x = d.eventos.find(y => y.id === e.id); if (!x) return false;
+        Object.assign(x, { titulo, fecha: document.getElementById("ga-ef").value, descripcion: document.getElementById("ga-ed").value.trim().slice(0, 300) });
+      }, `Galería: edita el álbum «${titulo}» (admin)`);
+    };
+    document.getElementById("ga-borrar-album").onclick = (ev) => {
+      if (!confirm(`¿Borrar el álbum «${e.titulo}» con sus ${fotos.length} fotos y todos sus comentarios? No se puede deshacer.`)) return;
+      const archivos = fotos.flatMap(f => [f.ruta, f.mini]);
+      albumAbierto = "";
+      accionGaleria(ev.currentTarget, d => {
+        d.eventos = d.eventos.filter(x => x.id !== e.id);
+        d.fotos = d.fotos.filter(x => x.evento !== e.id);
+      }, `Galería: borra el álbum «${e.titulo}» (admin)`, archivos);
+    };
+    zona.querySelectorAll("[data-borrar-foto]").forEach(b => b.onclick = () => {
+      const f = fotos.find(x => x.id === b.dataset.borrarFoto);
+      if (!confirm(`¿Borrar esta foto de ${f.autor} y sus comentarios?`)) return;
+      accionGaleria(b, d => { const n = d.fotos.length; d.fotos = d.fotos.filter(x => x.id !== f.id); if (d.fotos.length === n) return false; },
+        `Galería: borra foto ${f.id} (admin)`, [f.ruta, f.mini]);
+    });
+    zona.querySelectorAll("[data-borrar-com]").forEach(b => b.onclick = () => {
+      const [idF, idC] = b.dataset.borrarCom.split("|");
+      if (!confirm("¿Borrar este comentario?")) return;
+      accionGaleria(b, d => {
+        const f = d.fotos.find(x => x.id === idF); if (!f) return false;
+        const n = (f.comentarios || []).length; f.comentarios = (f.comentarios || []).filter(c => c.id !== idC);
+        if (f.comentarios.length === n) return false;
+      }, `Galería: borra un comentario (admin)`);
     });
   }
 

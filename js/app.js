@@ -73,7 +73,7 @@
     { id: "retiro",    nombre: "Retiros",   href: "retiro.html",    icono: "montana" },
     { id: "devocionario", nombre: "Oraciones", href: "devocionario.html", icono: "devocionario" },
     { id: "agenda",    nombre: "Agenda",    href: "agenda.html",    icono: "calendario" },
-    { id: "escapadas", nombre: "Escapadas", href: "opciones/opciones.html", icono: "brujula" },
+    { id: "escapadas", nombre: "Escapadas", href: "escapadas.html", icono: "brujula" },
     { id: "comunidad", nombre: "Comunidad", href: "comunidad.html", icono: "personas" }
   ];
 

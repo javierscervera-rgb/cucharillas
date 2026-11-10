@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cucharillas">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#FFFFFF">
+  <title>Galería · Cucharillas</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="icon" href="img/icono-192.png">
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+  <style>
+    :root { --rojo-like: #E5484D; }
+    .oculto { display: none !important; }
+
+    /* ---------- Contraseña ---------- */
+    .candado { text-align: center; padding: 18px 6px 4px; }
+    .candado .icono-pastilla { width: 64px; height: 64px; border-radius: 20px; margin: 0 auto 14px; }
+    .candado .icono-pastilla svg { width: 30px; height: 30px; }
+    .candado h2 { margin: 0 0 6px; font-size: 22px; }
+    .candado p { margin: 0 0 18px; color: var(--texto-secundario); }
+    .entrada { width: 100%; box-sizing: border-box; border: 1px solid #DDE3EC; border-radius: 14px; padding: 13px 14px; font: 16px inherit; font-family: inherit; color: var(--texto-principal); background: #fff; outline: none; }
+    .entrada:focus { border-color: var(--azul-cielo); box-shadow: 0 0 0 3px rgba(74,144,226,.15); }
+    textarea.entrada { resize: none; min-height: 44px; line-height: 1.4; }
+    .error-campo { color: #B4232A; font-size: 14px; margin: 8px 2px 0; min-height: 18px; }
+
+    /* ---------- Eventos ---------- */
+    .barra-acciones { display: flex; gap: 10px; margin-bottom: 18px; }
+    .barra-acciones .boton { flex: 1; }
+    .evento { text-decoration: none; color: inherit; cursor: pointer; }
+    .evento .collage { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; height: 170px; background: var(--azul-suave); }
+    .evento .collage img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .evento .collage img:first-child { grid-row: 1 / 3; }
+    .evento .collage.uno { grid-template-columns: 1fr; }
+    .evento .collage.dos img:first-child { grid-row: 1 / 3; }
+    .evento .collage.dos img:nth-child(2) { grid-row: 1 / 3; }
+    .evento .collage.vacio-col { display: flex; align-items: center; justify-content: center; color: #8EB6E6; }
+    .evento .collage.vacio-col svg { width: 44px; height: 44px; }
+
+    /* ---------- Álbum ---------- */
+    .album-cabecera h1 { font-size: 23px; line-height: 1.2; }
+    .album-meta { color: var(--texto-secundario); font-size: 14.5px; margin: 0 0 4px 52px; }
+    .album-desc { margin: 8px 0 0 52px; font-size: 15px; line-height: 1.5; }
+
+    .interruptor {
+      position: relative; display: grid; grid-template-columns: 1fr 1fr; background: #F1F5FA; border-radius: 14px; padding: 4px;
+      margin: 16px 0 12px; user-select: none; -webkit-user-select: none;
+    }
+    .interruptor .bola {
+      position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 11px; background: #fff;
+      box-shadow: 0 2px 8px rgba(31,42,68,.1); transition: transform .3s cubic-bezier(.2,.8,.2,1);
+    }
+    .interruptor.filas .bola { transform: translateX(100%); }
+    .interruptor button {
+      position: relative; z-index: 1; border: 0; background: none; padding: 10px 6px; font: 600 14.5px inherit; font-family: inherit;
+      color: var(--texto-secundario); display: flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer; transition: color .3s;
+    }
+    .interruptor button svg { width: 18px; height: 18px; }
+    .interruptor:not(.filas) button[data-vista="cuadricula"], .interruptor.filas button[data-vista="filas"] { color: var(--azul-cielo); }
+
+    .filtros { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px 12px; padding: 2px 16px; }
+    .filtros::-webkit-scrollbar { display: none; }
+    .filtros button {
+      flex: 0 0 auto; border: 1px solid var(--gris-borde); background: #fff; border-radius: 999px; padding: 7px 13px;
+      font: 600 13px inherit; font-family: inherit; color: var(--texto-secundario); cursor: pointer; white-space: nowrap;
+    }
+    .filtros button.activo { background: var(--azul-suave); border-color: transparent; color: #2F6FBF; }
+
+    .grupo-fotos { font-size: 13px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--texto-secundario); margin: 18px 2px 8px; display: flex; align-items: center; gap: 8px; }
+    .grupo-fotos:first-child { margin-top: 4px; }
+    .grupo-fotos .momento-ico { font-size: 15px; }
+
+    .pista-vistas { overflow: hidden; touch-action: pan-y; }
+    .vista { animation: aparecer .3s ease both; }
+    @keyframes aparecer { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    .cuadricula { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; border-radius: 14px; overflow: hidden; }
+    .celda { position: relative; aspect-ratio: 1; background: var(--azul-suave); border: 0; padding: 0; cursor: pointer; overflow: hidden; }
+    .celda img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .celda .marcas { position: absolute; left: 5px; bottom: 5px; display: flex; gap: 6px; font-size: 11.5px; font-weight: 700; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+    .celda .marcas span { display: flex; align-items: center; gap: 2px; }
+    .celda .marcas svg { width: 13px; height: 13px; }
+
+    .foto { background: #fff; border: 1px solid var(--gris-borde); border-radius: 20px; box-shadow: 0 4px 14px rgba(0,0,0,.06); margin-bottom: 16px; overflow: hidden; scroll-margin-top: 12px; }
+    .foto-cab { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+    .inicial { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; flex-shrink: 0; }
+    .foto-cab .quien { flex: 1; min-width: 0; }
+    .foto-cab .quien b { display: block; font-size: 15px; }
+    .foto-cab .quien small { color: var(--texto-secundario); font-size: 12.5px; }
+    .mas-opciones { border: 0; background: none; width: 36px; height: 36px; border-radius: 50%; color: var(--texto-secundario); font-size: 20px; line-height: 1; cursor: pointer; }
+    .mas-opciones:active { background: var(--gris-borde); }
+    .foto-img { position: relative; background: var(--azul-suave); }
+    .foto-img img { width: 100%; display: block; max-height: 78vh; object-fit: contain; background: #F4F7FB; }
+    .corazon-grande { position: absolute; left: 50%; top: 50%; width: 90px; height: 90px; margin: -45px 0 0 -45px; color: #fff; opacity: 0; pointer-events: none; filter: drop-shadow(0 4px 12px rgba(0,0,0,.35)); }
+    .corazon-grande.latido { animation: latidoGrande .8s ease both; }
+    @keyframes latidoGrande { 15% { opacity: 1; transform: scale(1.15); } 30% { transform: scale(.95); } 45%, 70% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.1); } }
+    .datos-foto { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 14px 0; }
+    .dato-chip { display: inline-flex; align-items: center; gap: 5px; background: #F4F7FB; border-radius: 999px; padding: 5px 10px; font-size: 13px; color: var(--texto-principal); }
+    .dato-chip.lugar { background: var(--verde-suave); color: #2C7A57; }
+    .foto-acciones { display: flex; align-items: center; gap: 4px; padding: 8px 8px 0; }
+    .accion { border: 0; background: none; display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-radius: 12px; font: 600 15px inherit; font-family: inherit; color: var(--texto-principal); cursor: pointer; }
+    .accion svg { width: 25px; height: 25px; }
+    .accion:active { background: var(--gris-borde); }
+    .accion.me-gusta svg { fill: var(--rojo-like); stroke: var(--rojo-like); }
+    .accion.me-gusta { color: var(--rojo-like); }
+    .accion.salta svg { animation: salto .45s ease; }
+    @keyframes salto { 40% { transform: scale(1.3); } }
+    .pie { padding: 4px 16px 0; font-size: 15px; line-height: 1.45; }
+    .pie b { font-weight: 700; }
+    .desplegar { border: 0; background: none; padding: 8px 16px 14px; color: var(--texto-secundario); font: 500 14.5px inherit; font-family: inherit; cursor: pointer; text-align: left; width: 100%; display: flex; align-items: center; gap: 6px; }
+    .desplegar svg { width: 16px; height: 16px; transition: transform .25s; }
+    .desplegar.abierto svg { transform: rotate(180deg); }
+    .comentarios { border-top: 1px solid var(--gris-borde); padding: 10px 14px 14px; background: #FBFCFE; }
+    .comentario { display: flex; gap: 9px; margin-bottom: 11px; }
+    .comentario .inicial { width: 30px; height: 30px; font-size: 13px; }
+    .comentario .burbuja { flex: 1; min-width: 0; background: #fff; border: 1px solid var(--gris-borde); border-radius: 4px 14px 14px 14px; padding: 8px 11px; font-size: 14.5px; line-height: 1.4; overflow-wrap: anywhere; }
+    .comentario .burbuja b { font-size: 13.5px; }
+    .comentario .burbuja small { color: var(--texto-secundario); font-size: 12px; margin-left: 4px; }
+    .comentario .borrar-com { border: 0; background: none; color: #B4232A; font-size: 12.5px; font-weight: 600; padding: 2px 0 0; cursor: pointer; }
+    .nuevo-com { display: flex; gap: 8px; align-items: flex-end; }
+    .nuevo-com textarea { flex: 1; border-radius: 18px; padding: 10px 14px; max-height: 120px; }
+    .enviar-com { width: 42px; height: 42px; flex-shrink: 0; border: 0; border-radius: 50%; background: var(--azul-cielo); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .enviar-com:disabled { opacity: .4; }
+    .enviar-com svg { width: 20px; height: 20px; }
+
+    .flotante {
+      position: fixed; right: max(16px, calc(50% - 224px)); bottom: calc(90px + env(safe-area-inset-bottom)); z-index: 90;
+      display: flex; align-items: center; gap: 8px; border: 0; border-radius: 999px; padding: 14px 20px; cursor: pointer;
+      background: var(--azul-cielo); color: #fff; font: 600 15.5px inherit; font-family: inherit; box-shadow: 0 8px 22px rgba(74,144,226,.4);
+    }
+    .flotante svg { width: 22px; height: 22px; }
+    .flotante:active { transform: scale(.96); }
+
+    /* ---------- Hoja inferior ---------- */
+    .velo { position: fixed; inset: 0; background: rgba(31,42,68,.4); opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 200; }
+    .velo.visible { opacity: 1; pointer-events: auto; }
+    .hoja {
+      position: fixed; left: 0; right: 0; bottom: 0; max-width: 480px; margin: 0 auto; z-index: 201; background: #fff;
+      border-radius: 24px 24px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,.14); max-height: 90vh; max-height: 90dvh;
+      display: flex; flex-direction: column; transform: translateY(105%); visibility: hidden;
+      transition: transform .35s cubic-bezier(.2,.8,.2,1), visibility 0s linear .35s;
+    }
+    .hoja.visible { transform: none; visibility: visible; transition: transform .35s cubic-bezier(.2,.8,.2,1), visibility 0s; }
+    .hoja-asa { width: 40px; height: 5px; border-radius: 3px; background: #DDE3EC; margin: 10px auto 2px; flex-shrink: 0; }
+    .hoja-cab { display: flex; align-items: center; gap: 10px; padding: 8px 18px 10px; flex-shrink: 0; }
+    .hoja-cab h3 { flex: 1; margin: 0; font-size: 19px; }
+    .hoja-cerrar { width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--gris-borde); color: var(--texto-secundario); font-size: 20px; cursor: pointer; }
+    .hoja-cuerpo { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 18px 8px; }
+    .hoja-pie { padding: 12px 18px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--gris-borde); flex-shrink: 0; }
+    .etq { display: block; font-size: 13.5px; font-weight: 600; color: var(--texto-secundario); margin: 14px 2px 6px; }
+    .etq:first-child { margin-top: 2px; }
+    .momentos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .momentos button {
+      border: 1px solid #DDE3EC; background: #fff; border-radius: 12px; padding: 8px 2px; font: 600 12.5px inherit; font-family: inherit;
+      color: var(--texto-principal); display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;
+    }
+    .momentos button span { font-size: 19px; }
+    .momentos button.activo { border-color: var(--azul-cielo); background: var(--azul-suave); color: #2F6FBF; }
+    select.entrada { appearance: none; -webkit-appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235A6A85' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center; padding-right: 38px; }
+    .lugar-nuevo { margin-top: 8px; }
+    .previas { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 4px; }
+    .previa { border: 1px solid var(--gris-borde); border-radius: 14px; overflow: hidden; background: #fff; }
+    .previa img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: var(--azul-suave); }
+    .previa input { width: 100%; box-sizing: border-box; border: 0; border-top: 1px solid var(--gris-borde); padding: 9px 10px; font: 14px inherit; font-family: inherit; outline: none; }
+    .previa .estado-sub { font-size: 12px; padding: 0 10px 8px; color: var(--texto-secundario); }
+    .previa.hecha .estado-sub { color: #2C7A57; font-weight: 600; }
+    .previa.fallo .estado-sub { color: #B4232A; font-weight: 600; }
+    .progreso { height: 6px; border-radius: 3px; background: var(--gris-borde); overflow: hidden; margin-bottom: 10px; }
+    .progreso i { display: block; height: 100%; width: 0; background: var(--azul-cielo); transition: width .3s; }
+    .menu-opciones button { width: 100%; text-align: left; border: 0; background: none; padding: 15px 4px; font: 500 16px inherit; font-family: inherit; color: var(--texto-principal); border-bottom: 1px solid var(--gris-borde); cursor: pointer; display: flex; gap: 12px; align-items: center; }
+    .menu-opciones button:last-child { border-bottom: 0; }
+    .menu-opciones button.peligro { color: #B4232A; }
+    .menu-opciones svg { width: 22px; height: 22px; }
+    body.sin-scroll { overflow: hidden; }
+  </style>
+</head>
+<body data-pagina="galeria">
+  <main class="contenedor" id="app">
+    <div class="cargando">Cargando…</div>
+  </main>
+
+  <button class="flotante oculto" id="btnSubir" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M8.5 6 10 3.5h4L15.5 6"/></svg>
+    Subir fotos
+  </button>
+  <input type="file" id="selectorFotos" accept="image/*" multiple hidden>
+
+  <div class="velo" id="velo"></div>
+  <div class="hoja" id="hoja" role="dialog" aria-modal="true">
+    <div class="hoja-asa"></div>
+    <div class="hoja-cab"><h3 id="hojaTitulo"></h3><button class="hoja-cerrar" id="hojaCerrar" type="button" aria-label="Cerrar">×</button></div>
+    <div class="hoja-cuerpo" id="hojaCuerpo"></div>
+    <div class="hoja-pie" id="hojaPie"></div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+  const { escapar, ICONOS, aviso } = App;
+  const $ = (id) => document.getElementById(id);
+  const app = $("app");
+  const URL_SERVIDOR = CONFIG.urlGaleria || CONFIG.urlPerfiles;
+  const GH = CONFIG.github;
+  const BASE_FOTOS = `https://raw.githubusercontent.com/${GH.usuario}/${GH.repo}/${GH.rama}/`;
+
+  const K = { clave: "cucharillas_galeria_clave", yo: "cucharillas_galeria_yo", nombre: "cucharillas_galeria_nombre", vista: "cucharillas_galeria_vista", cache: "cucharillas_galeria_cache" };
+  const leerLS = (k) => { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } };
+  const ponerLS = (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch (e) {} };
+
+  const MOMENTOS = [
+    { id: "mañana", nombre: "Mañana", ico: "🌅" },
+    { id: "mediodía", nombre: "Mediodía", ico: "☀️" },
+    { id: "tarde", nombre: "Tarde", ico: "🌇" },
+    { id: "noche", nombre: "Noche", ico: "🌙" }
+  ];
+  const momentoDe = (id) => MOMENTOS.find(m => m.id === id);
+
+  const IC = {
+    candado: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>',
+    cuadricula: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>',
+    filas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="10" rx="2"/><path d="M3.5 17.5h17M3.5 20.5h11" stroke-linecap="round"/></svg>',
+    corazon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-9-9.5C2 7 4.5 4.5 7.3 4.5c2 0 3.6 1.2 4.7 3 1.1-1.8 2.7-3 4.7-3C19.5 4.5 22 7 21 10.5 19.5 15.4 12 20 12 20Z"/></svg>',
+    corazonLleno: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20s-7.5-4.6-9-9.5C2 7 4.5 4.5 7.3 4.5c2 0 3.6 1.2 4.7 3 1.1-1.8 2.7-3 4.7-3C19.5 4.5 22 7 21 10.5 19.5 15.4 12 20 12 20Z"/></svg>',
+    bocadillo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20.5 11.5c0 4.1-3.8 7.5-8.5 7.5-1.2 0-2.3-.2-3.3-.6L4 20l1.3-3.6A7 7 0 0 1 3.5 11.5C3.5 7.4 7.3 4 12 4s8.5 3.4 8.5 7.5Z"/></svg>',
+    flechaAbajo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>',
+    enviar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg>',
+    lapiz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
+    papelera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M6 7l1 13h10l1-13"/></svg>',
+    descargar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+    album: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-8.5 8.5"/></svg>'
+  };
+
+  // ---------- Identidad de este móvil ----------
+  let yo = leerLS(K.yo);
+  if (!/^[a-f0-9]{32}$/.test(yo)) {
+    yo = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, "0")).join("");
+    ponerLS(K.yo, yo);
+  }
+  let miHuella = "";
+  async function calcularHuella() {
+    try {
+      const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("galeria:" + yo));
+      miHuella = Array.from(new Uint8Array(h), b => b.toString(16).padStart(2, "0")).join("").slice(0, 20);
+    } catch (e) { miHuella = ""; }
+  }
+  function miNombre() {
+    const propio = leerLS(K.nombre);
+    if (propio) return propio;
+    try { const p = JSON.parse(leerLS("cucharillas_mi_perfil") || "null"); if (p && p.nombre) return p.nombre; } catch (e) {}
+    return "";
+  }
+
+  // ---------- Estado ----------
+  let clave = leerLS(K.clave);
+  let G = { eventos: [], fotos: [] };
+  try { const c = JSON.parse(leerLS(K.cache) || "null"); if (c && c.eventos) G = c; } catch (e) {}
+  let vista = leerLS(K.vista) === "filas" ? "filas" : "cuadricula";
+  let filtroLugar = "";
+  const abiertos = new Set();   // fotos con los comentarios desplegados
+  const borradores = {};        // comentario a medio escribir, por foto
+
+  function guardarGaleria(g) {
+    if (!g || !Array.isArray(g.eventos)) return;
+    G = { eventos: g.eventos, fotos: Array.isArray(g.fotos) ? g.fotos : [] };
+    ponerLS(K.cache, JSON.stringify(G));
+  }
+
+  // ---------- Servidor ----------
+  async function servidor(accion, datos = {}) {
+    if (!URL_SERVIDOR) throw Object.assign(new Error("La galería todavía no está activada"), { codigo: "sin-activar" });
+    let r;
+    try {
+      r = await fetch(URL_SERVIDOR, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(Object.assign({ servicio: "galeria", accion, clave, yo, autor: miNombre() }, datos))
+      });
+    } catch (e) { throw new Error("Sin conexión. Inténtalo de nuevo"); }
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || j.error) {
+      const e = new Error(j.error || "Error " + r.status);
+      e.codigo = j.codigo || (r.status === 400 && /Identificación/.test(j.error || "") ? "sin-activar" : "");
+      throw e;
+    }
+    if (j.galeria) guardarGaleria(j.galeria);
+    return j;
+  }
+  function trasError(e) {
+    if (e.codigo === "clave") { clave = ""; ponerLS(K.clave, ""); pintarClave("La contraseña ha cambiado. Escribe la nueva."); return; }
+    if (e.codigo === "sin-activar") { pintarSinActivar(); return; }
+    aviso(e.message);
+  }
+
+  // ---------- Utilidades ----------
+  const urlFoto = (ruta) => BASE_FOTOS + String(ruta || "").split("/").map(encodeURIComponent).join("/");
+  const imgAttrs = (ruta, extra = "") => `src="${escapar(urlFoto(ruta))}" data-ruta="${escapar(ruta)}" onerror="if(!this.dataset.r){this.dataset.r=1;this.src=this.dataset.ruta}" ${extra}`;
+  const COLORES = [["#E8F4FD", "#2F6FBF"], ["#E6F7F0", "#2C7A57"], ["#F3EFFF", "#6B4FC7"], ["#FFF3DC", "#9A6510"], ["#FDECEC", "#B4232A"], ["#E7F6F8", "#1F7A86"]];
+  function inicial(nombre) {
+    let h = 0; for (const c of String(nombre)) h = (h * 31 + c.codePointAt(0)) >>> 0;
+    const [fondo, tinta] = COLORES[h % COLORES.length];
+    return `<div class="inicial" style="background:${fondo};color:${tinta}">${escapar((String(nombre).trim()[0] || "?").toUpperCase())}</div>`;
+  }
+  const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  function diaLargo(iso) {
+    const d = App.aFecha(iso); if (!d) return "";
+    const t = `${DIAS[d.getDay()]} ${d.getDate()} de ${App.MESES[d.getMonth()]}`;
+    return d.getFullYear() !== new Date().getFullYear() ? `${t} de ${d.getFullYear()}` : t;
+  }
+  const diaCorto = (iso) => { const d = App.aFecha(iso); return d ? `${DIAS[d.getDay()].slice(0, 3)} ${d.getDate()} ${App.MESES[d.getMonth()].slice(0, 3)}` : ""; };
+  const texto = (t) => escapar(t).replace(/\n/g, "<br>");
+  const hoyISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+
+  const fotosDe = (idEvento) => G.fotos.filter(f => f.evento === idEvento);
+  const ordenMomento = (m) => { const i = MOMENTOS.findIndex(x => x.id === m); return i < 0 ? 9 : i; };
+  function ordenar(fotos) {
+    return [...fotos].sort((a, b) =>
+      (a.dia ? 0 : 1) - (b.dia ? 0 : 1) || String(a.dia).localeCompare(String(b.dia)) ||
+      ordenMomento(a.momento) - ordenMomento(b.momento) || String(a.fecha).localeCompare(String(b.fecha)));
+  }
+  const lugaresDe = (idEvento) => [...new Set(fotosDe(idEvento).map(f => (f.lugar || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
+
+  // ---------- Navegación (el botón "atrás" del móvil funciona) ----------
+  function eventoActual() { const m = location.hash.match(/^#e=([a-z0-9-]+)/); return m ? m[1] : ""; }
+  window.addEventListener("hashchange", () => { cerrarHoja(); filtroLugar = ""; pintar(); window.scrollTo(0, 0); });
+
+  function pintar() {
+    if (!clave) return pintarClave();
+    const ev = eventoActual();
+    if (ev) {
+      const e = G.eventos.find(x => x.id === ev);
+      if (e) return pintarAlbum(e);
+    }
+    pintarEventos();
+  }
+
+  // ---------- Contraseña ----------
+  function pintarClave(error) {
+    $("btnSubir").classList.add("oculto");
+    app.innerHTML = `
+      <header class="cabecera-pagina"><a class="btn-volver" href="index.html" aria-label="Volver">${ICONOS.atras}</a><h1>Galería</h1></header>
+      <div class="ficha candado">
+        <div class="icono-pastilla icono-azul">${IC.candado}</div>
+        <h2>Solo para el grupo</h2>
+        <p>Escribe la contraseña que te han dado. Solo te la pediremos una vez en este móvil.</p>
+        <form id="formClave" autocomplete="off">
+          <input class="entrada" id="campoClave" type="password" placeholder="Contraseña" autocomplete="current-password" required>
+          <p class="error-campo" id="errorClave">${escapar(error || "")}</p>
+          <button class="boton ancho" type="submit" id="btnEntrar">Entrar</button>
+        </form>
+      </div>`;
+    $("formClave").onsubmit = async (ev) => {
+      ev.preventDefault();
+      const v = $("campoClave").value.trim(); if (!v) return;
+      const b = $("btnEntrar"); b.disabled = true; b.textContent = "Comprobando…";
+      clave = v;
+      try {
+        await servidor("ver");
+        ponerLS(K.clave, clave);
+        pintar();
+      } catch (e) {
+        clave = "";
+        b.disabled = false; b.textContent = "Entrar";
+        if (e.codigo === "sin-activar") return pintarSinActivar();
+        $("errorClave").textContent = e.codigo === "clave" ? "Esa no es la contraseña. Prueba otra vez." : e.message;
+      }
+    };
+  }
+  function pintarSinActivar() {
+    $("btnSubir").classList.add("oculto");
+    app.innerHTML = `
+      <header class="cabecera-pagina"><a class="btn-volver" href="index.html" aria-label="Volver">${ICONOS.atras}</a><h1>Galería</h1></header>
+      <div class="vacio"><div class="icono-pastilla icono-azul">${IC.album}</div>
+      <p><b>La galería aún no está activada.</b><br>Un responsable tiene que terminar de configurarla. Vuelve a intentarlo más tarde.</p></div>`;
+  }
+
+  // ---------- Lista de eventos ----------
+  function pintarEventos() {
+    $("btnSubir").classList.add("oculto");
+    const eventos = [...G.eventos].sort((a, b) => String(b.fecha || b.creado).localeCompare(String(a.fecha || a.creado)));
+    app.innerHTML = `
+      <header class="cabecera-pagina"><a class="btn-volver" href="index.html" aria-label="Volver">${ICONOS.atras}</a><h1>Galería</h1></header>
+      <p class="subtitulo">Un álbum por cada evento. Sube tus fotos y comenta las de los demás.</p>
+      <div class="barra-acciones">
+        <button class="boton" id="btnNuevoEvento">${ICONOS.mas} Nuevo álbum</button>
+        <button class="boton suave" id="btnActualizar" aria-label="Actualizar" style="flex:0 0 auto">↻</button>
+      </div>
+      ${eventos.length ? "" : `<div class="vacio"><div class="icono-pastilla icono-azul">${IC.album}</div>Todavía no hay álbumes.<br>¡Crea el primero!</div>`}
+      ${eventos.map(e => {
+        const fotos = ordenar(fotosDe(e.id));
+        const portada = [...fotos].sort((a, b) => (b.likes || []).length - (a.likes || []).length)[0];
+        const resto = fotos.filter(f => f !== portada).slice(-2);
+        const imgs = (portada ? [portada, ...resto] : []).slice(0, 3);
+        const coms = fotos.reduce((n, f) => n + (f.comentarios || []).length, 0);
+        const clase = imgs.length === 0 ? "vacio-col" : imgs.length === 1 ? "uno" : imgs.length === 2 ? "dos" : "";
+        return `
+        <a class="pastilla tarjeta-portada evento" href="#e=${escapar(e.id)}">
+          <div class="collage ${clase}">${imgs.length ? imgs.map(f => `<img ${imgAttrs(f.mini, 'loading="lazy" alt=""')}>`).join("") : IC.album}</div>
+          <div class="fila">
+            <div class="texto">
+              <div class="titulo">${escapar(e.titulo)}</div>
+              <div class="detalle">${[e.fecha ? App.fechaCorta(e.fecha) : "", `${fotos.length} foto${fotos.length === 1 ? "" : "s"}`, coms ? `${coms} comentario${coms === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ")}</div>
+            </div>
+            <span class="flecha">${ICONOS.flecha}</span>
+          </div>
+        </a>`;
+      }).join("")}`;
+    $("btnNuevoEvento").onclick = hojaNuevoEvento;
+    $("btnActualizar").onclick = () => actualizar(true);
+  }
+
+  // ---------- Álbum ----------
+  function pintarAlbum(e) {
+    $("btnSubir").classList.remove("oculto");
+    const todas = ordenar(fotosDe(e.id));
+    const lugares = lugaresDe(e.id);
+    if (filtroLugar && !lugares.includes(filtroLugar)) filtroLugar = "";
+    const fotos = filtroLugar ? todas.filter(f => (f.lugar || "").trim() === filtroLugar) : todas;
+    const y = window.scrollY;
+    app.innerHTML = `
+      <header class="cabecera-pagina album-cabecera"><a class="btn-volver" href="#" aria-label="Volver a los álbumes">${ICONOS.atras}</a><h1>${escapar(e.titulo)}</h1></header>
+      <p class="album-meta">${[e.fecha ? diaLargo(e.fecha) : "", `${todas.length} foto${todas.length === 1 ? "" : "s"}`].filter(Boolean).join(" · ")}</p>
+      ${e.descripcion ? `<p class="album-desc">${texto(e.descripcion)}</p>` : ""}
+      ${todas.length ? `
+      <div class="interruptor ${vista === "filas" ? "filas" : ""}" id="interruptor" role="tablist" aria-label="Ver como">
+        <i class="bola"></i>
+        <button type="button" data-vista="cuadricula" role="tab">${IC.cuadricula} Cuadrícula</button>
+        <button type="button" data-vista="filas" role="tab">${IC.filas} Filas</button>
+      </div>
+      ${lugares.length > 1 ? `<div class="filtros" id="filtros">
+        <button type="button" data-lugar="" class="${filtroLugar ? "" : "activo"}">Todos los lugares</button>
+        ${lugares.map(l => `<button type="button" data-lugar="${escapar(l)}" class="${l === filtroLugar ? "activo" : ""}">📍 ${escapar(l)}</button>`).join("")}
+      </div>` : ""}
+      <div class="pista-vistas" id="pista"><div class="vista" id="vista">${vista === "filas" ? htmlFilas(fotos) : htmlCuadricula(fotos)}</div></div>`
+      : `<div class="vacio"><div class="icono-pastilla icono-azul">${IC.album}</div>Este álbum está vacío.<br>Pulsa <b>Subir fotos</b> para añadir las tuyas.</div>`}
+      <div style="height:70px"></div>`;
+    window.scrollTo(0, y);
+
+    app.querySelector(".btn-volver").onclick = (ev) => { ev.preventDefault(); history.length > 1 && location.hash ? history.back() : (location.hash = ""); };
+    const sw = $("interruptor");
+    if (sw) {
+      sw.querySelectorAll("button").forEach(b => b.onclick = () => cambiarVista(b.dataset.vista));
+      // Deslizar el dedo a izquierda/derecha cambia de vista
+      let x0 = null, y0 = null;
+      const pista = $("pista");
+      pista.addEventListener("touchstart", ev => { x0 = ev.touches[0].clientX; y0 = ev.touches[0].clientY; }, { passive: true });
+      pista.addEventListener("touchend", ev => {
+        if (x0 === null) return;
+        const dx = ev.changedTouches[0].clientX - x0, dy = ev.changedTouches[0].clientY - y0; x0 = null;
+        if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8) cambiarVista(dx < 0 ? "filas" : "cuadricula");
+      }, { passive: true });
+    }
+    const fl = $("filtros");
+    if (fl) fl.querySelectorAll("button").forEach(b => b.onclick = () => { filtroLugar = b.dataset.lugar; pintar(); });
+    conectarFotos(e);
+  }
+
+  function cambiarVista(v, irA) {
+    if (v === vista && !irA) return;
+    vista = v; ponerLS(K.vista, v);
+    pintar();
+    if (irA) {
+      const el = document.getElementById("f-" + irA);
+      if (el) el.scrollIntoView({ block: "start" });
+    }
+  }
+
+  function grupos(fotos) {
+    const out = []; let clave = null;
+    for (const f of fotos) {
+      const k = (f.dia || "") + "|" + (f.momento || "");
+      if (k !== clave) {
+        clave = k;
+        const m = momentoDe(f.momento);
+        const titulo = [f.dia ? diaLargo(f.dia) : (f.momento ? "" : "Sin fecha"), m ? m.nombre : ""].filter(Boolean).join(" · ");
+        out.push({ titulo, ico: m ? m.ico : (f.dia ? "📅" : ""), fotos: [] });
+      }
+      out[out.length - 1].fotos.push(f);
+    }
+    return out;
+  }
+  const hayGrupos = (fotos) => fotos.some(f => f.dia || f.momento);
+  const cabeceraGrupo = (g) => `<div class="grupo-fotos"><span class="momento-ico">${g.ico}</span>${escapar(g.titulo)}</div>`;
+
+  function htmlCuadricula(fotos) {
+    const celda = (f) => {
+      const n = (f.likes || []).length, c = (f.comentarios || []).length;
+      return `<button class="celda" type="button" data-ver="${escapar(f.id)}" aria-label="Ver foto">
+        <img ${imgAttrs(f.mini, 'loading="lazy" alt=""')}>
+        ${n || c ? `<span class="marcas">${n ? `<span>${IC.corazonLleno}${n}</span>` : ""}${c ? `<span>${IC.bocadillo}${c}</span>` : ""}</span>` : ""}
+      </button>`;
+    };
+    if (!hayGrupos(fotos)) return `<div class="cuadricula">${fotos.map(celda).join("")}</div>`;
+    return grupos(fotos).map(g => cabeceraGrupo(g) + `<div class="cuadricula">${g.fotos.map(celda).join("")}</div>`).join("");
+  }
+
+  function htmlFoto(f) {
+    const n = (f.likes || []).length, me = miHuella && (f.likes || []).includes(miHuella);
+    const coms = f.comentarios || [], abierto = abiertos.has(f.id);
+    const m = momentoDe(f.momento);
+    const ratio = f.ancho && f.alto ? `style="aspect-ratio:${f.ancho}/${f.alto}"` : "";
+    const chips = [
+      f.dia ? `<span class="dato-chip">📅 ${escapar(diaCorto(f.dia))}</span>` : "",
+      m ? `<span class="dato-chip">${m.ico} ${m.nombre}</span>` : "",
+      f.lugar ? `<span class="dato-chip lugar">📍 ${escapar(f.lugar)}</span>` : ""
+    ].join("");
+    return `
+    <article class="foto" id="f-${escapar(f.id)}">
+      <div class="foto-cab">
+        ${inicial(f.autor)}
+        <div class="quien"><b>${escapar(f.autor)}</b><small>${escapar(App.horaRelativa(f.fecha))}</small></div>
+        <button class="mas-opciones" type="button" data-menu="${escapar(f.id)}" aria-label="Más opciones">⋯</button>
+      </div>
+      <div class="foto-img" data-dobletoque="${escapar(f.id)}">
+        <img ${imgAttrs(f.ruta, `loading="lazy" alt="${escapar(f.pie || "Foto de " + f.autor)}" ${ratio}`)}>
+        <span class="corazon-grande">${IC.corazonLleno}</span>
+      </div>
+      ${chips ? `<div class="datos-foto">${chips}</div>` : ""}
+      <div class="foto-acciones">
+        <button class="accion ${me ? "me-gusta" : ""}" type="button" data-like="${escapar(f.id)}" aria-pressed="${me}" aria-label="Me gusta">${me ? IC.corazonLleno : IC.corazon}<span>${n || ""}</span></button>
+        <button class="accion" type="button" data-coment="${escapar(f.id)}" aria-label="Comentar">${IC.bocadillo}<span>${coms.length || ""}</span></button>
+      </div>
+      ${f.pie ? `<div class="pie"><b>${escapar(f.autor)}</b> ${texto(f.pie)}</div>` : ""}
+      <button class="desplegar ${abierto ? "abierto" : ""}" type="button" data-desplegar="${escapar(f.id)}">
+        ${abierto ? "Ocultar comentarios" : coms.length ? `Ver ${coms.length === 1 ? "el comentario" : `los ${coms.length} comentarios`}` : "Escribe el primer comentario"} ${IC.flechaAbajo}
+      </button>
+      ${abierto ? `<div class="comentarios">
+        ${coms.map(c => `<div class="comentario">${inicial(c.autor)}<div class="burbuja"><b>${escapar(c.autor)}</b><small>${escapar(App.horaRelativa(c.fecha))}</small><br>${texto(c.texto)}
+          ${miHuella && c.quien === miHuella ? `<br><button class="borrar-com" type="button" data-borrarcom="${escapar(f.id)}|${escapar(c.id)}">Borrar</button>` : ""}</div></div>`).join("")}
+        <form class="nuevo-com" data-form="${escapar(f.id)}">
+          <textarea class="entrada" rows="1" maxlength="500" placeholder="Escribe un comentario…">${escapar(borradores[f.id] || "")}</textarea>
+          <button class="enviar-com" type="submit" aria-label="Enviar">${IC.enviar}</button>
+        </form>
+      </div>` : ""}
+    </article>`;
+  }
+  function htmlFilas(fotos) {
+    if (!hayGrupos(fotos)) return fotos.map(htmlFoto).join("");
+    return grupos(fotos).map(g => cabeceraGrupo(g) + g.fotos.map(htmlFoto).join("")).join("");
+  }
+
+  function conectarFotos(e) {
+    app.querySelectorAll("[data-ver]").forEach(b => b.onclick = () => cambiarVista("filas", b.dataset.ver));
+    app.querySelectorAll("[data-like]").forEach(b => b.onclick = () => darLike(b.dataset.like));
+    app.querySelectorAll("[data-coment]").forEach(b => b.onclick = () => { abiertos.add(b.dataset.coment); pintar(); enfocarComentario(b.dataset.coment); });
+    app.querySelectorAll("[data-desplegar]").forEach(b => b.onclick = () => {
+      const id = b.dataset.desplegar;
+      if (abiertos.has(id)) abiertos.delete(id); else abiertos.add(id);
+      pintar();
+      if (abiertos.has(id) && !(G.fotos.find(f => f.id === id).comentarios || []).length) enfocarComentario(id);
+    });
+    app.querySelectorAll("[data-menu]").forEach(b => b.onclick = () => hojaMenuFoto(b.dataset.menu, e));
+    app.querySelectorAll("[data-borrarcom]").forEach(b => b.onclick = () => borrarComentario(...b.dataset.borrarcom.split("|")));
+    // Doble toque en la foto = me gusta
+    app.querySelectorAll("[data-dobletoque]").forEach(el => {
+      let ultimo = 0;
+      el.addEventListener("click", () => {
+        const ahora = Date.now();
+        if (ahora - ultimo < 320) {
+          const id = el.dataset.dobletoque;
+          const c = el.querySelector(".corazon-grande"); c.classList.remove("latido"); void c.offsetWidth; c.classList.add("latido");
+          const f = G.fotos.find(x => x.id === id);
+          if (f && !(f.likes || []).includes(miHuella)) darLike(id, true);
+          ultimo = 0;
+        } else ultimo = ahora;
+      });
+    });
+    app.querySelectorAll("[data-form]").forEach(form => {
+      const id = form.dataset.form, ta = form.querySelector("textarea"), btn = form.querySelector("button");
+      const ajustar = () => { ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight + 2, 120) + "px"; btn.disabled = !ta.value.trim(); };
+      ta.addEventListener("input", () => { borradores[id] = ta.value; ajustar(); });
+      ajustar();
+      form.onsubmit = (ev) => { ev.preventDefault(); comentar(id, ta.value, btn); };
+    });
+  }
+  function enfocarComentario(id) {
+    const ta = document.querySelector(`[data-form="${CSS.escape(id)}"] textarea`);
+    if (ta) { ta.focus({ preventScroll: true }); ta.scrollIntoView({ block: "center", behavior: "smooth" }); }
+  }
+
+  // ---------- Acciones ----------
+  async function darLike(id, valor) {
+    const f = G.fotos.find(x => x.id === id); if (!f || !miHuella) return;
+    f.likes = f.likes || [];
+    const tenia = f.likes.includes(miHuella);
+    const quiero = typeof valor === "boolean" ? valor : !tenia;
+    if (quiero === tenia) return;
+    if (quiero) f.likes.push(miHuella); else f.likes = f.likes.filter(x => x !== miHuella);
+    pintar();
+    const b = document.querySelector(`[data-like="${CSS.escape(id)}"]`); if (b && quiero) b.classList.add("salta");
+    try { await servidor("like", { foto: id, valor: quiero }); pintar(); }
+    catch (e) { if (quiero) f.likes = f.likes.filter(x => x !== miHuella); else f.likes.push(miHuella); pintar(); trasError(e); }
+  }
+
+  async function comentar(id, valor, btn) {
+    const t = valor.trim(); if (!t) return;
+    if (!(await asegurarNombre())) return;
+    btn.disabled = true;
+    try {
+      await servidor("comentar", { foto: id, texto: t });
+      borradores[id] = ""; abiertos.add(id); pintar();
+    } catch (e) { btn.disabled = false; trasError(e); }
+  }
+
+  async function borrarComentario(foto, com) {
+    if (!confirm("¿Borrar tu comentario?")) return;
+    try { await servidor("borrarComentario", { foto, comentario: com }); pintar(); aviso("Comentario borrado"); }
+    catch (e) { trasError(e); }
+  }
+
+  async function actualizar(conAviso) {
+    if (!clave) return;
+    try { await servidor("ver"); pintar(); if (conAviso) aviso("Galería actualizada"); }
+    catch (e) { if (conAviso || e.codigo) trasError(e); }
+  }
+
+  // ---------- Hoja inferior ----------
+  function abrirHoja(titulo, cuerpo, pie) {
+    $("hojaTitulo").textContent = titulo;
+    $("hojaCuerpo").innerHTML = cuerpo;
+    $("hojaPie").innerHTML = pie || "";
+    $("hojaPie").classList.toggle("oculto", !pie);
+    $("hojaCuerpo").scrollTop = 0;
+    $("velo").classList.add("visible"); $("hoja").classList.add("visible");
+    document.body.classList.add("sin-scroll");
+  }
+  let bloqueoHoja = false;
+  function cerrarHoja() {
+    if (bloqueoHoja) return;
+    $("velo").classList.remove("visible"); $("hoja").classList.remove("visible");
+    document.body.classList.remove("sin-scroll");
+    if (document.activeElement) document.activeElement.blur();
+  }
+  $("velo").onclick = cerrarHoja; $("hojaCerrar").onclick = cerrarHoja;
+
+  // Nombre: se pide una sola vez (si no hay perfil)
+  function asegurarNombre() {
+    if (miNombre()) return Promise.resolve(true);
+    return new Promise(ok => {
+      abrirHoja("¿Cómo te llamas?", `
+        <p style="margin:0 0 12px;color:var(--texto-secundario)">Aparecerá junto a tus fotos y comentarios. Solo te lo preguntamos una vez.</p>
+        <input class="entrada" id="campoNombre" maxlength="30" placeholder="Tu nombre" autocomplete="given-name">`,
+        `<button class="boton ancho" id="btnNombre" type="button">Guardar</button>`);
+      setTimeout(() => $("campoNombre").focus(), 350);
+      let hecho = false;
+      $("btnNombre").onclick = () => {
+        const v = $("campoNombre").value.trim(); if (!v) return $("campoNombre").focus();
+        ponerLS(K.nombre, v); hecho = true; cerrarHoja(); ok(true);
+      };
+      const cerrar = $("hojaCerrar").onclick;
+      const fin = () => { if (!hecho) ok(false); $("hojaCerrar").onclick = cerrar; $("velo").onclick = cerrar; };
+      $("hojaCerrar").onclick = () => { cerrarHoja(); fin(); };
+      $("velo").onclick = () => { cerrarHoja(); fin(); };
+    });
+  }
+
+  // Nuevo álbum
+  async function hojaNuevoEvento() {
+    if (!(await asegurarNombre())) return;
+    abrirHoja("Nuevo álbum", `
+      <label class="etq" for="evTitulo">Nombre del evento</label>
+      <input class="entrada" id="evTitulo" maxlength="60" placeholder="Ej.: Escapada a la Sierra">
+      <label class="etq" for="evFecha">Fecha</label>
+      <input class="entrada" id="evFecha" type="date" value="${hoyISO()}">
+      <label class="etq" for="evDesc">Descripción (opcional)</label>
+      <textarea class="entrada" id="evDesc" maxlength="300" rows="3" placeholder="Unas palabras sobre el evento"></textarea>`,
+      `<button class="boton ancho" id="btnCrearEvento" type="button">Crear álbum</button>`);
+    setTimeout(() => $("evTitulo").focus(), 350);
+    $("btnCrearEvento").onclick = async () => {
+      const titulo = $("evTitulo").value.trim(); if (!titulo) return $("evTitulo").focus();
+      const b = $("btnCrearEvento"); b.disabled = true; b.textContent = "Creando…";
+      try {
+        const j = await servidor("crearEvento", { titulo, fecha: $("evFecha").value, descripcion: $("evDesc").value });
+        cerrarHoja();
+        location.hash = "e=" + j.evento;
+      } catch (e) { b.disabled = false; b.textContent = "Crear álbum"; trasError(e); }
+    };
+  }
+
+  // Campos de día, momento y lugar (para subir y para corregir)
+  function htmlDatosFoto(evento, val) {
+    const lugares = lugaresDe(evento.id);
+    const lugar = (val.lugar || "").trim();
+    const esNuevo = lugar && !lugares.includes(lugar);
+    return `
+      <label class="etq" for="fDia">Día</label>
+      <input class="entrada" id="fDia" type="date" value="${escapar(val.dia || "")}">
+      <span class="etq">Momento</span>
+      <div class="momentos" id="fMomentos">
+        ${MOMENTOS.map(m => `<button type="button" data-m="${m.id}" class="${val.momento === m.id ? "activo" : ""}"><span>${m.ico}</span>${m.nombre}</button>`).join("")}
+      </div>
+      <label class="etq" for="fLugarSel">Lugar</label>
+      ${lugares.length ? `
+      <select class="entrada" id="fLugarSel">
+        <option value="">— Sin lugar —</option>
+        ${lugares.map(l => `<option ${l === lugar ? "selected" : ""}>${escapar(l)}</option>`).join("")}
+        <option value="__nuevo" ${esNuevo ? "selected" : ""}>✏️ Escribir un lugar nuevo…</option>
+      </select>
+      <input class="entrada lugar-nuevo ${esNuevo ? "" : "oculto"}" id="fLugar" maxlength="60" placeholder="Escribe el lugar" value="${esNuevo ? escapar(lugar) : ""}">`
+      : `<input class="entrada" id="fLugar" maxlength="60" placeholder="Ej.: Mirador del Puerto" value="${escapar(lugar)}">`}`;
+  }
+  function conectarDatosFoto() {
+    const activo = document.querySelector("#fMomentos .activo");
+    let momento = activo ? activo.dataset.m : "";
+    document.querySelectorAll("#fMomentos button").forEach(b => b.onclick = () => {
+      momento = momento === b.dataset.m ? "" : b.dataset.m;
+      document.querySelectorAll("#fMomentos button").forEach(x => x.classList.toggle("activo", x.dataset.m === momento));
+    });
+    const sel = $("fLugarSel");
+    if (sel) sel.onchange = () => {
+      const nuevo = sel.value === "__nuevo";
+      $("fLugar").classList.toggle("oculto", !nuevo);
+      if (nuevo) $("fLugar").focus();
+    };
+    return () => ({
+      dia: $("fDia").value,
+      momento,
+      lugar: sel && sel.value !== "__nuevo" ? sel.value : $("fLugar").value.trim()
+    });
+  }
+
+  // Subir fotos
+  $("btnSubir").onclick = async () => {
+    if (!(await asegurarNombre())) return;
+    $("selectorFotos").click();
+  };
+  $("selectorFotos").onchange = async () => {
+    const archivos = [...$("selectorFotos").files].filter(f => /^image\//.test(f.type) || /\.(heic|heif|jpe?g|png|webp)$/i.test(f.name));
+    $("selectorFotos").value = "";
+    const e = G.eventos.find(x => x.id === eventoActual());
+    if (!archivos.length || !e) return;
+    if (archivos.length > 20) aviso("Se subirán las 20 primeras. Luego puedes subir más");
+    const lista = archivos.slice(0, 20).map((archivo, i) => ({ archivo, i, url: URL.createObjectURL(archivo) }));
+    // Día propuesto: el del último día usado en el álbum o la fecha del evento
+    const ultimas = ordenar(fotosDe(e.id)).filter(f => f.dia);
+    const diaPropuesto = (ultimas.length ? ultimas[ultimas.length - 1].dia : "") || e.fecha || hoyISO();
+    abrirHoja(`Subir ${lista.length} foto${lista.length === 1 ? "" : "s"}`, `
+      <p style="margin:0 0 4px;color:var(--texto-secundario);font-size:14px">El día, el momento y el lugar se aplican a todas. Puedes cambiarlos luego en cada foto.</p>
+      ${htmlDatosFoto(e, { dia: diaPropuesto })}
+      <span class="etq">Pie de foto (opcional)</span>
+      <div class="previas">${lista.map(x => `
+        <div class="previa" id="prev-${x.i}"><img src="${x.url}" alt=""><input maxlength="200" placeholder="Escribe un pie…" data-pie="${x.i}"><div class="estado-sub"></div></div>`).join("")}
+      </div>`,
+      `<div class="progreso oculto" id="progreso"><i></i></div><button class="boton ancho" id="btnEnviarFotos" type="button">Subir ${lista.length === 1 ? "la foto" : `las ${lista.length} fotos`}</button>`);
+    const leerDatos = conectarDatosFoto();
+    $("btnEnviarFotos").onclick = () => subirTodas(e, lista, leerDatos());
+  };
+
+  async function subirTodas(e, lista, datos) {
+    const b = $("btnEnviarFotos");
+    b.disabled = true; bloqueoHoja = true;
+    $("progreso").classList.remove("oculto");
+    lista.forEach(x => { x.pie = (document.querySelector(`[data-pie="${x.i}"]`) || {}).value || ""; });
+    document.querySelectorAll("#hojaCuerpo input, #hojaCuerpo select, #hojaCuerpo button, #hojaCuerpo textarea").forEach(el => el.disabled = true);
+    let bien = 0, mal = 0;
+    for (let k = 0; k < lista.length; k++) {
+      const x = lista[k], caja = $("prev-" + x.i), est = caja.querySelector(".estado-sub");
+      b.textContent = `Subiendo ${k + 1} de ${lista.length}…`;
+      est.textContent = "Preparando…";
+      try {
+        const grande = await reducir(x.archivo, 1600, 0.82, 1050000, false);
+        const mini = await reducir(x.archivo, 480, 0.74, 200000, true);
+        est.textContent = "Subiendo…";
+        await servidor("subirFoto", Object.assign({ evento: e.id, foto: grande.b64, mini: mini.b64, ancho: grande.ancho, alto: grande.alto, pie: x.pie }, datos));
+        caja.classList.add("hecha"); est.textContent = "✓ Subida"; bien++;
+      } catch (err) {
+        caja.classList.add("fallo"); est.textContent = "✗ " + err.message; mal++;
+        if (err.codigo) { bloqueoHoja = false; cerrarHoja(); trasError(err); return; }
+      }
+      $("progreso").firstElementChild.style.width = Math.round((k + 1) / lista.length * 100) + "%";
+    }
+    bloqueoHoja = false;
+    lista.forEach(x => URL.revokeObjectURL(x.url));
+    if (!mal) { cerrarHoja(); aviso(bien === 1 ? "Foto subida ✓" : `${bien} fotos subidas ✓`); }
+    else { b.disabled = false; b.textContent = "Cerrar"; b.onclick = cerrarHoja; aviso(`${bien} subida${bien === 1 ? "" : "s"}, ${mal} con error`); }
+    pintar();
+  }
+
+  // Reduce la foto a JPEG (y la recorta en cuadrado para la miniatura)
+  function reducir(archivo, max, calidad, limite, cuadrado) {
+    return new Promise((ok, mal) => {
+      const img = new Image(), url = URL.createObjectURL(archivo);
+      img.onload = () => {
+        let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
+        if (cuadrado) { const l = Math.min(sw, sh); sx = (sw - l) / 2; sy = (sh - l) / 2; sw = sh = l; }
+        let lado = max, q = calidad, b64 = "", c;
+        for (let intento = 0; intento < 6; intento++) {
+          const esc = Math.min(1, lado / Math.max(sw, sh));
+          c = document.createElement("canvas");
+          c.width = Math.max(1, Math.round(sw * esc)); c.height = Math.max(1, Math.round(sh * esc));
+          const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+          ctx.drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+          b64 = c.toDataURL("image/jpeg", q).split(",")[1];
+          if (b64.length <= limite) break;
+          q = Math.max(0.5, q - 0.08); lado = Math.round(lado * 0.85);
+        }
+        URL.revokeObjectURL(url);
+        ok({ b64, ancho: c.width, alto: c.height });
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); mal(new Error("No se pudo leer esta imagen")); };
+      img.src = url;
+    });
+  }
+
+  // Menú de cada foto
+  function hojaMenuFoto(id, e) {
+    const f = G.fotos.find(x => x.id === id); if (!f) return;
+    const mia = miHuella && f.quien === miHuella;
+    abrirHoja("Foto", `<div class="menu-opciones">
+      <button type="button" id="mDescargar">${IC.descargar} Guardar la foto</button>
+      ${mia ? `<button type="button" id="mEditar">${IC.lapiz} Cambiar día, momento, lugar o pie</button>
+      <button type="button" id="mBorrar" class="peligro">${IC.papelera} Borrar mi foto</button>` : ""}
+    </div>`);
+    $("mDescargar").onclick = () => descargar(f);
+    if (mia) {
+      $("mEditar").onclick = () => hojaEditarFoto(f, e);
+      $("mBorrar").onclick = async () => {
+        if (!confirm("¿Borrar esta foto? También se borrarán sus comentarios.")) return;
+        cerrarHoja();
+        try { await servidor("borrarFoto", { foto: f.id }); pintar(); aviso("Foto borrada"); } catch (err) { trasError(err); }
+      };
+    }
+  }
+  function hojaEditarFoto(f, e) {
+    abrirHoja("Datos de la foto", htmlDatosFoto(e, f) + `
+      <label class="etq" for="fPie">Pie de foto</label>
+      <textarea class="entrada" id="fPie" maxlength="200" rows="2">${escapar(f.pie || "")}</textarea>`,
+      `<button class="boton ancho" id="btnGuardarFoto" type="button">Guardar</button>`);
+    const leerDatos = conectarDatosFoto();
+    $("btnGuardarFoto").onclick = async () => {
+      const b = $("btnGuardarFoto"); b.disabled = true; b.textContent = "Guardando…";
+      try { await servidor("editarFoto", Object.assign({ foto: f.id, pie: $("fPie").value }, leerDatos())); cerrarHoja(); pintar(); aviso("Foto actualizada"); }
+      catch (err) { b.disabled = false; b.textContent = "Guardar"; trasError(err); }
+    };
+  }
+  async function descargar(f) {
+    cerrarHoja();
+    try {
+      const r = await fetch(urlFoto(f.ruta)); if (!r.ok) throw new Error();
+      const blob = await r.blob(), nombre = `cucharillas-${f.id}.jpg`;
+      const archivo = new File([blob], nombre, { type: "image/jpeg" });
+      if (matchMedia("(pointer: coarse)").matches && navigator.canShare && navigator.canShare({ files: [archivo] })) {
+        await navigator.share({ files: [archivo] }).catch(() => {});
+        return;
+      }
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nombre;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    } catch (e) { window.open(urlFoto(f.ruta), "_blank"); }
+  }
+
+  // ---------- Arranque ----------
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") actualizar(false); });
+  setInterval(() => { if (document.visibilityState === "visible" && !$("hoja").classList.contains("visible") && !document.querySelector(".nuevo-com textarea:focus")) actualizar(false); }, 120000);
+
+  calcularHuella().then(() => {
+    pintar();
+    if (clave) actualizar(false);
+  });
+})();
+</script>
+</body>
+</html>

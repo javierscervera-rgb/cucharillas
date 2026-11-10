@@ -10,6 +10,7 @@ Funciona sin servidor propio: los contenidos viven en este repositorio de GitHub
 |---|---|---|
 | Lectio, Retiro, Agenda, Libros y vídeos, Artículos | `data/*.json` en GitHub | Responsables, desde `admin.html` |
 | Imágenes (portadas, carteles, artículos) | `img/subidas/` en GitHub | Se suben desde `admin.html`; la app las reduce antes de subirlas |
+| Galería: álbumes, fotos, me gusta y comentarios | `data/galeria.json` e `img/galeria/` | Cualquiera con la contraseña (pasa por el Worker); los responsables borran desde `admin.html` |
 | Perfiles y sus fotos | `data/perfiles.json` y `img/perfiles/` | Cada chico desde *Comunidad → Mi perfil* (pasa por el Worker) y el admin los aprueba |
 | Mis notas y lo marcado como leído/visto | En el propio móvil (navegador) | Solo su dueño. Nunca salen del móvil |
 
@@ -48,6 +49,16 @@ Los chicos no tienen cuenta de GitHub, así que sus perfiles pasan por un peque�
 4. Copia la dirección del Worker (`https://cucharillas-perfiles.xxx.workers.dev`) y ponla en `urlPerfiles` dentro de `js/config.js`.
 
 Cada perfil nuevo o modificado queda **pendiente** hasta que un responsable lo aprueba en *admin → Perfiles*.
+
+### 5 bis. Activar la Galería de fotos
+La galería usa el mismo Worker que los perfiles.
+1. En Cloudflare, abre el Worker → *Edit code*, borra todo, pega el contenido **actualizado** de `worker/perfiles-worker.js` y *Deploy*.
+2. *Settings → Variables and Secrets* → *Add*: nombre `GALERIA_CLAVE`, tipo **Secret**, valor: la contraseña que daréis al grupo. *Deploy*.
+3. Listo: en la app, *Galería de fotos* pedirá esa contraseña una sola vez en cada móvil.
+
+Cualquiera con la contraseña puede crear álbumes, subir fotos (con día, momento y lugar), dar «me gusta» y comentar, sin aprobación. Cada uno puede borrar o corregir lo suyo, y los responsables pueden borrar cualquier cosa en *admin → Galería*. Para cambiar la contraseña, cambia `GALERIA_CLAVE` en Cloudflare.
+
+Las fotos se guardan en `img/galeria/` y los datos en `data/galeria.json`. Como el repositorio es público, quien conozca la dirección exacta de una foto podría verla aunque no tenga la contraseña.
 
 ### 6. Instalarla en el móvil
 - **iPhone (Safari)**: botón Compartir → *Añadir a pantalla de inicio*.
