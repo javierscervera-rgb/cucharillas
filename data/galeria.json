@@ -1,14 +1,32 @@
 {
-  "eventos": [
-    {
-      "id": "allariz-6-9-nov-2026-mwbcig88",
-      "titulo": "Allariz 6-9 nov 2026",
-      "fecha": "2026-11-10",
-      "descripcion": "Escapada a Allariz con las Clarisas, la Rivera Sacra, pulpo “a feria”, kayaks y mucho más",
-      "autor": "Responsables",
-      "quien": "",
-      "creado": "2026-11-10T23:53:09.032Z"
-    }
-  ],
-  "fotos": []
+ "eventos": [
+  {
+   "id": "allariz-6-9-nov-2026-mwbcig88",
+   "titulo": "Allariz 6-9 nov 2026",
+   "fecha": "2026-11-10",
+   "descripcion": "Escapada a Allariz con las Clarisas, la Rivera Sacra, pulpo “a feria”, kayaks y mucho más",
+   "autor": "Responsables",
+   "quien": "",
+   "creado": "2026-11-10T23:53:09.032Z"
+  }
+ ],
+ "fotos": [
+  {
+   "id": "24760a4f807478cfa2ec",
+   "evento": "allariz-6-9-nov-2026-mwbcig88",
+   "ruta": "img/galeria/allariz-6-9-nov-2026-mwbcig88/24760a4f807478cfa2ec.jpg",
+   "mini": "img/galeria/allariz-6-9-nov-2026-mwbcig88/24760a4f807478cfa2ec-m.jpg",
+   "ancho": 900,
+   "alto": 1600,
+   "pie": "",
+   "dia": "2026-11-06",
+   "momento": "mañana",
+   "lugar": "El viaje",
+   "autor": "DJ",
+   "quien": "d50ce427e4df09a3a1d6",
+   "fecha": "2026-11-10T23:53:49.637Z",
+   "likes": [],
+   "comentarios": []
+  }
+ ]
 }
