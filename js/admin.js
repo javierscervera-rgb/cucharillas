@@ -490,6 +490,8 @@
       }
     }
     const orden = [...lista].sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+    let nombresPerfil = {};
+    try { (await App.cargar("perfiles")).perfiles.forEach(p => { nombresPerfil[p.id] = p.nombre; }); } catch (e) {}
     zona.innerHTML = `
       <div class="aviso info">Para registrarse hace falta el <b>código del grupo</b> (variable <b>CODIGO_GRUPO</b> en Cloudflare). Si alguien olvida su contraseña, ponle una nueva aquí y díselo; podrá cambiarla luego.</div>
       <h3 class="titulo-grupo">${orden.length} cuenta${orden.length === 1 ? "" : "s"}</h3>
@@ -498,11 +500,13 @@
         <div class="pastilla columna">
           <div class="fila">
             <div class="texto"><div class="titulo">${escapar(c.nombre)}</div>
-            <div class="detalle">Usuario: <b>${escapar(c.usuario)}</b> · desde el ${escapar(c.creado ? App.fechaCorta(c.creado.slice(0, 10)) : "—")}</div></div>
+            <div class="detalle">Usuario: <b>${escapar(c.usuario)}</b> · desde el ${escapar(c.creado ? App.fechaCorta(c.creado.slice(0, 10)) : "—")}</div>
+            ${c.perfil ? `<div class="detalle">Perfil recuperado: <b>${escapar(nombresPerfil[c.perfil] || "(ya no existe)")}</b></div>` : ""}</div>
           </div>
           <div class="fila-botones">
             <button class="boton suave" data-renombrar="${escapar(c.id)}">Cambiar nombre</button>
             <button class="boton secundario" data-clave="${escapar(c.id)}">Nueva contraseña</button>
+            ${c.perfil ? `<button class="boton suave" data-desvincular="${escapar(c.id)}">Desvincular perfil</button>` : ""}
             <button class="boton peligro" data-borrar-cuenta="${escapar(c.id)}">Borrar</button>
           </div>
         </div>`).join("")}
@@ -526,6 +530,11 @@
       if (!nueva) return;
       if (nueva.length < 6) return aviso("Mínimo 6 caracteres");
       hacer(b, "adminRestablecer", { id: c.id, hash: await App.hashClave(c.usuario, nueva) }, `Contraseña cambiada. Díselo a ${c.nombre}`);
+    });
+    zona.querySelectorAll("[data-desvincular]").forEach(b => b.onclick = () => {
+      const c = buscar(b.dataset.desvincular);
+      if (!confirm(`¿Desvincular el perfil «${nombresPerfil[c.perfil] || ""}» de la cuenta de ${c.nombre}? Volverá a aparecer en la lista del registro para que lo recupere quien sea de verdad.`)) return;
+      hacer(b, "adminDesvincular", { id: c.id }, "Perfil desvinculado");
     });
     zona.querySelectorAll("[data-borrar-cuenta]").forEach(b => b.onclick = () => {
       const c = buscar(b.dataset.borrarCuenta);

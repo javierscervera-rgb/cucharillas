@@ -38,6 +38,25 @@
     const b = await crypto.subtle.deriveBits({ name: "PBKDF2", salt: new TextEncoder().encode("cucharillas:" + String(usuario).trim().toLowerCase()), iterations: 150000, hash: "SHA-256" }, k, 256);
     return Array.from(new Uint8Array(b), x => x.toString(16).padStart(2, "0")).join("");
   }
+  // Tras entrar: si la cuenta tiene un perfil de «Todos por todos», se deja
+  // preparado en este móvil para poder editarlo
+  async function recuperarPerfil(perfil) {
+    if (!perfil || !perfil.id || !perfil.clave) return;
+    try {
+      let actual = null;
+      try { actual = JSON.parse(localStorage.getItem("cucharillas_mi_perfil") || "null"); } catch (e) {}
+      const datos = await cargar("perfiles");
+      const p = (datos.perfiles || []).find(x => x.id === perfil.id);
+      if (!p) return;
+      const campos = ["nombre", "emoji", "color", "sobreMi", "gustos", "intencion", "cumple", "foto"];
+      const yo = { id: p.id, clave: perfil.clave, enviado: true };
+      campos.forEach(c => { if (p[c]) yo[c] = p[c]; });
+      // Si este móvil ya tenía ese mismo perfil con cambios sin enviar, se respetan
+      if (actual && actual.id === p.id) Object.assign(yo, actual, { clave: perfil.clave, enviado: true });
+      localStorage.setItem("cucharillas_mi_perfil", JSON.stringify(yo));
+    } catch (e) {}
+  }
+
   // Llamada al servidor de cuentas
   async function servidorCuentas(accion, datos = {}) {
     const url = CONFIG.urlGaleria || CONFIG.urlPerfiles;
@@ -408,5 +427,5 @@
     document.querySelectorAll("[data-marca]").forEach(el => { el.outerHTML = MARCA; });
   });
 
-  window.App = { Sesion, hashClave, servidorCuentas, RAIZ_APP, ICONOS, MARCA, escapar, formatear, fechaLarga, fechaCorta, aFecha, hoy, semanaActual, cargar, ordenarPorFecha, Notas, Estados, cajaNota, redimensionar, avatar, irAlAncla, horaRelativa, aviso, parametro, MESES };
+  window.App = { Sesion, hashClave, servidorCuentas, recuperarPerfil, RAIZ_APP, ICONOS, MARCA, escapar, formatear, fechaLarga, fechaCorta, aFecha, hoy, semanaActual, cargar, ordenarPorFecha, Notas, Estados, cajaNota, redimensionar, avatar, irAlAncla, horaRelativa, aviso, parametro, MESES };
 })();

@@ -2,7 +2,7 @@
    Siempre intenta la red primero (así el contenido nuevo aparece enseguida)
    y, si no hay conexión, usa la última copia guardada. */
 
-const VERSION = "cucharillas-v11";
+const VERSION = "cucharillas-v12";
 const BASICOS = [
   "./", "index.html", "lectio.html", "retiro.html", "notas.html", "agenda.html", "comunidad.html", "recursos.html", "articulo.html", "devocionario.html", "rosario.html", "escapadas.html", "galeria.html", "entrar.html", "data/rosario.json", "js/oraciones.js", "data/devocionario.json",
   "css/estilos.css", "js/config.js", "js/app.js", "js/entradas.js", "js/videos.js", "img/logo.png", "img/icono-192.png", "manifest.json"

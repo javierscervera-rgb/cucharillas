@@ -60,6 +60,7 @@ Para usar la web hay que **registrarse** (nombre, usuario, contraseña y el **c�
 3. *Deploy*. Ya se puede entrar en la web y registrarse.
 
 - **Cuentas**: se guardan cifradas en `data/cuentas.enc`; solo el Worker puede leerlas. Las contraseñas no se guardan nunca tal cual.
+- **Registro en tres pasos**: 1) código del grupo; 2) «¿Quién eres?»: lista de quienes ya tienen perfil en *Todos por todos* y aún no se han registrado (quien se elige recupera su perfil y desaparece de la lista; si no está, «No estoy en la lista»); 3) usuario y contraseña. Al entrar desde cualquier móvil, el perfil recuperado vuelve a quedar editable. Si alguien elige a quien no es, *admin → Usuarios → Desvincular perfil*.
 - **Olvidó la contraseña**: *admin → Usuarios → Nueva contraseña*. También se puede cambiar el nombre o borrar la cuenta.
 - **Galería**: solo los responsables crean álbumes (*admin → Galería*). Los usuarios registrados suben fotos (con día, momento y lugar), dan «me gusta» y comentan sin aprobación; cada uno puede corregir o borrar lo suyo y los responsables pueden borrar cualquier cosa.
 - **Importante**: el repositorio es público. La pantalla de acceso impide usar la web sin cuenta, pero quien sepa buscar en GitHub podría leer los textos y ver las fotos.

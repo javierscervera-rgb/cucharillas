@@ -394,13 +394,52 @@ async function cuentas(d, env, responder) {
     if (!hashOk(d.hash)) return responder({ error: "Contraseña no válida" }, 400);
     const sal = aleatorioHex(16);
     const cuenta = { id: aleatorioHex(8), usuario, nombre, sal, hash: await sha256(sal + d.hash), v: 1, creado: new Date().toISOString() };
+
+    // ¿Recupera un perfil de «Todos por todos» que ya estaba subido?
+    let perfil = null;
+    if (d.perfil) {
+      if (!/^[a-f0-9]{12}$/.test(d.perfil)) return responder({ error: "Perfil no válido" }, 400);
+      const { lista: ctas } = await leerCuentas(env);
+      if (ctas.some(c => c.usuario === usuario)) return responder({ error: "Ese nombre de usuario ya existe. Elige otro" }, 400);
+      if (ctas.some(c => c.perfil === d.perfil)) return responder({ error: "Esa persona ya se ha registrado. Si eres tú, avisa a un responsable", codigo: "perfil-ocupado" }, 409);
+      // El perfil pasa a esta cuenta: nueva clave de edición, que viaja con la cuenta
+      const clavePerfil = aleatorioHex(16);
+      const hashPerfil = await sha256(clavePerfil);
+      let hecho = false;
+      for (let intento = 0; intento < 5 && !hecho; intento++) {
+        const { lista, sha } = await leer(env);
+        const p = lista.find(x => x.id === d.perfil);
+        if (!p) return responder({ error: "Ese perfil ya no existe" }, 404);
+        p.claveHash = hashPerfil;
+        const w = await escribir(env, lista, sha, `Perfil ${d.perfil} recuperado al registrarse`);
+        if (w.ok) hecho = true;
+        else if (w.status !== 409 && w.status !== 422) return responder({ error: "GitHub respondió " + w.status }, 502);
+      }
+      if (!hecho) return responder({ error: "Mucho tráfico, inténtalo de nuevo" }, 503);
+      cuenta.perfil = d.perfil; cuenta.perfilClave = clavePerfil;
+      perfil = { id: d.perfil, clave: clavePerfil };
+    }
+
     const r = await modificarCuentas(env, `Cuentas: nuevo registro`, (lista) => {
       if (lista.some(c => c.usuario === usuario)) return "Ese nombre de usuario ya existe. Elige otro";
+      if (cuenta.perfil && lista.some(c => c.perfil === cuenta.perfil)) return "Esa persona ya se ha registrado. Si eres tú, avisa a un responsable";
       if (lista.length >= MAX_CUENTAS) return "Se ha alcanzado el máximo de cuentas";
       lista.push(cuenta);
     });
     if (r.error) return responder({ error: r.error }, r.estado);
-    return responder({ ok: true, token: await firmarSesion(env, cuenta), cuenta: publica(cuenta) });
+    return responder({ ok: true, token: await firmarSesion(env, cuenta), cuenta: publica(cuenta), perfil });
+  }
+
+  // Paso previo al registro: con el código del grupo, lista de quienes ya
+  // tienen perfil subido y todavía no se han registrado
+  if (accion === "libres") {
+    if (!(await mismaClave(String(d.codigo || "").trim(), String(env.CODIGO_GRUPO).trim()))) return responder({ error: "El código del grupo no es correcto", codigo: "codigo" }, 403);
+    const [{ lista: perfiles }, { lista: ctas }] = await Promise.all([leer(env), leerCuentas(env)]);
+    const ocupados = new Set(ctas.map(c => c.perfil).filter(Boolean));
+    const libres = perfiles.filter(p => !ocupados.has(p.id))
+      .map(p => ({ id: p.id, nombre: p.nombre, emoji: p.emoji || "", color: p.color || "", foto: p.foto || "" }))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+    return responder({ ok: true, libres });
   }
 
   if (accion === "entrar") {
@@ -411,7 +450,7 @@ async function cuentas(d, env, responder) {
     // Se calcula igual exista o no, para no dar pistas por el tiempo de respuesta
     const calculado = await sha256((c ? c.sal : "0".repeat(32)) + d.hash);
     if (!c || !(await mismaClave(calculado, c.hash))) return responder({ error: "Usuario o contraseña incorrectos", codigo: "credenciales" }, 401);
-    return responder({ ok: true, token: await firmarSesion(env, c), cuenta: publica(c) });
+    return responder({ ok: true, token: await firmarSesion(env, c), cuenta: publica(c), perfil: c.perfil && c.perfilClave ? { id: c.perfil, clave: c.perfilClave } : null });
   }
 
   if (accion === "cambiarClave") {
@@ -463,6 +502,14 @@ async function cuentas(d, env, responder) {
       if (r.error) return responder({ error: r.error }, r.estado);
       return responder({ ok: true, cuentas: r.lista.map(publica) });
     }
+    if (accion === "adminDesvincular") {
+      const r = await modificarCuentas(env, `Cuentas: un responsable desvincula un perfil`, (lista) => {
+        const c = lista.find(x => x.id === d.id); if (!c || !c.perfil) return { sinCambios: true };
+        delete c.perfil; delete c.perfilClave;
+      });
+      if (r.error) return responder({ error: r.error }, r.estado);
+      return responder({ ok: true, cuentas: r.lista.map(publica) });
+    }
     if (accion === "adminBorrar") {
       const r = await modificarCuentas(env, `Cuentas: un responsable borra una cuenta`, (lista) => {
         const i = lista.findIndex(x => x.id === d.id); if (i < 0) return { sinCambios: true };
@@ -475,7 +522,7 @@ async function cuentas(d, env, responder) {
   return responder({ error: "Acción no válida" }, 400);
 }
 
-const publica = (c) => ({ id: c.id, usuario: c.usuario, nombre: c.nombre, creado: c.creado });
+const publica = (c) => ({ id: c.id, usuario: c.usuario, nombre: c.nombre, creado: c.creado, perfil: c.perfil || "" });
 
 async function esResponsable(env, ghToken) {
   if (typeof ghToken !== "string" || ghToken.length < 20 || ghToken.length > 300) return false;
