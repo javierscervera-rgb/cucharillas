@@ -45,7 +45,7 @@ Los chicos no tienen cuenta de GitHub, así que sus perfiles pasan por un peque�
    - `GITHUB_TOKEN` (tipo **Secret**): crea otro token como en el paso 4, solo para esto.
    - `REPO`: `TU-USUARIO/cucharillas`
    - `RAMA`: `main`
-   - `ORIGEN_PERMITIDO`: `https://TU-USUARIO.github.io`
+   - `ORIGEN_PERMITIDO`: la dirección de la app, por ejemplo `https://cucharillas.es` (puedes poner varias separadas por comas)
 4. Copia la dirección del Worker (`https://cucharillas-perfiles.xxx.workers.dev`) y ponla en `urlPerfiles` dentro de `js/config.js`.
 
 Cada perfil nuevo o modificado queda **pendiente** hasta que un responsable lo aprueba en *admin → Perfiles*.
@@ -59,6 +59,13 @@ La galería usa el mismo Worker que los perfiles.
 Cualquiera con la contraseña puede crear álbumes, subir fotos (con día, momento y lugar), dar «me gusta» y comentar, sin aprobación. Cada uno puede borrar o corregir lo suyo, y los responsables pueden borrar cualquier cosa en *admin → Galería*. Para cambiar la contraseña, cambia `GALERIA_CLAVE` en Cloudflare.
 
 Las fotos se guardan en `img/galeria/` y los datos en `data/galeria.json`. Como el repositorio es público, quien conozca la dirección exacta de una foto podría verla aunque no tenga la contraseña.
+
+### 5 ter. Dominio propio (cucharillas.es)
+La app se publica en **https://cucharillas.es** (registrado en DonDominio).
+- **DNS en DonDominio** (zona DNS de cucharillas.es): cuatro registros `A` para `@` → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`; y un `CNAME` para `www` → `javierscervera-rgb.github.io`. Sin otros registros A, AAAA ni CNAME en `@` o `www`.
+- **GitHub**: *Settings → Pages → Custom domain* = `cucharillas.es` (es el archivo `CNAME` de la raíz) y *Enforce HTTPS* marcado.
+- **Cloudflare**: `ORIGEN_PERMITIDO` = `https://cucharillas.es,https://javierscervera-rgb.github.io`.
+- Las notas, el perfil y el acceso a la galería se guardan en cada móvil ligados a la dirección. Para pasarlos de una dirección a otra: *Mis notas → Guardar copia* en la antigua y *Recuperar* en la nueva.
 
 ### 6. Instalarla en el móvil
 - **iPhone (Safari)**: botón Compartir → *Añadir a pantalla de inicio*.

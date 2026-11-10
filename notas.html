@@ -71,7 +71,8 @@
 
       html += `<h3 class="titulo-grupo">Copia de seguridad</h3>
         <div class="aviso info">Si cambias de móvil o borras los datos del navegador, las notas se pierden.
-        Guarda de vez en cuando una copia en tu móvil y podrás recuperarla.</div>
+        Guarda de vez en cuando una copia en tu móvil y podrás recuperarla. La copia incluye también tu perfil,
+        tu acceso a la galería y las notas del juego de Escapadas.</div>
         <div class="fila-botones">
           <button class="boton suave" id="b-exportar">${App.ICONOS.descargar} Guardar copia</button>
           <button class="boton suave" id="b-importar">${App.ICONOS.subir} Recuperar</button>
@@ -79,7 +80,6 @@
       cont.innerHTML = html;
 
       document.getElementById("b-exportar").onclick = () => {
-        if (!todas.length) return App.aviso("No hay notas que guardar");
         App.Notas.exportar();
       };
       const input = document.getElementById("archivo-importar");
@@ -88,7 +88,7 @@
         const f = input.files[0]; if (!f) return;
         try {
           const n = App.Notas.importar(await f.text());
-          App.aviso(n ? `${n} nota${n > 1 ? "s" : ""} recuperada${n > 1 ? "s" : ""}` : "No había notas nuevas");
+          App.aviso(n ? "Copia recuperada ✓" : "No había nada nuevo que recuperar");
           lista();
         } catch (e) { App.aviso("Ese archivo no es una copia de Cucharillas"); }
         input.value = "";

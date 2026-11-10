@@ -11,7 +11,8 @@
      GITHUB_TOKEN     (tipo "Secret")  token con permiso Contents: Read and write
      REPO             ej.: "mi-usuario/cucharillas"
      RAMA             ej.: "main"
-     ORIGEN_PERMITIDO ej.: "https://mi-usuario.github.io"
+     ORIGEN_PERMITIDO ej.: "https://cucharillas.es,https://mi-usuario.github.io"
+                      (una o varias direcciones de la app, separadas por comas)
      GALERIA_CLAVE    (tipo "Secret")  contraseña del grupo para entrar en la galería
    ========================================================= */
 
@@ -20,8 +21,11 @@ const LIMITES = { nombre: 30, emoji: 8, color: 9, sobreMi: 300, gustos: 120, int
 
 export default {
   async fetch(request, env) {
+    const origen = request.headers.get("Origin");
+    const permitidos = String(env.ORIGEN_PERMITIDO || "").split(",").map(x => x.trim().replace(/\/+$/, "")).filter(Boolean);
     const cors = {
-      "Access-Control-Allow-Origin": env.ORIGEN_PERMITIDO || "*",
+      "Access-Control-Allow-Origin": !permitidos.length ? "*" : permitidos.includes(origen) ? origen : permitidos[0],
+      "Vary": "Origin",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
       "Content-Type": "application/json; charset=utf-8"
@@ -31,8 +35,7 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { headers: cors });
     if (request.method !== "POST") return responder({ error: "Método no permitido" }, 405);
 
-    const origen = request.headers.get("Origin");
-    if (env.ORIGEN_PERMITIDO && origen && origen !== env.ORIGEN_PERMITIDO) return responder({ error: "Origen no permitido" }, 403);
+    if (permitidos.length && origen && !permitidos.includes(origen)) return responder({ error: "Origen no permitido" }, 403);
 
     let datos;
     try { datos = await request.json(); } catch { return responder({ error: "Datos no válidos" }, 400); }

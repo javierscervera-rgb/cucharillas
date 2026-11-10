@@ -207,6 +207,8 @@
 
   // ---------- Notas (solo en este móvil) ----------
   const CLAVE_NOTAS = "cucharillas_notas";
+  // Otros datos del móvil que viajan en la copia de seguridad (perfil, galería, juego)
+  const EXTRAS = ["cucharillas_mi_perfil", "cucharillas_galeria_yo", "cucharillas_galeria_nombre", "cucharillas_galeria_clave", "cucharillas_opciones_notas"];
 
   const Notas = {
     todas() {
@@ -227,7 +229,9 @@
       localStorage.setItem(CLAVE_NOTAS, JSON.stringify(todas));
     },
     exportar() {
-      const blob = new Blob([JSON.stringify({ app: "cucharillas", version: 2, exportado: new Date().toISOString(), notas: this.todas(), estados: Estados.todos() }, null, 2)], { type: "application/json" });
+      const extras = {};
+      EXTRAS.forEach(k => { try { const v = localStorage.getItem(k); if (v) extras[k] = v; } catch (e) {} });
+      const blob = new Blob([JSON.stringify({ app: "cucharillas", version: 3, exportado: new Date().toISOString(), notas: this.todas(), estados: Estados.todos(), extras }, null, 2)], { type: "application/json" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = "cucharillas-mis-notas-" + new Date().toISOString().slice(0, 10) + ".json";
@@ -247,6 +251,19 @@
       if (datos.estados) {
         const est = Estados.todos();
         localStorage.setItem(CLAVE_ESTADOS, JSON.stringify(Object.assign({}, datos.estados, est)));
+      }
+      // Perfil, galería y notas del juego: se recuperan si este móvil aún no los tiene
+      const extras = datos.extras && typeof datos.extras === "object" ? datos.extras : {};
+      for (const k of EXTRAS) {
+        const v = extras[k];
+        if (typeof v !== "string" || !v) continue;
+        try {
+          const actual = localStorage.getItem(k);
+          if (k === "cucharillas_opciones_notas" && actual) {
+            const unidas = Object.assign({}, JSON.parse(v), JSON.parse(actual));
+            localStorage.setItem(k, JSON.stringify(unidas));
+          } else if (!actual) { localStorage.setItem(k, v); n++; }
+        } catch (e) {}
       }
       return n;
     }
@@ -311,7 +328,37 @@
     window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
   }
 
+  // ---------- Cambio de dirección a cucharillas.es ----------
+  // Las notas, el perfil y el acceso a la galería se guardan en cada móvil
+  // ligados a la dirección de la web: al cambiarla hay que llevarlos con la copia.
+  const NUEVA_DIRECCION = "cucharillas.es";
+  function avisoMudanza() {
+    const pagina = document.body.dataset.pagina;
+    if (pagina === "admin") return;
+    const main = document.querySelector("main"); if (!main) return;
+    const ls = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+    let html = "";
+    if (/github\.io$/.test(location.hostname)) {
+      html = `<b>📦 La app se muda a ${NUEVA_DIRECCION}</b><br>Para no perder tus notas, tu perfil y tu acceso a la galería, entra en
+        <a href="notas.html">Mis notas</a> y pulsa <b>Guardar copia</b>. En la nueva dirección podrás recuperarla.`;
+    } else if (location.hostname.replace(/^www\./, "") === NUEVA_DIRECCION && pagina === "inicio"
+      && !ls("cucharillas_notas") && !ls("cucharillas_mi_perfil") && !ls("cucharillas_aviso_mudanza")) {
+      html = `<b>👋 ¡Bienvenido a la nueva dirección!</b><br>Si guardaste una copia en la app antigua, ve a
+        <a href="notas.html">Mis notas</a> y pulsa <b>Recuperar</b>. <button type="button" class="cerrar-aviso" style="border:0;background:none;color:inherit;font-weight:700;text-decoration:underline;padding:0;font:inherit;cursor:pointer">Entendido</button>`;
+    }
+    if (!html) return;
+    const caja = document.createElement("div");
+    caja.className = "aviso info";
+    caja.style.lineHeight = "1.5";
+    caja.innerHTML = html;
+    const cab = main.querySelector(".cabecera-portada, .cabecera-pagina");
+    if (cab && cab.nextSibling) main.insertBefore(caja, cab.nextElementSibling); else main.prepend(caja);
+    const b = caja.querySelector(".cerrar-aviso");
+    if (b) b.onclick = () => { try { localStorage.setItem("cucharillas_aviso_mudanza", "1"); } catch (e) {} caja.remove(); };
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
+    avisoMudanza();
     if (document.body.dataset.pagina !== "admin") pintarNav();
     document.querySelectorAll("[data-icono]").forEach(el => { el.innerHTML = ICONOS[el.dataset.icono] || ""; });
     document.querySelectorAll("[data-marca]").forEach(el => { el.outerHTML = MARCA; });
