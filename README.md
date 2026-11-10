@@ -10,7 +10,8 @@ Funciona sin servidor propio: los contenidos viven en este repositorio de GitHub
 |---|---|---|
 | Lectio, Retiro, Agenda, Libros y vídeos, Artículos | `data/*.json` en GitHub | Responsables, desde `admin.html` |
 | Imágenes (portadas, carteles, artículos) | `img/subidas/` en GitHub | Se suben desde `admin.html`; la app las reduce antes de subirlas |
-| Galería: álbumes, fotos, me gusta y comentarios | `data/galeria.json` e `img/galeria/` | Cualquiera con la contraseña (pasa por el Worker); los responsables borran desde `admin.html` |
+| Cuentas para entrar en la web | `data/cuentas.enc` (cifrado) | Cada uno al registrarse (pasa por el Worker); los responsables en *admin → Usuarios* |
+| Galería: álbumes, fotos, me gusta y comentarios | `data/galeria.json` e `img/galeria/` | Álbumes: responsables (`admin.html`). Fotos y comentarios: usuarios registrados (pasa por el Worker) |
 | Perfiles y sus fotos | `data/perfiles.json` y `img/perfiles/` | Cada chico desde *Comunidad → Mi perfil* (pasa por el Worker) y el admin los aprueba |
 | Mis notas y lo marcado como leído/visto | En el propio móvil (navegador) | Solo su dueño. Nunca salen del móvil |
 
@@ -50,21 +51,25 @@ Los chicos no tienen cuenta de GitHub, así que sus perfiles pasan por un peque�
 
 Cada perfil nuevo o modificado queda **pendiente** hasta que un responsable lo aprueba en *admin → Perfiles*.
 
-### 5 bis. Activar la Galería de fotos
-La galería usa el mismo Worker que los perfiles.
+### 5 bis. Activar el registro y la Galería de fotos
+Para usar la web hay que **registrarse** (nombre, usuario, contraseña y el **código del grupo**). La galería y el registro usan el mismo Worker que los perfiles.
 1. En Cloudflare, abre el Worker → *Edit code*, borra todo, pega el contenido **actualizado** de `worker/perfiles-worker.js` y *Deploy*.
-2. *Settings → Variables and Secrets* → *Add*: nombre `GALERIA_CLAVE`, tipo **Secret**, valor: la contraseña que daréis al grupo. *Deploy*.
-3. Listo: en la app, *Galería de fotos* pedirá esa contraseña una sola vez en cada móvil.
+2. *Settings → Variables and Secrets* → *Add*, ambas de tipo **Secret**:
+   - `CODIGO_GRUPO`: el código que daréis al grupo para registrarse.
+   - `SECRETO`: un texto largo y aleatorio (40 caracteres o más). Cifra las cuentas y firma las sesiones. **No lo cambies después**: si cambia, todas las cuentas dejan de valer.
+3. *Deploy*. Ya se puede entrar en la web y registrarse.
 
-Cualquiera con la contraseña puede crear álbumes, subir fotos (con día, momento y lugar), dar «me gusta» y comentar, sin aprobación. Cada uno puede borrar o corregir lo suyo, y los responsables pueden borrar cualquier cosa en *admin → Galería*. Para cambiar la contraseña, cambia `GALERIA_CLAVE` en Cloudflare.
-
-Las fotos se guardan en `img/galeria/` y los datos en `data/galeria.json`. Como el repositorio es público, quien conozca la dirección exacta de una foto podría verla aunque no tenga la contraseña.
+- **Cuentas**: se guardan cifradas en `data/cuentas.enc`; solo el Worker puede leerlas. Las contraseñas no se guardan nunca tal cual.
+- **Olvidó la contraseña**: *admin → Usuarios → Nueva contraseña*. También se puede cambiar el nombre o borrar la cuenta.
+- **Galería**: solo los responsables crean álbumes (*admin → Galería*). Los usuarios registrados suben fotos (con día, momento y lugar), dan «me gusta» y comentan sin aprobación; cada uno puede corregir o borrar lo suyo y los responsables pueden borrar cualquier cosa.
+- **Importante**: el repositorio es público. La pantalla de acceso impide usar la web sin cuenta, pero quien sepa buscar en GitHub podría leer los textos y ver las fotos.
 
 ### 5 ter. Dominio propio (cucharillas.es)
 La app se publica en **https://cucharillas.es** (registrado en DonDominio).
 - **DNS en DonDominio** (zona DNS de cucharillas.es): cuatro registros `A` para `@` → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`; y un `CNAME` para `www` → `javierscervera-rgb.github.io`. Sin otros registros A, AAAA ni CNAME en `@` o `www`.
 - **GitHub**: *Settings → Pages → Custom domain* = `cucharillas.es` (es el archivo `CNAME` de la raíz) y *Enforce HTTPS* marcado.
 - **Cloudflare**: `ORIGEN_PERMITIDO` = `https://cucharillas.es,https://javierscervera-rgb.github.io`.
+- La web se adapta al móvil, a tablet y a escritorio (en pantallas grandes el menú pasa a la izquierda).
 - Las notas, el perfil y el acceso a la galería se guardan en cada móvil ligados a la dirección. Para pasarlos de una dirección a otra: *Mis notas → Guardar copia* en la antigua y *Recuperar* en la nueva.
 
 ### 6. Instalarla en el móvil

@@ -5,6 +5,50 @@
 (function () {
   "use strict";
 
+  // ---------- Sesión: hace falta haber entrado para usar la web ----------
+  const CLAVE_SESION = "cucharillas_sesion";
+  const Sesion = {
+    obtener() {
+      try {
+        const s = JSON.parse(localStorage.getItem(CLAVE_SESION) || "null");
+        if (!s || !s.token || !s.cuenta) return null;
+        const carga = JSON.parse(atob(s.token.split(".")[0].replace(/-/g, "+").replace(/_/g, "/")));
+        return carga.e > Date.now() ? s : null;
+      } catch (e) { return null; }
+    },
+    guardar(token, cuenta) { localStorage.setItem(CLAVE_SESION, JSON.stringify({ token, cuenta })); },
+    cerrar() { try { localStorage.removeItem(CLAVE_SESION); } catch (e) {} },
+    // Vuelve a la pantalla de acceso y, al entrar, regresa a esta página
+    pedir() {
+      Sesion.cerrar();
+      location.replace(RAIZ_APP + "entrar.html?v=" + encodeURIComponent(location.pathname + location.search + location.hash));
+    }
+  };
+  // Páginas que no piden sesión: la de entrar y el panel de responsables (va con su token)
+  const LIBRES = /(^|\/)(entrar|admin)\.html$/;
+  const RAIZ_APP = (document.currentScript && document.currentScript.src) ? new URL("..", document.currentScript.src).href : new URL(".", location.href).href;
+  if (!LIBRES.test(location.pathname) && !Sesion.obtener()) {
+    document.documentElement.style.visibility = "hidden";
+    location.replace(RAIZ_APP + "entrar.html?v=" + encodeURIComponent(location.pathname + location.search + location.hash));
+  }
+
+  // La contraseña nunca sale del móvil tal cual: se transforma aquí (PBKDF2)
+  async function hashClave(usuario, clave) {
+    const k = await crypto.subtle.importKey("raw", new TextEncoder().encode(clave), "PBKDF2", false, ["deriveBits"]);
+    const b = await crypto.subtle.deriveBits({ name: "PBKDF2", salt: new TextEncoder().encode("cucharillas:" + String(usuario).trim().toLowerCase()), iterations: 150000, hash: "SHA-256" }, k, 256);
+    return Array.from(new Uint8Array(b), x => x.toString(16).padStart(2, "0")).join("");
+  }
+  // Llamada al servidor de cuentas
+  async function servidorCuentas(accion, datos = {}) {
+    const url = CONFIG.urlGaleria || CONFIG.urlPerfiles;
+    let r;
+    try { r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ servicio: "cuentas", accion }, datos)) }); }
+    catch (e) { throw new Error("Sin conexión. Inténtalo de nuevo"); }
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || j.error) throw Object.assign(new Error(j.error || "Error " + r.status), { codigo: j.codigo || (r.status === 400 && /Identificación/.test(j.error || "") ? "sin-activar" : "") });
+    return j;
+  }
+
   // ---------- Iconos (SVG de línea, heredan el color) ----------
   const s = (d, extra = "") =>
     `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${d}</svg>`;
@@ -207,8 +251,8 @@
 
   // ---------- Notas (solo en este móvil) ----------
   const CLAVE_NOTAS = "cucharillas_notas";
-  // Otros datos del móvil que viajan en la copia de seguridad (perfil, galería, juego)
-  const EXTRAS = ["cucharillas_mi_perfil", "cucharillas_galeria_yo", "cucharillas_galeria_nombre", "cucharillas_galeria_clave", "cucharillas_opciones_notas"];
+  // Otros datos del móvil que viajan en la copia de seguridad (perfil y notas del juego)
+  const EXTRAS = ["cucharillas_mi_perfil", "cucharillas_opciones_notas"];
 
   const Notas = {
     todas() {
@@ -339,7 +383,7 @@
     const ls = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
     let html = "";
     if (/github\.io$/.test(location.hostname)) {
-      html = `<b>📦 La app se muda a ${NUEVA_DIRECCION}</b><br>Para no perder tus notas, tu perfil y tu acceso a la galería, entra en
+      html = `<b>📦 La app se muda a ${NUEVA_DIRECCION}</b><br>Para no perder tus notas y tu perfil, entra en
         <a href="notas.html">Mis notas</a> y pulsa <b>Guardar copia</b>. En la nueva dirección podrás recuperarla.`;
     } else if (location.hostname.replace(/^www\./, "") === NUEVA_DIRECCION && pagina === "inicio"
       && !ls("cucharillas_notas") && !ls("cucharillas_mi_perfil") && !ls("cucharillas_aviso_mudanza")) {
@@ -359,10 +403,10 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     avisoMudanza();
-    if (document.body.dataset.pagina !== "admin") pintarNav();
+    if (!["admin", "entrar"].includes(document.body.dataset.pagina)) pintarNav();
     document.querySelectorAll("[data-icono]").forEach(el => { el.innerHTML = ICONOS[el.dataset.icono] || ""; });
     document.querySelectorAll("[data-marca]").forEach(el => { el.outerHTML = MARCA; });
   });
 
-  window.App = { ICONOS, MARCA, escapar, formatear, fechaLarga, fechaCorta, aFecha, hoy, semanaActual, cargar, ordenarPorFecha, Notas, Estados, cajaNota, redimensionar, avatar, irAlAncla, horaRelativa, aviso, parametro, MESES };
+  window.App = { Sesion, hashClave, servidorCuentas, RAIZ_APP, ICONOS, MARCA, escapar, formatear, fechaLarga, fechaCorta, aFecha, hoy, semanaActual, cargar, ordenarPorFecha, Notas, Estados, cajaNota, redimensionar, avatar, irAlAncla, horaRelativa, aviso, parametro, MESES };
 })();

@@ -418,3 +418,62 @@ mark { background: #FDF0C4; color: inherit; border-radius: 3px; padding: 0 1px; 
 .fila-cumple { display: flex; gap: 10px; }
 .fila-cumple select { flex: 1; background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235A6A85' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px; padding-right: 34px; }
 .fila-cumple select:first-child { flex: 0 0 96px; }
+
+/* ---------- Pie de la pantalla de inicio (cuenta y acceso discreto al admin) ---------- */
+.pie-inicio { text-align: center; color: var(--texto-secundario); font-size: 13px; margin: 28px 0 4px; line-height: 1.8; }
+.pie-inicio a { color: var(--azul-cielo); }
+.pie-inicio .enlace-admin { display: inline-block; margin-top: 10px; color: #A9B4C6; font-size: 12px; }
+.pie-inicio .enlace-admin:hover { color: var(--texto-secundario); }
+
+/* =========================================================
+   PANTALLAS GRANDES
+   ========================================================= */
+
+/* Tablet: más anchura, el menú sigue abajo */
+@media (min-width: 700px) {
+  .contenedor { max-width: 680px; padding-left: 24px; padding-right: 24px; }
+  .nav-inferior { justify-content: center; gap: 4px; }
+  .nav-item { flex: 0 1 96px; font-size: 12px; }
+  .pastilla { cursor: pointer; }
+}
+
+/* Escritorio: menú lateral a la izquierda */
+@media (min-width: 1000px) {
+  body:not([data-pagina="admin"]):not([data-pagina="entrar"]) { padding-left: 240px; }
+  .nav-inferior {
+    top: 0; bottom: 0; right: auto; width: 240px; flex-direction: column; justify-content: flex-start; gap: 2px;
+    padding: 26px 14px; border-top: 0; border-right: 1px solid var(--gris-borde); box-shadow: 4px 0 18px rgba(31, 42, 68, .04);
+  }
+  .nav-inferior::before {
+    content: "Cucharillas"; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 58px; height: 56px; margin-bottom: 18px;
+    font-size: 21px; font-weight: 700; color: var(--texto-principal); letter-spacing: -.3px;
+    background: url("../img/logo.png") no-repeat 12px center / auto 54px;
+  }
+  .nav-item {
+    flex: 0 0 auto; flex-direction: row; justify-content: flex-start; gap: 13px; padding: 11px 14px; border-radius: 13px;
+    font-size: 15px; letter-spacing: 0; transition: background .15s;
+  }
+  .nav-item:hover { background: #F4F7FB; }
+  .nav-item.activo { background: var(--azul-suave); }
+  .nav-item svg { width: 22px; height: 22px; }
+
+  .contenedor { max-width: 820px; padding: 40px 40px 60px; }
+  .toast { bottom: 32px; left: calc(50% + 120px); }
+  .decoracion { position: absolute; }
+  .pastilla:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(31, 42, 68, .09); }
+  .pastilla { transition: transform .15s ease, box-shadow .15s ease; }
+
+  /* Inicio y Escapadas: tarjetas en dos columnas */
+  body[data-pagina="inicio"] .contenedor, body[data-pagina="escapadas"] .contenedor {
+    max-width: 1040px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; align-content: start; align-items: start;
+  }
+  body[data-pagina="inicio"] .contenedor > *, body[data-pagina="escapadas"] .contenedor > * { margin-bottom: 18px; min-width: 0; }
+  body[data-pagina="inicio"] .contenedor > :is(header, .pastilla-destacada, .aviso, footer, .subtitulo, .titulo-grupo),
+  body[data-pagina="escapadas"] .contenedor > :is(header, .aviso, .subtitulo, .titulo-grupo) { grid-column: 1 / -1; }
+  body[data-pagina="inicio"] .pastilla-destacada { padding: 26px 30px; }
+  body[data-pagina="escapadas"] .apartado .portada-lista { height: 220px; }
+}
+
+@media (min-width: 1400px) {
+  body[data-pagina="inicio"] .contenedor { grid-template-columns: 1fr 1fr 1fr; max-width: 1180px; }
+}

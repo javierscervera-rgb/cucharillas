@@ -13,7 +13,9 @@
      RAMA             ej.: "main"
      ORIGEN_PERMITIDO ej.: "https://cucharillas.es,https://mi-usuario.github.io"
                       (una o varias direcciones de la app, separadas por comas)
-     GALERIA_CLAVE    (tipo "Secret")  contraseña del grupo para entrar en la galería
+     CODIGO_GRUPO     (tipo "Secret")  código que hay que poner para registrarse
+     SECRETO          (tipo "Secret")  texto largo y aleatorio: cifra las cuentas y firma
+                      las sesiones. Si se cambia, todas las cuentas dejan de valer.
    ========================================================= */
 
 const MAX_PERFILES = 300;
@@ -39,6 +41,12 @@ export default {
 
     let datos;
     try { datos = await request.json(); } catch { return responder({ error: "Datos no válidos" }, 400); }
+
+    // Cuentas de usuario (registro y acceso a la web)
+    if (datos && datos.servicio === "cuentas") {
+      try { return await cuentas(datos, env, responder); }
+      catch (e) { return responder({ error: "Error en el servidor: " + (e && e.message || e) }, 500); }
+    }
 
     // Galería de fotos: va por su propio camino (más abajo)
     if (datos && datos.servicio === "galeria") {
@@ -180,34 +188,22 @@ function datosFoto(d) {
 }
 
 async function galeria(d, env, responder) {
-  if (!env.GALERIA_CLAVE) return responder({ error: "La galería todavía no está activada en el servidor", codigo: "sin-activar" }, 503);
-  if (!(await mismaClave(String(d.clave || ""), String(env.GALERIA_CLAVE)))) {
-    return responder({ error: "Contraseña incorrecta", codigo: "clave" }, 401);
-  }
-
+  // Hace falta haber entrado con una cuenta. Para escribir, además se comprueba
+  // que la cuenta sigue existiendo y que la contraseña no ha cambiado.
   const accion = d.accion;
+  const s = await sesionValida(d.token, env, accion !== "ver");
+  if (s.error) return responder({ error: s.error, codigo: s.codigo }, s.estado);
+
   if (accion === "ver") {
     const { datos } = await leerGaleria(env);
     return responder({ ok: true, galeria: datos });
   }
 
-  if (!/^[a-f0-9]{32}$/.test(d.yo || "")) return responder({ error: "Identificación no válida" }, 400);
-  const quien = (await sha256("galeria:" + d.yo)).slice(0, 20);
-  const autor = recortar(d.autor, G_LIM.autor) || "Anónimo";
+  const quien = (await sha256("galeria:" + s.i)).slice(0, 20);
+  const autor = recortar(s.n, G_LIM.autor) || "Anónimo";
   const ahora = new Date().toISOString();
   const idValido = (x) => /^[a-z0-9-]{1,80}$/.test(x || "");
-
-  // ----- Crear evento -----
-  if (accion === "crearEvento") {
-    const titulo = recortar(d.titulo, G_LIM.titulo);
-    if (!titulo) return responder({ error: "Falta el nombre del evento" }, 400);
-    const fecha = /^\d{4}-\d{2}-\d{2}$/.test(d.fecha || "") ? d.fecha : "";
-    const id = `${slug(titulo)}-${Date.now().toString(36)}`;
-    return modificarGaleria(env, responder, `Galería: nuevo evento «${titulo}»`, (g) => {
-      if (g.eventos.length >= G_LIM.maxEventos) return "Se ha alcanzado el máximo de eventos";
-      g.eventos.push({ id, titulo, fecha, descripcion: recortar(d.descripcion, G_LIM.descripcion), autor, quien, creado: ahora });
-    }, { evento: id });
-  }
+  // Los álbumes solo los crean los responsables, desde el admin
 
   // ----- Subir foto -----
   if (accion === "subirFoto") {
@@ -367,4 +363,204 @@ async function mismaClave(a, b) {
   let dif = 0;
   for (let i = 0; i < x.length; i++) dif |= x.charCodeAt(i) ^ y.charCodeAt(i);
   return dif === 0 && a.length > 0;
+}
+
+/* =========================================================
+   CUENTAS DE USUARIO
+   Para entrar en la web hay que registrarse con el código del grupo.
+   Las cuentas se guardan CIFRADAS en data/cuentas.enc (el repositorio es
+   público): solo este Worker, con SECRETO, puede leerlas.
+   La contraseña nunca viaja ni se guarda tal cual: el móvil la transforma
+   (PBKDF2) y aquí se vuelve a transformar con una sal propia de cada cuenta.
+   Los responsables (su token de GitHub) pueden listar, restablecer y borrar.
+   ========================================================= */
+
+const RUTA_CUENTAS = "data/cuentas.enc";
+const DURACION_SESION = 400 * 24 * 3600 * 1000;   // ~13 meses
+const MAX_CUENTAS = 500;
+
+async function cuentas(d, env, responder) {
+  if (!env.SECRETO || !env.CODIGO_GRUPO) return responder({ error: "El registro todavía no está activado en el servidor", codigo: "sin-activar" }, 503);
+  const accion = d.accion;
+  const hashOk = (h) => /^[a-f0-9]{64}$/.test(h || "");
+  const normal = (u) => String(u || "").trim().toLowerCase();
+  const usuarioOk = (u) => /^[a-z0-9._-]{3,20}$/.test(u);
+
+  if (accion === "registrar") {
+    if (!(await mismaClave(String(d.codigo || "").trim(), String(env.CODIGO_GRUPO).trim()))) return responder({ error: "El código del grupo no es correcto", codigo: "codigo" }, 403);
+    const usuario = normal(d.usuario), nombre = recortar(d.nombre, 30);
+    if (!usuarioOk(usuario)) return responder({ error: "El usuario debe tener de 3 a 20 letras o números (sin espacios ni tildes)" }, 400);
+    if (!nombre) return responder({ error: "Falta tu nombre" }, 400);
+    if (!hashOk(d.hash)) return responder({ error: "Contraseña no válida" }, 400);
+    const sal = aleatorioHex(16);
+    const cuenta = { id: aleatorioHex(8), usuario, nombre, sal, hash: await sha256(sal + d.hash), v: 1, creado: new Date().toISOString() };
+    const r = await modificarCuentas(env, `Cuentas: nuevo registro`, (lista) => {
+      if (lista.some(c => c.usuario === usuario)) return "Ese nombre de usuario ya existe. Elige otro";
+      if (lista.length >= MAX_CUENTAS) return "Se ha alcanzado el máximo de cuentas";
+      lista.push(cuenta);
+    });
+    if (r.error) return responder({ error: r.error }, r.estado);
+    return responder({ ok: true, token: await firmarSesion(env, cuenta), cuenta: publica(cuenta) });
+  }
+
+  if (accion === "entrar") {
+    const usuario = normal(d.usuario);
+    if (!usuarioOk(usuario) || !hashOk(d.hash)) return responder({ error: "Usuario o contraseña incorrectos", codigo: "credenciales" }, 401);
+    const { lista } = await leerCuentas(env);
+    const c = lista.find(x => x.usuario === usuario);
+    // Se calcula igual exista o no, para no dar pistas por el tiempo de respuesta
+    const calculado = await sha256((c ? c.sal : "0".repeat(32)) + d.hash);
+    if (!c || !(await mismaClave(calculado, c.hash))) return responder({ error: "Usuario o contraseña incorrectos", codigo: "credenciales" }, 401);
+    return responder({ ok: true, token: await firmarSesion(env, c), cuenta: publica(c) });
+  }
+
+  if (accion === "cambiarClave") {
+    const s = await sesionValida(d.token, env, true);
+    if (s.error) return responder({ error: s.error, codigo: s.codigo }, s.estado);
+    if (!hashOk(d.hash) || !hashOk(d.nuevo)) return responder({ error: "Contraseña no válida" }, 400);
+    let nueva = null;
+    const r = await modificarCuentas(env, `Cuentas: cambio de contraseña`, async (lista) => {
+      const c = lista.find(x => x.id === s.i);
+      if (!c) return "Tu cuenta ya no existe";
+      if (!(await mismaClave(await sha256(c.sal + d.hash), c.hash))) return "La contraseña actual no es correcta";
+      c.sal = aleatorioHex(16); c.hash = await sha256(c.sal + d.nuevo); c.v = (c.v || 1) + 1;
+      nueva = c;
+    });
+    if (r.error) return responder({ error: r.error }, r.estado);
+    return responder({ ok: true, token: await firmarSesion(env, nueva), cuenta: publica(nueva) });
+  }
+
+  if (accion === "comprobar") {
+    const s = await sesionValida(d.token, env, true);
+    if (s.error) return responder({ error: s.error, codigo: s.codigo }, s.estado);
+    return responder({ ok: true, cuenta: { id: s.i, usuario: s.u, nombre: s.n } });
+  }
+
+  // ----- Responsables: se identifican con su token de GitHub -----
+  if (/^admin/.test(accion)) {
+    if (!(await esResponsable(env, d.ghToken))) return responder({ error: "Solo para responsables", codigo: "admin" }, 403);
+    if (accion === "adminListar") {
+      const { lista } = await leerCuentas(env);
+      return responder({ ok: true, cuentas: lista.map(publica) });
+    }
+    if (accion === "adminRestablecer") {
+      if (!hashOk(d.hash)) return responder({ error: "Contraseña no válida" }, 400);
+      const r = await modificarCuentas(env, `Cuentas: un responsable restablece una contraseña`, async (lista) => {
+        const c = lista.find(x => x.id === d.id); if (!c) return "Esa cuenta ya no existe";
+        // El hash llega calculado con el usuario de la cuenta, como al entrar
+        c.sal = aleatorioHex(16); c.hash = await sha256(c.sal + d.hash); c.v = (c.v || 1) + 1;
+      });
+      if (r.error) return responder({ error: r.error }, r.estado);
+      return responder({ ok: true, cuentas: r.lista.map(publica) });
+    }
+    if (accion === "adminRenombrar") {
+      const nombre = recortar(d.nombre, 30);
+      if (!nombre) return responder({ error: "Falta el nombre" }, 400);
+      const r = await modificarCuentas(env, `Cuentas: un responsable cambia un nombre`, (lista) => {
+        const c = lista.find(x => x.id === d.id); if (!c) return "Esa cuenta ya no existe";
+        c.nombre = nombre; c.v = (c.v || 1) + 1;
+      });
+      if (r.error) return responder({ error: r.error }, r.estado);
+      return responder({ ok: true, cuentas: r.lista.map(publica) });
+    }
+    if (accion === "adminBorrar") {
+      const r = await modificarCuentas(env, `Cuentas: un responsable borra una cuenta`, (lista) => {
+        const i = lista.findIndex(x => x.id === d.id); if (i < 0) return { sinCambios: true };
+        lista.splice(i, 1);
+      });
+      if (r.error) return responder({ error: r.error }, r.estado);
+      return responder({ ok: true, cuentas: r.lista.map(publica) });
+    }
+  }
+  return responder({ error: "Acción no válida" }, 400);
+}
+
+const publica = (c) => ({ id: c.id, usuario: c.usuario, nombre: c.nombre, creado: c.creado });
+
+async function esResponsable(env, ghToken) {
+  if (typeof ghToken !== "string" || ghToken.length < 20 || ghToken.length > 300) return false;
+  const r = await fetch(`https://api.github.com/repos/${env.REPO}`, {
+    headers: { Authorization: "Bearer " + ghToken, Accept: "application/vnd.github+json", "User-Agent": "cucharillas-perfiles" }
+  });
+  if (!r.ok) return false;
+  const j = await r.json().catch(() => ({}));
+  return !!(j.permissions && j.permissions.push);
+}
+
+// ----- Sesiones firmadas -----
+const b64u = (bytes) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const deB64u = (t) => Uint8Array.from(atob(t.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((t.length + 3) % 4)), c => c.charCodeAt(0));
+
+async function claveFirma(env) {
+  return crypto.subtle.importKey("raw", new TextEncoder().encode("firma:" + env.SECRETO), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
+}
+async function firmarSesion(env, c) {
+  const carga = new TextEncoder().encode(JSON.stringify({ i: c.id, u: c.usuario, n: c.nombre, v: c.v || 1, e: Date.now() + DURACION_SESION }));
+  const firma = new Uint8Array(await crypto.subtle.sign("HMAC", await claveFirma(env), carga));
+  return b64u(carga) + "." + b64u(firma);
+}
+async function sesionValida(token, env, comprobarCuenta) {
+  const mal = { error: "Tienes que volver a entrar", codigo: "sesion", estado: 401 };
+  if (!env.SECRETO) return { error: "El registro todavía no está activado en el servidor", codigo: "sin-activar", estado: 503 };
+  if (typeof token !== "string" || token.length > 1000 || !/^[\w-]+\.[\w-]+$/.test(token)) return mal;
+  try {
+    const [a, b] = token.split(".");
+    const carga = deB64u(a);
+    if (!(await crypto.subtle.verify("HMAC", await claveFirma(env), deB64u(b), carga))) return mal;
+    const s = JSON.parse(new TextDecoder().decode(carga));
+    if (!s.i || !(s.e > Date.now())) return mal;
+    if (comprobarCuenta) {
+      const { lista } = await leerCuentas(env);
+      const c = lista.find(x => x.id === s.i);
+      if (!c || (c.v || 1) !== s.v) return mal;
+      s.n = c.nombre;
+    }
+    return s;
+  } catch (e) { return mal; }
+}
+
+// ----- Archivo de cuentas cifrado (AES-GCM) -----
+async function claveCifrado(env) {
+  const bruto = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("cuentas:" + env.SECRETO));
+  return crypto.subtle.importKey("raw", bruto, "AES-GCM", false, ["encrypt", "decrypt"]);
+}
+async function leerCuentas(env) {
+  const r = await gh(env, `${RUTA_CUENTAS}?ref=${encodeURIComponent(env.RAMA || "main")}`);
+  if (r.status === 404) return { lista: [], sha: null };
+  if (!r.ok) throw new Error("GitHub respondió " + r.status);
+  const j = await r.json();
+  let texto = j.content ? atob(j.content.replace(/\s/g, "")) : "";
+  if (!j.content) {
+    const raw = await fetch(`https://api.github.com/repos/${env.REPO}/contents/${RUTA_CUENTAS}?ref=${encodeURIComponent(env.RAMA || "main")}`, {
+      headers: { Authorization: "Bearer " + env.GITHUB_TOKEN, Accept: "application/vnd.github.raw", "User-Agent": "cucharillas-perfiles" }
+    });
+    texto = await raw.text();
+  }
+  const bytes = deB64u(texto.trim());
+  const claro = await crypto.subtle.decrypt({ name: "AES-GCM", iv: bytes.slice(0, 12) }, await claveCifrado(env), bytes.slice(12));
+  const datos = JSON.parse(new TextDecoder().decode(claro));
+  return { lista: Array.isArray(datos.cuentas) ? datos.cuentas : [], sha: j.sha };
+}
+async function escribirCuentas(env, lista, sha, mensaje) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const cifrado = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, await claveCifrado(env), new TextEncoder().encode(JSON.stringify({ cuentas: lista }))));
+  const todo = new Uint8Array(12 + cifrado.length); todo.set(iv); todo.set(cifrado, 12);
+  let bin = ""; for (let i = 0; i < todo.length; i += 0x8000) bin += String.fromCharCode.apply(null, todo.subarray(i, i + 0x8000));
+  const textoArchivo = btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "") + "\n";
+  const cuerpo = { message: mensaje, content: btoa(textoArchivo), branch: env.RAMA || "main" };
+  if (sha) cuerpo.sha = sha;
+  return gh(env, RUTA_CUENTAS, { method: "PUT", body: JSON.stringify(cuerpo) });
+}
+async function modificarCuentas(env, mensaje, cambio) {
+  for (let intento = 0; intento < 6; intento++) {
+    const { lista, sha } = await leerCuentas(env);
+    const r = await cambio(lista);
+    if (typeof r === "string") return { error: r, estado: 400 };
+    if (r && r.sinCambios) return { lista };
+    const w = await escribirCuentas(env, lista, sha, mensaje);
+    if (w.ok) return { lista };
+    if (w.status !== 409 && w.status !== 422) return { error: "GitHub respondió " + w.status, estado: 502 };
+    await new Promise(ok => setTimeout(ok, 150 + Math.random() * 350));
+  }
+  return { error: "Mucho tráfico, inténtalo de nuevo", estado: 503 };
 }

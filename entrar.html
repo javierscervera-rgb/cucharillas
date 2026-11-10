@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cucharillas">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#FFFFFF">
+  <title>Entrar · Cucharillas</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="icon" href="img/icono-192.png">
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+  <style>
+    .acceso { max-width: 420px; margin: 0 auto; padding-top: 8px; }
+    .acceso-cab { text-align: center; margin: 6px 0 22px; }
+    .acceso-cab img { height: 110px; display: block; margin: 0 auto 8px; }
+    .acceso-cab h1 { margin: 0 0 4px; font-size: 28px; }
+    .acceso-cab p { margin: 0; color: var(--texto-secundario); }
+    .acceso .pestanas button { flex: 1; }
+    .acceso .campo:first-child { margin-top: 0; }
+    .acceso input { width: 100%; box-sizing: border-box; }
+    .ayuda-campo { display: block; font-size: 12.5px; color: var(--texto-secundario); margin: 6px 2px 0; }
+    .error-acceso { color: #B4232A; font-size: 14.5px; margin: 12px 2px 0; min-height: 20px; }
+    .ver-clave { position: relative; }
+    .ver-clave input { padding-right: 70px; }
+    .ver-clave button { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: 0; background: none; color: var(--azul-cielo); font: 600 13px inherit; font-family: inherit; padding: 8px; cursor: pointer; }
+    .pie-acceso { text-align: center; color: var(--texto-secundario); font-size: 13.5px; margin-top: 18px; line-height: 1.5; }
+    .pie-acceso a { color: var(--azul-cielo); }
+  </style>
+</head>
+<body data-pagina="entrar">
+  <main class="contenedor" style="padding-bottom:40px">
+    <div class="acceso" id="acceso"></div>
+  </main>
+
+<script>
+(function () {
+  "use strict";
+  const { escapar, Sesion } = App;
+  const raiz = document.getElementById("acceso");
+  const params = new URLSearchParams(location.search);
+  const sesion = Sesion.obtener();
+  let modo = params.get("modo") === "clave" && sesion ? "clave" : (params.get("modo") === "registro" ? "registro" : "entrar");
+
+  // Si ya hay sesión y no viene a cambiar la contraseña, a la app
+  if (sesion && modo !== "clave") return volver();
+
+  function volver() {
+    const v = params.get("v") || "";
+    // Solo rutas de esta misma web
+    location.replace(/^\/(?!\/)/.test(v) && !/entrar\.html/.test(v) ? v : "index.html");
+  }
+
+  const campoClave = (id, etiqueta, auto) => `
+    <label class="campo" for="${id}">${etiqueta}</label>
+    <div class="ver-clave"><input id="${id}" type="password" autocomplete="${auto}" required minlength="6">
+    <button type="button" data-ver="${id}">Mostrar</button></div>`;
+
+  function pintar(error) {
+    const cab = `<div class="acceso-cab"><img src="img/logo.png" alt="Logo de Cucharillas"><h1>Cucharillas</h1>
+      <p>${modo === "clave" ? "Cambia tu contraseña" : "La app del grupo"}</p></div>`;
+    if (modo === "clave") {
+      raiz.innerHTML = cab + `
+        <form class="ficha" id="form">
+          <p style="margin:0 0 6px;color:var(--texto-secundario)">Has entrado como <b>${escapar(sesion.cuenta.nombre)}</b> (${escapar(sesion.cuenta.usuario)}).</p>
+          ${campoClave("actual", "Contraseña actual", "current-password")}
+          ${campoClave("nueva", "Contraseña nueva", "new-password")}
+          <span class="ayuda-campo">Mínimo 6 caracteres.</span>
+          <p class="error-acceso" id="error">${escapar(error || "")}</p>
+          <button class="boton ancho" type="submit" id="enviar">Cambiar contraseña</button>
+        </form>
+        <p class="pie-acceso"><a href="index.html">Volver a la app</a></p>`;
+    } else {
+      const reg = modo === "registro";
+      raiz.innerHTML = cab + `
+        <div class="pestanas" role="tablist">
+          <button type="button" data-modo="entrar" class="${reg ? "" : "activa"}">Entrar</button>
+          <button type="button" data-modo="registro" class="${reg ? "activa" : ""}">Registrarme</button>
+        </div>
+        <form class="ficha" id="form" autocomplete="on">
+          ${reg ? `
+          <label class="campo" for="nombre">Tu nombre</label>
+          <input id="nombre" autocomplete="given-name" maxlength="30" required placeholder="Como te conocen en el grupo">
+          <span class="ayuda-campo">Saldrá junto a tus fotos y comentarios.</span>` : ""}
+          <label class="campo" for="usuario">Usuario</label>
+          <input id="usuario" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="20" required placeholder="${reg ? "Ej.: ana.garcia" : ""}">
+          ${reg ? `<span class="ayuda-campo">De 3 a 20 letras o números, sin espacios ni tildes. Lo usarás para entrar.</span>` : ""}
+          ${campoClave("clave", "Contraseña", reg ? "new-password" : "current-password")}
+          ${reg ? `<span class="ayuda-campo">Mínimo 6 caracteres.</span>
+          <label class="campo" for="codigo">Código del grupo</label>
+          <input id="codigo" autocomplete="off" autocapitalize="none" required placeholder="Te lo dan los responsables">` : ""}
+          <p class="error-acceso" id="error">${escapar(error || "")}</p>
+          <button class="boton ancho" type="submit" id="enviar">${reg ? "Crear mi cuenta" : "Entrar"}</button>
+        </form>
+        <p class="pie-acceso">${reg ? "" : "¿Has olvidado la contraseña? Pide a un responsable que te la cambie."}</p>`;
+      raiz.querySelectorAll("[data-modo]").forEach(b => b.onclick = () => { modo = b.dataset.modo; pintar(); });
+    }
+    raiz.querySelectorAll("[data-ver]").forEach(b => b.onclick = () => {
+      const i = document.getElementById(b.dataset.ver);
+      i.type = i.type === "password" ? "text" : "password";
+      b.textContent = i.type === "password" ? "Mostrar" : "Ocultar";
+    });
+    document.getElementById("form").onsubmit = enviar;
+  }
+
+  async function enviar(ev) {
+    ev.preventDefault();
+    const err = document.getElementById("error"), btn = document.getElementById("enviar");
+    const val = (id) => (document.getElementById(id) || {}).value || "";
+    err.textContent = "";
+    const texto = btn.textContent;
+    btn.disabled = true; btn.textContent = "Un momento…";
+    try {
+      if (modo === "clave") {
+        if (val("nueva").length < 6) throw new Error("La contraseña nueva debe tener al menos 6 caracteres");
+        const u = sesion.cuenta.usuario;
+        const j = await App.servidorCuentas("cambiarClave", { token: sesion.token, hash: await App.hashClave(u, val("actual")), nuevo: await App.hashClave(u, val("nueva")) });
+        Sesion.guardar(j.token, j.cuenta);
+        App.aviso("Contraseña cambiada ✓");
+        setTimeout(() => location.replace("index.html"), 900);
+        return;
+      }
+      const usuario = val("usuario").trim().toLowerCase();
+      if (modo === "registro") {
+        if (!/^[a-z0-9._-]{3,20}$/.test(usuario)) throw new Error("El usuario debe tener de 3 a 20 letras o números, sin espacios ni tildes");
+        if (val("clave").length < 6) throw new Error("La contraseña debe tener al menos 6 caracteres");
+      }
+      const hash = await App.hashClave(usuario, val("clave"));
+      const j = modo === "registro"
+        ? await App.servidorCuentas("registrar", { usuario, nombre: val("nombre").trim(), codigo: val("codigo"), hash })
+        : await App.servidorCuentas("entrar", { usuario, hash });
+      Sesion.guardar(j.token, j.cuenta);
+      volver();
+    } catch (e) {
+      btn.disabled = false; btn.textContent = texto;
+      if (e.codigo === "sesion") { Sesion.cerrar(); modo = "entrar"; return pintar("Tu sesión ha caducado. Vuelve a entrar."); }
+      err.textContent = e.codigo === "sin-activar" ? "El acceso todavía no está activado. Avisa a un responsable." : e.message;
+    }
+  }
+
+  pintar();
+})();
+</script>
+</body>
+</html>

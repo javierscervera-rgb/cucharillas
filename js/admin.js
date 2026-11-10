@@ -123,7 +123,7 @@
 
   // ---------- Panel ----------
   const SECCIONES = [
-    ["lectio", "Lectio"], ["retiro", "Retiro"], ["agenda", "Agenda"], ["recursos", "Libros y vídeos"], ["articulos", "Artículos"], ["perfiles", "Perfiles"], ["galeria", "Galería"]
+    ["lectio", "Lectio"], ["retiro", "Retiro"], ["agenda", "Agenda"], ["recursos", "Libros y vídeos"], ["articulos", "Artículos"], ["perfiles", "Perfiles"], ["galeria", "Galería"], ["usuarios", "Usuarios"]
   ];
 
   function pintarPanel() {
@@ -152,6 +152,7 @@
   async function pintarSeccion(forzar) {
     const zona = document.getElementById("zona");
     zona.innerHTML = `<div class="cargando">Cargando…</div>`;
+    if (seccion === "usuarios") return pintarUsuarios(zona);
     try {
       if (forzar || !cache[seccion]) await leer(seccion);
     } catch (e) {
@@ -372,8 +373,7 @@
     albumAbierto = "";
     const eventos = [...g.eventos].sort((a, b) => String(b.fecha || b.creado).localeCompare(String(a.fecha || a.creado)));
     zona.innerHTML = `
-      <div class="aviso info">Cualquiera con la contraseña puede crear álbumes, subir fotos y comentar sin aprobación. Desde aquí puedes borrar lo que no deba estar.
-      La contraseña se cambia en Cloudflare (variable <b>GALERIA_CLAVE</b>).</div>
+      <div class="aviso info">Solo los responsables crean álbumes; los usuarios registrados suben fotos y comentan sin aprobación. Desde aquí puedes borrar lo que no deba estar.</div>
       <details class="ficha" style="margin-bottom:16px"><summary style="font-weight:700;cursor:pointer">${ICONOS.mas} Nuevo álbum</summary>
         <label class="campo" for="ga-titulo">Nombre del evento *</label><input id="ga-titulo" maxlength="60">
         <label class="campo" for="ga-fecha">Fecha</label><input id="ga-fecha" type="date" value="${new Date().toISOString().slice(0, 10)}">
@@ -470,6 +470,67 @@
         const n = (f.comentarios || []).length; f.comentarios = (f.comentarios || []).filter(c => c.id !== idC);
         if (f.comentarios.length === n) return false;
       }, `Galería: borra un comentario (admin)`);
+    });
+  }
+
+  // ---------- Usuarios (cuentas para entrar en la web) ----------
+  // Las cuentas están cifradas: se gestionan a través del Worker, que comprueba
+  // con tu token de GitHub que eres responsable.
+  async function servidorAdmin(accion, datos = {}) {
+    return App.servidorCuentas(accion, Object.assign({ ghToken: token }, datos));
+  }
+  async function pintarUsuarios(zona, lista) {
+    if (!lista) {
+      try { lista = (await servidorAdmin("adminListar")).cuentas; }
+      catch (e) {
+        zona.innerHTML = `<div class="aviso">${e.codigo === "sin-activar"
+          ? "El registro todavía no está activado. En Cloudflare añade al Worker las variables <b>CODIGO_GRUPO</b> y <b>SECRETO</b> (mira el README)."
+          : "No se pudo cargar: " + escapar(e.message)}</div>`;
+        return;
+      }
+    }
+    const orden = [...lista].sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+    zona.innerHTML = `
+      <div class="aviso info">Para registrarse hace falta el <b>código del grupo</b> (variable <b>CODIGO_GRUPO</b> en Cloudflare). Si alguien olvida su contraseña, ponle una nueva aquí y díselo; podrá cambiarla luego.</div>
+      <h3 class="titulo-grupo">${orden.length} cuenta${orden.length === 1 ? "" : "s"}</h3>
+      ${orden.length ? "" : `<div class="vacio">Todavía no se ha registrado nadie.</div>`}
+      ${orden.map(c => `
+        <div class="pastilla columna">
+          <div class="fila">
+            <div class="texto"><div class="titulo">${escapar(c.nombre)}</div>
+            <div class="detalle">Usuario: <b>${escapar(c.usuario)}</b> · desde el ${escapar(c.creado ? App.fechaCorta(c.creado.slice(0, 10)) : "—")}</div></div>
+          </div>
+          <div class="fila-botones">
+            <button class="boton suave" data-renombrar="${escapar(c.id)}">Cambiar nombre</button>
+            <button class="boton secundario" data-clave="${escapar(c.id)}">Nueva contraseña</button>
+            <button class="boton peligro" data-borrar-cuenta="${escapar(c.id)}">Borrar</button>
+          </div>
+        </div>`).join("")}
+      <button class="boton suave ancho" id="recargar" style="margin-top:8px">Recargar</button>`;
+    const buscar = (id) => lista.find(x => x.id === id);
+    const hacer = async (b, accion, datos, ok) => {
+      const t = b.innerHTML; b.disabled = true; b.textContent = "Guardando…";
+      try { const j = await servidorAdmin(accion, datos); aviso(ok); pintarUsuarios(zona, j.cuentas); }
+      catch (e) { b.disabled = false; b.innerHTML = t; aviso("Error: " + e.message); }
+    };
+    document.getElementById("recargar").onclick = () => pintarUsuarios(zona);
+    zona.querySelectorAll("[data-renombrar]").forEach(b => b.onclick = () => {
+      const c = buscar(b.dataset.renombrar);
+      const nombre = (prompt(`Nuevo nombre para ${c.nombre}:`, c.nombre) || "").trim();
+      if (!nombre || nombre === c.nombre) return;
+      hacer(b, "adminRenombrar", { id: c.id, nombre }, "Nombre cambiado. Tendrá que volver a entrar");
+    });
+    zona.querySelectorAll("[data-clave]").forEach(b => b.onclick = async () => {
+      const c = buscar(b.dataset.clave);
+      const nueva = prompt(`Nueva contraseña para ${c.nombre} (usuario «${c.usuario}»). Mínimo 6 caracteres:`) || "";
+      if (!nueva) return;
+      if (nueva.length < 6) return aviso("Mínimo 6 caracteres");
+      hacer(b, "adminRestablecer", { id: c.id, hash: await App.hashClave(c.usuario, nueva) }, `Contraseña cambiada. Díselo a ${c.nombre}`);
+    });
+    zona.querySelectorAll("[data-borrar-cuenta]").forEach(b => b.onclick = () => {
+      const c = buscar(b.dataset.borrarCuenta);
+      if (!confirm(`¿Borrar la cuenta de ${c.nombre}? Ya no podrá entrar en la web. Sus fotos y comentarios se quedan (puedes borrarlos en Galería).`)) return;
+      hacer(b, "adminBorrar", { id: c.id }, "Cuenta borrada");
     });
   }
 

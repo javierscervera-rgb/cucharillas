@@ -178,6 +178,38 @@
     .menu-opciones button.peligro { color: #B4232A; }
     .menu-opciones svg { width: 22px; height: 22px; }
     body.sin-scroll { overflow: hidden; }
+
+    /* ---------- Pantallas grandes ---------- */
+    @media (min-width: 700px) {
+      .cuadricula { grid-template-columns: repeat(4, 1fr); gap: 4px; }
+      .previas { grid-template-columns: repeat(3, 1fr); }
+      .hoja {
+        top: 50%; bottom: auto; left: 50%; right: auto; width: min(560px, 92vw); max-height: 86vh; border-radius: 24px;
+        transform: translate(-50%, -46%); opacity: 0;
+        transition: transform .25s ease, opacity .25s ease, visibility 0s linear .25s;
+      }
+      .hoja.visible { transform: translate(-50%, -50%); opacity: 1; transition: transform .25s ease, opacity .25s ease, visibility 0s; }
+      .hoja-asa { display: none; }
+      .hoja-cab { padding-top: 18px; }
+      .hoja-pie { padding-bottom: 16px; }
+      .celda img { transition: transform .3s ease; }
+      .celda:hover img { transform: scale(1.04); }
+    }
+    @media (min-width: 1000px) {
+      body[data-pagina="galeria"] .contenedor { max-width: 1040px; }
+      .vista-eventos { display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; align-content: start; }
+      .vista-eventos > :is(header, .barra-acciones, .vacio) { grid-column: 1 / -1; }
+      .vista-eventos .evento { margin-bottom: 18px; }
+      .cuadricula { grid-template-columns: repeat(5, 1fr); }
+      /* El álbum, en una sola columna centrada */
+      body[data-pagina="galeria"] .contenedor.vista-album { max-width: 760px; }
+      .interruptor { max-width: 380px; }
+      .flotante { right: 40px; bottom: 40px; }
+    }
+    @media (min-width: 1400px) {
+      .vista-eventos { grid-template-columns: repeat(3, 1fr); }
+      .cuadricula { grid-template-columns: repeat(6, 1fr); }
+    }
   </style>
 </head>
 <body data-pagina="galeria">
@@ -209,7 +241,7 @@
   const GH = CONFIG.github;
   const BASE_FOTOS = `https://raw.githubusercontent.com/${GH.usuario}/${GH.repo}/${GH.rama}/`;
 
-  const K = { clave: "cucharillas_galeria_clave", yo: "cucharillas_galeria_yo", nombre: "cucharillas_galeria_nombre", vista: "cucharillas_galeria_vista", cache: "cucharillas_galeria_cache" };
+  const K = { vista: "cucharillas_galeria_vista", cache: "cucharillas_galeria_cache" };
   const leerLS = (k) => { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } };
   const ponerLS = (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch (e) {} };
 
@@ -236,28 +268,17 @@
     album: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-8.5 8.5"/></svg>'
   };
 
-  // ---------- Identidad de este móvil ----------
-  let yo = leerLS(K.yo);
-  if (!/^[a-f0-9]{32}$/.test(yo)) {
-    yo = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, "0")).join("");
-    ponerLS(K.yo, yo);
-  }
+  // ---------- Cuenta con la que se ha entrado ----------
+  const sesion = App.Sesion.obtener() || { token: "", cuenta: { id: "", nombre: "" } };
   let miHuella = "";
   async function calcularHuella() {
     try {
-      const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("galeria:" + yo));
+      const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("galeria:" + sesion.cuenta.id));
       miHuella = Array.from(new Uint8Array(h), b => b.toString(16).padStart(2, "0")).join("").slice(0, 20);
     } catch (e) { miHuella = ""; }
   }
-  function miNombre() {
-    const propio = leerLS(K.nombre);
-    if (propio) return propio;
-    try { const p = JSON.parse(leerLS("cucharillas_mi_perfil") || "null"); if (p && p.nombre) return p.nombre; } catch (e) {}
-    return "";
-  }
 
   // ---------- Estado ----------
-  let clave = leerLS(K.clave);
   let G = { eventos: [], fotos: [] };
   try { const c = JSON.parse(leerLS(K.cache) || "null"); if (c && c.eventos) G = c; } catch (e) {}
   let vista = leerLS(K.vista) === "filas" ? "filas" : "cuadricula";
@@ -278,7 +299,7 @@
     try {
       r = await fetch(URL_SERVIDOR, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(Object.assign({ servicio: "galeria", accion, clave, yo, autor: miNombre() }, datos))
+        body: JSON.stringify(Object.assign({ servicio: "galeria", accion, token: sesion.token }, datos))
       });
     } catch (e) { throw new Error("Sin conexión. Inténtalo de nuevo"); }
     const j = await r.json().catch(() => ({}));
@@ -291,7 +312,7 @@
     return j;
   }
   function trasError(e) {
-    if (e.codigo === "clave") { clave = ""; ponerLS(K.clave, ""); pintarClave("La contraseña ha cambiado. Escribe la nueva."); return; }
+    if (e.codigo === "sesion") { App.Sesion.pedir(); return; }
     if (e.codigo === "sin-activar") { pintarSinActivar(); return; }
     aviso(e.message);
   }
@@ -329,7 +350,6 @@
   window.addEventListener("hashchange", () => { cerrarHoja(); filtroLugar = ""; pintar(); window.scrollTo(0, 0); });
 
   function pintar() {
-    if (!clave) return pintarClave();
     const ev = eventoActual();
     if (ev) {
       const e = G.eventos.find(x => x.id === ev);
@@ -338,40 +358,10 @@
     pintarEventos();
   }
 
-  // ---------- Contraseña ----------
-  function pintarClave(error) {
-    $("btnSubir").classList.add("oculto");
-    app.innerHTML = `
-      <header class="cabecera-pagina"><a class="btn-volver" href="index.html" aria-label="Volver">${ICONOS.atras}</a><h1>Galería</h1></header>
-      <div class="ficha candado">
-        <div class="icono-pastilla icono-azul">${IC.candado}</div>
-        <h2>Solo para el grupo</h2>
-        <p>Escribe la contraseña que te han dado. Solo te la pediremos una vez en este móvil.</p>
-        <form id="formClave" autocomplete="off">
-          <input class="entrada" id="campoClave" type="password" placeholder="Contraseña" autocomplete="current-password" required>
-          <p class="error-campo" id="errorClave">${escapar(error || "")}</p>
-          <button class="boton ancho" type="submit" id="btnEntrar">Entrar</button>
-        </form>
-      </div>`;
-    $("formClave").onsubmit = async (ev) => {
-      ev.preventDefault();
-      const v = $("campoClave").value.trim(); if (!v) return;
-      const b = $("btnEntrar"); b.disabled = true; b.textContent = "Comprobando…";
-      clave = v;
-      try {
-        await servidor("ver");
-        ponerLS(K.clave, clave);
-        pintar();
-      } catch (e) {
-        clave = "";
-        b.disabled = false; b.textContent = "Entrar";
-        if (e.codigo === "sin-activar") return pintarSinActivar();
-        $("errorClave").textContent = e.codigo === "clave" ? "Esa no es la contraseña. Prueba otra vez." : e.message;
-      }
-    };
-  }
+  // ---------- Sin activar ----------
   function pintarSinActivar() {
     $("btnSubir").classList.add("oculto");
+    app.classList.remove("vista-eventos");
     app.innerHTML = `
       <header class="cabecera-pagina"><a class="btn-volver" href="index.html" aria-label="Volver">${ICONOS.atras}</a><h1>Galería</h1></header>
       <div class="vacio"><div class="icono-pastilla icono-azul">${IC.album}</div>
@@ -381,15 +371,15 @@
   // ---------- Lista de eventos ----------
   function pintarEventos() {
     $("btnSubir").classList.add("oculto");
+    app.classList.add("vista-eventos"); app.classList.remove("vista-album");
     const eventos = [...G.eventos].sort((a, b) => String(b.fecha || b.creado).localeCompare(String(a.fecha || a.creado)));
     app.innerHTML = `
       <header class="cabecera-pagina"><a class="btn-volver" href="index.html" aria-label="Volver">${ICONOS.atras}</a><h1>Galería</h1></header>
-      <p class="subtitulo">Un álbum por cada evento. Sube tus fotos y comenta las de los demás.</p>
       <div class="barra-acciones">
-        <button class="boton" id="btnNuevoEvento">${ICONOS.mas} Nuevo álbum</button>
-        <button class="boton suave" id="btnActualizar" aria-label="Actualizar" style="flex:0 0 auto">↻</button>
+        <p class="subtitulo" style="flex:1;margin:0">Un álbum por cada evento. Sube tus fotos y comenta las de los demás.</p>
+        <button class="boton suave" id="btnActualizar" aria-label="Actualizar" style="flex:0 0 auto;align-self:center">↻</button>
       </div>
-      ${eventos.length ? "" : `<div class="vacio"><div class="icono-pastilla icono-azul">${IC.album}</div>Todavía no hay álbumes.<br>¡Crea el primero!</div>`}
+      ${eventos.length ? "" : `<div class="vacio"><div class="icono-pastilla icono-azul">${IC.album}</div>Todavía no hay álbumes.<br>Los responsables los crean para cada evento.</div>`}
       ${eventos.map(e => {
         const fotos = ordenar(fotosDe(e.id));
         const portada = [...fotos].sort((a, b) => (b.likes || []).length - (a.likes || []).length)[0];
@@ -409,13 +399,13 @@
           </div>
         </a>`;
       }).join("")}`;
-    $("btnNuevoEvento").onclick = hojaNuevoEvento;
     $("btnActualizar").onclick = () => actualizar(true);
   }
 
   // ---------- Álbum ----------
   function pintarAlbum(e) {
     $("btnSubir").classList.remove("oculto");
+    app.classList.remove("vista-eventos"); app.classList.add("vista-album");
     const todas = ordenar(fotosDe(e.id));
     const lugares = lugaresDe(e.id);
     if (filtroLugar && !lugares.includes(filtroLugar)) filtroLugar = "";
@@ -484,7 +474,7 @@
     return out;
   }
   const hayGrupos = (fotos) => fotos.some(f => f.dia || f.momento);
-  const cabeceraGrupo = (g) => `<div class="grupo-fotos"><span class="momento-ico">${g.ico}</span>${escapar(g.titulo)}</div>`;
+  const cabeceraGrupo = (g, filas) => `<div class="grupo-fotos${filas ? " en-filas" : ""}"><span class="momento-ico">${g.ico}</span>${escapar(g.titulo)}</div>`;
 
   function htmlCuadricula(fotos) {
     const celda = (f) => {
@@ -540,7 +530,7 @@
   }
   function htmlFilas(fotos) {
     if (!hayGrupos(fotos)) return fotos.map(htmlFoto).join("");
-    return grupos(fotos).map(g => cabeceraGrupo(g) + g.fotos.map(htmlFoto).join("")).join("");
+    return grupos(fotos).map(g => cabeceraGrupo(g, true) + g.fotos.map(htmlFoto).join("")).join("");
   }
 
   function conectarFotos(e) {
@@ -598,7 +588,6 @@
 
   async function comentar(id, valor, btn) {
     const t = valor.trim(); if (!t) return;
-    if (!(await asegurarNombre())) return;
     btn.disabled = true;
     try {
       await servidor("comentar", { foto: id, texto: t });
@@ -613,7 +602,6 @@
   }
 
   async function actualizar(conAviso) {
-    if (!clave) return;
     try { await servidor("ver"); pintar(); if (conAviso) aviso("Galería actualizada"); }
     catch (e) { if (conAviso || e.codigo) trasError(e); }
   }
@@ -636,50 +624,6 @@
     if (document.activeElement) document.activeElement.blur();
   }
   $("velo").onclick = cerrarHoja; $("hojaCerrar").onclick = cerrarHoja;
-
-  // Nombre: se pide una sola vez (si no hay perfil)
-  function asegurarNombre() {
-    if (miNombre()) return Promise.resolve(true);
-    return new Promise(ok => {
-      abrirHoja("¿Cómo te llamas?", `
-        <p style="margin:0 0 12px;color:var(--texto-secundario)">Aparecerá junto a tus fotos y comentarios. Solo te lo preguntamos una vez.</p>
-        <input class="entrada" id="campoNombre" maxlength="30" placeholder="Tu nombre" autocomplete="given-name">`,
-        `<button class="boton ancho" id="btnNombre" type="button">Guardar</button>`);
-      setTimeout(() => $("campoNombre").focus(), 350);
-      let hecho = false;
-      $("btnNombre").onclick = () => {
-        const v = $("campoNombre").value.trim(); if (!v) return $("campoNombre").focus();
-        ponerLS(K.nombre, v); hecho = true; cerrarHoja(); ok(true);
-      };
-      const cerrar = $("hojaCerrar").onclick;
-      const fin = () => { if (!hecho) ok(false); $("hojaCerrar").onclick = cerrar; $("velo").onclick = cerrar; };
-      $("hojaCerrar").onclick = () => { cerrarHoja(); fin(); };
-      $("velo").onclick = () => { cerrarHoja(); fin(); };
-    });
-  }
-
-  // Nuevo álbum
-  async function hojaNuevoEvento() {
-    if (!(await asegurarNombre())) return;
-    abrirHoja("Nuevo álbum", `
-      <label class="etq" for="evTitulo">Nombre del evento</label>
-      <input class="entrada" id="evTitulo" maxlength="60" placeholder="Ej.: Escapada a la Sierra">
-      <label class="etq" for="evFecha">Fecha</label>
-      <input class="entrada" id="evFecha" type="date" value="${hoyISO()}">
-      <label class="etq" for="evDesc">Descripción (opcional)</label>
-      <textarea class="entrada" id="evDesc" maxlength="300" rows="3" placeholder="Unas palabras sobre el evento"></textarea>`,
-      `<button class="boton ancho" id="btnCrearEvento" type="button">Crear álbum</button>`);
-    setTimeout(() => $("evTitulo").focus(), 350);
-    $("btnCrearEvento").onclick = async () => {
-      const titulo = $("evTitulo").value.trim(); if (!titulo) return $("evTitulo").focus();
-      const b = $("btnCrearEvento"); b.disabled = true; b.textContent = "Creando…";
-      try {
-        const j = await servidor("crearEvento", { titulo, fecha: $("evFecha").value, descripcion: $("evDesc").value });
-        cerrarHoja();
-        location.hash = "e=" + j.evento;
-      } catch (e) { b.disabled = false; b.textContent = "Crear álbum"; trasError(e); }
-    };
-  }
 
   // Campos de día, momento y lugar (para subir y para corregir)
   function htmlDatosFoto(evento, val) {
@@ -724,10 +668,7 @@
   }
 
   // Subir fotos
-  $("btnSubir").onclick = async () => {
-    if (!(await asegurarNombre())) return;
-    $("selectorFotos").click();
-  };
+  $("btnSubir").onclick = () => $("selectorFotos").click();
   $("selectorFotos").onchange = async () => {
     const archivos = [...$("selectorFotos").files].filter(f => /^image\//.test(f.type) || /\.(heic|heif|jpe?g|png|webp)$/i.test(f.name));
     $("selectorFotos").value = "";
@@ -858,7 +799,7 @@
 
   calcularHuella().then(() => {
     pintar();
-    if (clave) actualizar(false);
+    actualizar(false);
   });
 })();
 </script>

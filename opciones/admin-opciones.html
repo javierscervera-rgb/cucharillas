@@ -135,6 +135,10 @@ details.tarjeta[open] > summary::after { transform: rotate(90deg); }
 .barra-estado.error { color: var(--rojo-oscuro); font-weight: 600; }
 .barra-botones { display: flex; gap: 10px; }
 .barra-botones .boton { padding: 13px 10px; }
+@media (min-width: 700px) {
+  .contenedor, .barra-interior { max-width: 720px; }
+  .contenedor { padding-left: 24px; padding-right: 24px; }
+}
 </style>
 </head>
 <body>

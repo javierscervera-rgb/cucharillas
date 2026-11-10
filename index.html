@@ -103,15 +103,29 @@
       <div class="texto"><div class="titulo">Para leer y ver</div><div class="detalle" id="det-recursos">Artículos, libros y vídeos</div></div>
       <span class="flecha" data-icono="flecha"></span>
     </a>
+
+    <footer class="pie-inicio">
+      <div>Has entrado como <b id="yo-nombre"></b></div>
+      <div><a href="entrar.html?modo=clave">Cambiar contraseña</a> · <a href="#" id="salir">Salir</a></div>
+      <a class="enlace-admin" href="admin.html">Administración</a>
+    </footer>
   </main>
 
   <script>
     (async function () {
-      // Saludo con el nombre del perfil, si lo hay
+      // Saludo con el nombre de la cuenta (o del perfil)
+      const sesion = App.Sesion.obtener();
       try {
         const yo = JSON.parse(localStorage.getItem("cucharillas_mi_perfil") || "null");
-        if (yo && yo.nombre) document.getElementById("saludo").textContent = `Hola, ${yo.nombre}. ¿Listo para hoy?`;
+        const nombre = (sesion && sesion.cuenta.nombre) || (yo && yo.nombre);
+        if (nombre) document.getElementById("saludo").textContent = `Hola, ${nombre}. ¿Listo para hoy?`;
       } catch (e) {}
+      if (sesion) document.getElementById("yo-nombre").textContent = sesion.cuenta.nombre;
+      document.getElementById("salir").onclick = (ev) => {
+        ev.preventDefault();
+        if (!confirm("¿Cerrar la sesión en este dispositivo? Tus notas no se borran.")) return;
+        App.Sesion.cerrar(); location.replace("entrar.html");
+      };
 
       const n = Object.keys(App.Notas.todas()).length;
       document.getElementById("det-notas").textContent = n ? `${n} nota${n > 1 ? "s" : ""} guardada${n > 1 ? "s" : ""}` : "Solo en tu móvil";

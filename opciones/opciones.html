@@ -2,6 +2,18 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<script>
+/* Hace falta haber entrado en Cucharillas para jugar */
+(function () {
+  try {
+    var s = JSON.parse(localStorage.getItem("cucharillas_sesion") || "null");
+    var c = s && JSON.parse(atob(s.token.split(".")[0].replace(/-/g, "+").replace(/_/g, "/")));
+    if (c && c.e > Date.now()) return;
+  } catch (e) {}
+  document.documentElement.style.visibility = "hidden";
+  location.replace("../entrar.html?v=" + encodeURIComponent(location.pathname + location.search));
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -400,6 +412,40 @@ body.sin-scroll { overflow: hidden; }
 .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: min(10.5px, 2.6vw); color: var(--texto-secundario); text-decoration: none; flex: 1 1 0; min-width: 0; white-space: nowrap; letter-spacing: -0.1px; }
 .nav-item svg { width: 24px; height: 24px; }
 .nav-item.activo { color: var(--azul-cielo); font-weight: 600; }
+
+/* ---------- Pantallas grandes ---------- */
+@media (min-width: 700px) {
+  .contenedor { max-width: 640px; padding-left: 24px; padding-right: 24px; }
+  .nav-inferior { justify-content: center; gap: 4px; }
+  .nav-item { flex: 0 1 96px; font-size: 12px; }
+  .hoja {
+    top: 50%; bottom: auto; left: 50%; right: auto; width: min(560px, 92vw); max-height: 86vh; border-radius: 26px;
+    transform: translate(-50%, -46%); opacity: 0; transition: transform .3s ease, opacity .3s ease, visibility 0s linear .3s;
+  }
+  .hoja.visible { transform: translate(-50%, -50%); opacity: 1; transition: transform .3s ease, opacity .3s ease, visibility 0s; }
+  .hoja-asa { display: none; }
+  .hoja-cabecera { padding-top: 18px; }
+  .hoja-pie { padding-bottom: 18px; }
+  .pergamino-texto { font-size: 24px; }
+}
+@media (min-width: 1000px) {
+  body { padding-left: 240px; }
+  .nav-inferior {
+    top: 0; bottom: 0; right: auto; width: 240px; flex-direction: column; justify-content: flex-start; gap: 2px;
+    padding: 26px 14px; border-top: 0; border-right: 1px solid var(--gris-borde); box-shadow: 4px 0 18px rgba(31, 42, 68, .04);
+  }
+  .nav-inferior::before {
+    content: "Cucharillas"; display: flex; align-items: center; padding: 0 12px 0 58px; height: 56px; margin-bottom: 18px;
+    font-size: 21px; font-weight: 700; color: var(--texto-principal); background: url("../img/logo.png") no-repeat 12px center / auto 54px;
+  }
+  .nav-item { flex: 0 0 auto; flex-direction: row; justify-content: flex-start; gap: 13px; padding: 11px 14px; border-radius: 13px; font-size: 15px; letter-spacing: 0; }
+  .nav-item:hover { background: #F4F7FB; }
+  .nav-item.activo { background: var(--azul-suave); }
+  .nav-item svg { width: 22px; height: 22px; }
+  .contenedor { padding-top: 40px; padding-bottom: 60px; }
+  .cabecera { display: none; }
+  .aviso { bottom: 32px; left: calc(50% + 120px); }
+}
 </style>
 </head>
 <body>

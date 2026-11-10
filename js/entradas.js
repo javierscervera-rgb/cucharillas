@@ -19,7 +19,7 @@ window.pintarEntradas = async function ({ tipo, color, icono, subtitulo, conPort
   function detalleLista(e) {
     const partes = [];
     if (e.fecha) partes.push(App.fechaCorta(e.fecha));
-    else if (e.cita) partes.push(e.cita.split("\n")[0].slice(0, 40));
+    else if (e.cita) partes.push(e.cita.split("\n")[0].replace(/(\*\*|__|~~|\*)/g, "").trim().slice(0, 40));
     const n = cuantasNotas(e);
     if (n) partes.push(`✎ ${n} nota${n > 1 ? "s" : ""}`);
     return partes.map(App.escapar).join(" · ");
