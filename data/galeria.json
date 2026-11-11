@@ -318,6 +318,23 @@
    "fecha": "2026-11-11T00:00:15.910Z",
    "likes": [],
    "comentarios": []
+  },
+  {
+   "id": "5eee7718c4965c128c7f",
+   "evento": "allariz-6-9-nov-2026-mwbcig88",
+   "ruta": "img/galeria/allariz-6-9-nov-2026-mwbcig88/5eee7718c4965c128c7f.jpg",
+   "mini": "img/galeria/allariz-6-9-nov-2026-mwbcig88/5eee7718c4965c128c7f-m.jpg",
+   "ancho": 900,
+   "alto": 1600,
+   "pie": "",
+   "dia": "2026-11-07",
+   "momento": "mañana",
+   "lugar": "San Pedro de Rocas",
+   "autor": "DJ",
+   "quien": "d50ce427e4df09a3a1d6",
+   "fecha": "2026-11-11T00:00:22.581Z",
+   "likes": [],
+   "comentarios": []
   }
  ]
 }
