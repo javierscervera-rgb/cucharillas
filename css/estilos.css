@@ -513,6 +513,7 @@ mark { background: #FDF0C4; color: inherit; border-radius: 3px; padding: 0 1px; 
 .ga-celda { position: relative; aspect-ratio: 1; padding: 0; border: 0; background: var(--azul-suave); cursor: pointer; overflow: hidden; }
 .ga-celda img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .15s ease; }
 .ga-check { position: absolute; top: 5px; right: 5px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid #fff; background: rgba(31,42,68,.3); color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+.ga-video { position: absolute; right: 5px; top: 5px; background: rgba(17,22,34,.65); color: #fff; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px; pointer-events: none; }
 .ga-autor { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 5px 3px; font-size: 10.5px; font-weight: 600; color: #fff; text-align: left; background: linear-gradient(transparent, rgba(0,0,0,.55)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ga-celda.elegida { background: #CFE3FA; }
 .ga-celda.elegida img { transform: scale(.86); border-radius: 8px; }

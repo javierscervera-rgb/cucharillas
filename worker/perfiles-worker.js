@@ -29,7 +29,7 @@ export default {
       "Access-Control-Allow-Origin": !permitidos.length ? "*" : permitidos.includes(origen) ? origen : permitidos[0],
       "Vary": "Origin",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Headers": "Content-Type, X-Galeria, X-Token, X-Evento, X-Tipo",
       "Content-Type": "application/json; charset=utf-8"
     };
     const responder = (cuerpo, estado = 200) => new Response(JSON.stringify(cuerpo), { status: estado, headers: cors });
@@ -38,6 +38,12 @@ export default {
     if (request.method !== "POST") return responder({ error: "Método no permitido" }, 405);
 
     if (permitidos.length && origen && !permitidos.includes(origen)) return responder({ error: "Origen no permitido" }, 403);
+
+    // Vídeos de la galería: llegan "en bruto" (base64) y se pasan a GitHub sin cargarlos enteros en memoria
+    if (request.headers.get("X-Galeria") === "video") {
+      try { return await subirVideo(request, env, responder); }
+      catch (e) { return responder({ error: "Error en el servidor: " + (e && e.message || e) }, 500); }
+    }
 
     let datos;
     try { datos = await request.json(); } catch { return responder({ error: "Datos no válidos" }, 400); }
@@ -173,7 +179,8 @@ async function sha256(texto) {
 const G_LIM = {
   titulo: 60, descripcion: 300, autor: 30, pie: 200, comentario: 500, lugar: 60,
   maxEventos: 200, maxFotosEvento: 400, maxComentarios: 300,
-  foto: 1100000, mini: 220000   // tamaño máximo en base64 (≈ 800 KB y 160 KB)
+  foto: 1100000, mini: 220000,  // tamaño máximo en base64 (≈ 800 KB y 160 KB)
+  video: 36000000, duracion: 600 // vídeo: ≈ 27 MB en base64; duración en segundos
 };
 const RUTA_GALERIA = "data/galeria.json";
 const MOMENTOS = ["mañana", "mediodía", "tarde", "noche"];
@@ -230,6 +237,44 @@ async function galeria(d, env, responder) {
         { autor, quien, fecha: ahora, likes: [], comentarios: [] }));
     }, { foto: id });
     if (res.error) { await borrarArchivo(env, ruta, `Galería: deshace foto ${id}`); await borrarArchivo(env, mini, `Galería: deshace miniatura ${id}`); }
+    return responder(res.cuerpo, res.estado);
+  }
+
+  // ----- Registrar un vídeo ya subido (con subirVideo) junto con su portada -----
+  if (accion === "registrarVideo") {
+    if (!idValido(d.evento)) return responder({ error: "Evento no válido" }, 400);
+    const m = String(d.video || "").match(/^img\/galeria\/([a-z0-9-]{1,80})\/([a-f0-9]{20})\.(mp4|webm)$/);
+    if (!m || m[1] !== d.evento) return responder({ error: "Vídeo no válido" }, 400);
+    const id = m[2];
+    const esJpeg = (b, max) => typeof b === "string" && b.startsWith("/9j/") && b.length <= max && /^[A-Za-z0-9+/=]+$/.test(b);
+    if (!esJpeg(d.foto, G_LIM.foto) || !esJpeg(d.mini, G_LIM.mini)) return responder({ error: "La portada del vídeo no es válida" }, 400);
+    const ruta = `img/galeria/${d.evento}/${id}.jpg`;
+    const mini = `img/galeria/${d.evento}/${id}-m.jpg`;
+    const deshacer = async () => {
+      await borrarArchivo(env, ruta, `Galería: deshace portada ${id}`);
+      await borrarArchivo(env, mini, `Galería: deshace miniatura ${id}`);
+      await borrarArchivo(env, d.video, `Galería: deshace vídeo ${id}`);
+    };
+    {
+      const { datos } = await leerGaleria(env);
+      if (datos.fotos.some(f => f.id === id)) return responder({ error: "Ese vídeo ya está en la galería" }, 400);
+      if (!datos.eventos.some(e => e.id === d.evento)) { await deshacer(); return responder({ error: "Ese evento ya no existe" }, 404); }
+    }
+    const existe = await gh(env, `${d.video}?ref=${encodeURIComponent(env.RAMA || "main")}`);
+    if (!existe.ok) return responder({ error: "El vídeo no llegó a guardarse; vuelve a intentarlo" }, 400);
+    const r1 = await subirArchivo(env, ruta, d.foto, `Galería: portada del vídeo ${id}`);
+    const r2 = r1.ok ? await subirArchivo(env, mini, d.mini, `Galería: miniatura del vídeo ${id}`) : r1;
+    if (!r2.ok) { await deshacer(); return responder({ error: "No se pudo guardar el vídeo (" + r2.status + ")" }, 502); }
+    const ancho = Math.max(0, Math.min(10000, parseInt(d.ancho, 10) || 0));
+    const alto = Math.max(0, Math.min(10000, parseInt(d.alto, 10) || 0));
+    const duracion = Math.max(0, Math.min(G_LIM.duracion, Math.round(Number(d.duracion) || 0)));
+    const res = await modificarGaleria(env, null, `Galería: añade vídeo ${id}`, (g) => {
+      if (!g.eventos.some(e => e.id === d.evento)) return "Ese evento ya no existe";
+      if (g.fotos.some(f => f.id === id)) return { sinCambios: true };
+      g.fotos.push(Object.assign({ id, evento: d.evento, ruta, mini, video: d.video, duracion, ancho, alto, titulo: recortar(d.titulo, G_LIM.titulo), pie: recortar(d.pie, G_LIM.pie) }, datosFoto(d),
+        { autor, quien, fecha: ahora, likes: [], comentarios: [] }));
+    }, { foto: id });
+    if (res.error) await deshacer();
     return responder(res.cuerpo, res.estado);
   }
 
@@ -301,6 +346,7 @@ async function galeria(d, env, responder) {
     if (borrada) {
       await borrarArchivo(env, borrada.ruta, `Galería: borra foto ${borrada.id}`);
       await borrarArchivo(env, borrada.mini, `Galería: borra miniatura ${borrada.id}`);
+      if (borrada.video) await borrarArchivo(env, borrada.video, `Galería: borra vídeo ${borrada.id}`);
     }
     return responder(res.cuerpo, res.estado);
   }
@@ -316,6 +362,69 @@ async function galeria(d, env, responder) {
   }
 
   return responder({ error: "Acción no válida" }, 400);
+}
+
+// ----- Subir un vídeo -----
+// El móvil manda el vídeo en base64 como texto, con cabeceras X-Token, X-Evento y X-Tipo (mp4 o webm).
+// No se carga entero: se va pasando a GitHub según llega. Luego hay que llamar a "registrarVideo".
+async function subirVideo(request, env, responder) {
+  const s = await sesionValida(request.headers.get("X-Token"), env, true);
+  if (s.error) return responder({ error: s.error, codigo: s.codigo }, s.estado);
+  const evento = request.headers.get("X-Evento") || "";
+  if (!/^[a-z0-9-]{1,80}$/.test(evento)) return responder({ error: "Evento no válido" }, 400);
+  const tipo = request.headers.get("X-Tipo");
+  if (tipo !== "mp4" && tipo !== "webm") return responder({ error: "Solo se admiten vídeos MP4 o WebM" }, 400);
+  const largo = parseInt(request.headers.get("Content-Length") || "", 10);
+  if (!largo || largo % 4 || !request.body) return responder({ error: "Vídeo no válido" }, 400);
+  if (largo > G_LIM.video) return responder({ error: "El vídeo es demasiado grande" }, 413);
+  {
+    const { datos } = await leerGaleria(env);
+    if (!datos.eventos.some(e => e.id === evento)) return responder({ error: "Ese evento ya no existe" }, 404);
+    if (datos.fotos.filter(f => f.evento === evento).length >= G_LIM.maxFotosEvento) return responder({ error: "Este evento ya tiene el máximo de fotos" }, 400);
+  }
+  const id = aleatorioHex(10);
+  const ruta = `img/galeria/${evento}/${id}.${tipo}`;
+  const enc = new TextEncoder();
+  const pre = enc.encode(`{"message":"Galería: vídeo ${id}","branch":${JSON.stringify(env.RAMA || "main")},"content":"`);
+  const suf = enc.encode(`"}`);
+  const { readable, writable } = new FixedLengthStream(pre.length + largo + suf.length);
+  let fallo = null, escritor = null;
+  const copiar = (async () => {
+    // Se miran los primeros bytes (que sea de verdad un vídeo); el resto pasa tal cual,
+    // sin código de por medio, para no gastar tiempo de CPU del Worker.
+    const lector = request.body.getReader();
+    let cabeza = new Uint8Array(0);
+    while (cabeza.length < 16) {
+      const { value, done } = await lector.read();
+      if (done) break;
+      const u = new Uint8Array(cabeza.length + value.length); u.set(cabeza); u.set(value, cabeza.length); cabeza = u;
+    }
+    lector.releaseLock();
+    if (cabeza.length < 16 || cabeza.indexOf(0x22) >= 0 || cabeza.indexOf(0x5c) >= 0) throw (fallo = "Vídeo no válido");
+    let b = "";
+    try { b = atob(String.fromCharCode.apply(null, cabeza.subarray(0, 16))); } catch (e) { throw (fallo = "Vídeo no válido"); }
+    const ok = tipo === "mp4" ? b.slice(4, 8) === "ftyp" : b.charCodeAt(0) === 0x1A && b.charCodeAt(1) === 0x45 && b.charCodeAt(2) === 0xDF && b.charCodeAt(3) === 0xA3;
+    if (!ok) throw (fallo = "Eso no parece un vídeo " + tipo.toUpperCase());
+    escritor = writable.getWriter();
+    await escritor.write(pre); await escritor.write(cabeza);
+    escritor.releaseLock(); escritor = null;
+    await request.body.pipeTo(writable, { preventClose: true });
+    escritor = writable.getWriter();
+    await escritor.write(suf);
+    await escritor.close();
+  })().catch(async (e) => {
+    fallo = fallo || "El vídeo llegó incompleto";
+    try { if (escritor) await escritor.abort(e); else await writable.abort(e); } catch (x) {}
+    try { await request.body.cancel(); } catch (x) {}
+  });
+  const peticion = fetch(`https://api.github.com/repos/${env.REPO}/contents/${ruta}`, {
+    method: "PUT", body: readable, duplex: "half",
+    headers: { Authorization: "Bearer " + env.GITHUB_TOKEN, Accept: "application/vnd.github+json", "Content-Type": "application/json", "User-Agent": "cucharillas-perfiles" }
+  }).then(r => r, e => null);
+  const [r] = await Promise.all([peticion, copiar]);
+  if (fallo) { if (r && r.ok) await borrarArchivo(env, ruta, `Galería: deshace vídeo ${id}`); return responder({ error: fallo }, 400); }
+  if (!r || !r.ok) return responder({ error: "No se pudo guardar el vídeo (" + (r ? r.status : "sin conexión") + ")" }, 502);
+  return responder({ ok: true, id, video: ruta });
 }
 
 // Lee, aplica el cambio y escribe; si otro móvil escribió a la vez, lo reintenta.

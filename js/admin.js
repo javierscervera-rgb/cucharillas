@@ -490,6 +490,7 @@
               <button type="button" class="ga-celda ${adminSel.has(f.id) ? "elegida" : ""}" data-sel="${escapar(f.id)}" title="${escapar([f.titulo, "de " + f.autor, f.lugar].filter(Boolean).join(" · "))}">
                 ${imgFoto(f.mini, 'loading="lazy" alt=""')}
                 <span class="ga-check">${adminSel.has(f.id) ? "✓" : ""}</span>
+                ${f.video ? `<span class="ga-video">▶${f.duracion ? " " + Math.floor(f.duracion / 60) + ":" + String(Math.round(f.duracion) % 60).padStart(2, "0") : ""}</span>` : ""}
                 <span class="ga-autor">${escapar(f.autor)}</span>
               </button>`).join("")}</div>`).join("")}
         </section>`).join("")}
@@ -522,7 +523,7 @@
     };
     document.getElementById("ga-borrar-album").onclick = (ev) => {
       if (!confirm(`¿Borrar el álbum «${e.titulo}» con sus ${fotos.length} fotos y todos sus comentarios? No se puede deshacer.`)) return;
-      const archivos = fotos.flatMap(f => [f.ruta, f.mini]);
+      const archivos = fotos.flatMap(f => [f.ruta, f.mini, f.video].filter(Boolean));
       albumAbierto = "";
       accionGaleria(ev.currentTarget, d => {
         d.eventos = d.eventos.filter(x => x.id !== e.id);
@@ -574,7 +575,7 @@
         const antes = d.fotos.length; d.fotos = d.fotos.filter(x => !ids.includes(x.id));
         if (d.fotos.length === antes) return false;
         adminSel.clear(); panelCambios = false;
-      }, `Galería: el admin borra ${ids.length} foto${ids.length === 1 ? "" : "s"}`, elegidas.flatMap(f => [f.ruta, f.mini]));
+      }, `Galería: el admin borra ${ids.length} foto${ids.length === 1 ? "" : "s"}`, elegidas.flatMap(f => [f.ruta, f.mini, f.video].filter(Boolean)));
     };
 
     zona.querySelectorAll("[data-borrar-com]").forEach(b => b.onclick = () => {

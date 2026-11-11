@@ -12,9 +12,9 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
   <link rel="icon" href="img/icono-192.png">
-  <link rel="stylesheet" href="css/estilos.css?v=17">
-  <script src="js/config.js?v=17"></script>
-  <script src="js/app.js?v=17"></script>
+  <link rel="stylesheet" href="css/estilos.css?v=18">
+  <script src="js/config.js?v=18"></script>
+  <script src="js/app.js?v=18"></script>
   <style>
     :root { --rojo-like: #E5484D; }
     .oculto { display: none !important; }
@@ -260,6 +260,15 @@
     .titulo-foto { padding: 6px 16px 0; font-size: 17px; font-weight: 700; line-height: 1.3; }
     .accion.editar { margin-left: auto; color: var(--azul-cielo); font-size: 14px; }
     .accion.editar svg { width: 19px; height: 19px; }
+    /* ---------- Vídeos ---------- */
+    .celda .marca-video { position: absolute; right: 5px; top: 5px; display: flex; align-items: center; gap: 3px; background: rgba(17,22,34,.62); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 7px 3px 6px; border-radius: 999px; pointer-events: none; }
+    .celda .marca-video svg { width: 10px; height: 10px; }
+    .celda.nueva .marca-video { right: 22px; }
+    .visor-slide video { max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: contain; display: block; background: #111622; }
+    .previa video { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: #111622; }
+    .previa .es-video { position: relative; }
+    .previa .es-video::after { content: "▶"; position: absolute; left: 8px; top: 8px; background: rgba(17,22,34,.65); color: #fff; font-size: 11px; padding: 3px 7px; border-radius: 999px; }
+    .aviso-video { background: #FFF3DC; color: #7A5108; border-radius: 12px; padding: 10px 12px; font-size: 13.5px; line-height: 1.4; margin: 10px 0 2px; }
     .miniatura-editar { width: 76px; height: 76px; object-fit: cover; border-radius: 14px; display: block; margin: 0 0 4px; background: var(--azul-suave); }
     .previa .previa-titulo { font-weight: 600; }
 
@@ -335,9 +344,9 @@
 
   <button class="flotante oculto" id="btnSubir" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M8.5 6 10 3.5h4L15.5 6"/></svg>
-    Subir fotos
+    Subir fotos o vídeos
   </button>
-  <input type="file" id="selectorFotos" accept="image/*" multiple hidden>
+  <input type="file" id="selectorFotos" accept="image/*,video/*" multiple hidden>
 
   <div class="velo" id="velo"></div>
   <div class="hoja" id="hoja" role="dialog" aria-modal="true">
@@ -382,6 +391,7 @@
     lapiz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
     papelera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M6 7l1 13h10l1-13"/></svg>',
     descargar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>',
     album: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-8.5 8.5"/></svg>'
   };
 
@@ -447,6 +457,15 @@
     else if (n < 3) setTimeout(() => { img.src = img.dataset.raw + (img.dataset.raw.includes("?") ? "&" : "?") + "r=" + Date.now(); }, 800 * n);
     else img.classList.add("cargada", "fallida");
   };
+  const rutaLocal = (ruta) => String(ruta || "").split("/").map(encodeURIComponent).join("/");
+  window.videoFallo = (v) => {
+    if (v.dataset.intento) return;
+    v.dataset.intento = "1";
+    const t = v.currentTime;
+    if (v.dataset.poster) v.poster = v.dataset.poster;
+    v.src = v.dataset.raw; v.load(); if (t) v.currentTime = t;
+  };
+  const duracionTexto = (s) => { s = Math.round(+s || 0); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
   const COLORES = [["#E8F4FD", "#2F6FBF"], ["#E6F7F0", "#2C7A57"], ["#F3EFFF", "#6B4FC7"], ["#FFF3DC", "#9A6510"], ["#FDECEC", "#B4232A"], ["#E7F6F8", "#1F7A86"]];
   function inicial(nombre) {
     let h = 0; for (const c of String(nombre)) h = (h * 31 + c.codePointAt(0)) >>> 0;
@@ -607,7 +626,8 @@
     const coms = fotos.reduce((n, f) => n + (f.comentarios || []).length, 0);
     return [
       fechas ? `📅 ${escapar(fechas)}` : "",
-      `📷 ${fotos.length} foto${fotos.length === 1 ? "" : "s"}`,
+      (() => { const v = fotos.filter(f => f.video).length, n = fotos.length - v; return n || !v ? `📷 ${n} foto${n === 1 ? "" : "s"}` : ""; })(),
+      (() => { const v = fotos.filter(f => f.video).length; return v ? `🎬 ${v} vídeo${v === 1 ? "" : "s"}` : ""; })(),
       lugares.length ? `📍 ${lugares.length} lugar${lugares.length === 1 ? "" : "es"}` : "",
       likes ? `❤️ ${likes}` : "",
       coms ? `💬 ${coms}` : ""
@@ -656,18 +676,19 @@
     return `<button type="button" class="elegir-grupo" ${attr}>${m.every(f => elegidas.has(f.id)) ? "Quitar" : "Elegir"} ${m.length}</button>`;
   };
 
+  const marcaVideo = (f) => f.video ? `<span class="marca-video">${IC.play}${f.duracion ? duracionTexto(f.duracion) : ""}</span>` : "";
   function htmlCuadricula(fotos) {
     const celda = (f) => {
       if (seleccionando) {
         const mia = miHuella && f.quien === miHuella, on = elegidas.has(f.id);
         return `<button class="celda ${mia ? "seleccionable" : "bloqueada"} ${on ? "elegida" : ""}" type="button" ${mia ? `data-elegir="${escapar(f.id)}"` : "disabled"} aria-pressed="${on}" aria-label="${mia ? "Elegir foto" : "Foto de otra persona"}">
-          <img ${imgAttrs(f.mini, 'loading="lazy" alt=""')}>
+          <img ${imgAttrs(f.mini, 'loading="lazy" alt=""')}>${marcaVideo(f)}
           ${mia ? `<span class="marca-sel">${on ? IC.check : ""}</span>` : ""}
         </button>`;
       }
       const n = (f.likes || []).length, c = (f.comentarios || []).length;
       return `<button class="celda ${esNueva(f) ? "nueva" : ""}" type="button" data-ver="${escapar(f.id)}" aria-label="${escapar(f.titulo || (esNueva(f) ? "Foto nueva" : "Ver foto"))}">
-        <img ${imgAttrs(f.mini, 'loading="lazy" alt=""')}>
+        <img ${imgAttrs(f.mini, 'loading="lazy" alt=""')}>${marcaVideo(f)}
         ${n || c ? `<span class="marcas">${n ? `<span>${IC.corazonLleno}${n}</span>` : ""}${c ? `<span>${IC.bocadillo}${c}</span>` : ""}</span>` : ""}
       </button>`;
     };
@@ -729,7 +750,9 @@
         </div>
         <div class="visor-foto"><span class="ayuda-zoom">Arrastra para moverte · doble toque para salir</span>
           <div class="visor-carrusel" id="carrusel">
-            ${lista.map((x, k) => `<div class="visor-slide" data-id="${escapar(x.id)}"><img ${imgAttrs(x.ruta, `alt="${escapar(x.titulo || x.pie || "Foto de " + x.autor)}" ${Math.abs(k - lista.indexOf(f)) > 1 ? 'loading="lazy"' : ""}`)}><span class="corazon-grande">${IC.corazonLleno}</span></div>`).join("")}
+            ${lista.map((x, k) => x.video
+              ? `<div class="visor-slide con-video" data-id="${escapar(x.id)}"><video controls playsinline preload="${Math.abs(k - lista.indexOf(f)) > 1 ? "none" : "metadata"}" src="${escapar(rutaLocal(x.video))}" poster="${escapar(rutaLocal(x.ruta))}" data-raw="${escapar(urlFoto(x.video))}" data-poster="${escapar(urlFoto(x.ruta))}" onerror="videoFallo(this)" aria-label="${escapar(x.titulo || x.pie || "Vídeo de " + x.autor)}"></video></div>`
+              : `<div class="visor-slide" data-id="${escapar(x.id)}"><img ${imgAttrs(x.ruta, `alt="${escapar(x.titulo || x.pie || "Foto de " + x.autor)}" ${Math.abs(k - lista.indexOf(f)) > 1 ? 'loading="lazy"' : ""}`)}><span class="corazon-grande">${IC.corazonLleno}</span></div>`).join("")}
           </div>
           ${lista.length > 1 ? `<button type="button" class="visor-flecha izq" id="visorAnt" aria-label="Foto anterior">${ICONOS.atras}</button>
           <button type="button" class="visor-flecha der" id="visorSig" aria-label="Foto siguiente">${ICONOS.flecha}</button>` : ""}
@@ -748,6 +771,7 @@
 
   function cerrarVisor() {
     const v = $("visor");
+    if (v) v.querySelectorAll("video").forEach(x => { try { x.pause(); x.removeAttribute("src"); x.load(); } catch (e) {} });
     if (v) { v.remove(); visorClave = ""; document.body.classList.remove("sin-scroll"); }
   }
   function salirVisor() {
@@ -765,6 +789,8 @@
       const x = lista[Math.max(0, Math.min(lista.length - 1, i))];
       if (x && x.id !== fotoActual()) {
         car.querySelectorAll(".visor-slide.zoom").forEach(sl => sl._reiniciar && sl._reiniciar());
+        // Al pasar a otra foto, el vídeo que se estaba viendo se para
+        car.querySelectorAll("video").forEach(v => { if (!v.paused) v.pause(); });
         // Cambia la foto sin añadir un paso más al botón "atrás"
         history.replaceState(null, "", `#e=${e.id}&f=${x.id}`);
         pintarInfoVisor(e, x, lista);
@@ -774,9 +800,9 @@
     car.addEventListener("scroll", () => { clearTimeout(t); t = setTimeout(alParar, 90); }, { passive: true });
     const ir = (d) => { car.scrollBy({ left: d * car.clientWidth, behavior: "smooth" }); };
     if ($("visorAnt")) { $("visorAnt").onclick = () => ir(-1); $("visorSig").onclick = () => ir(1); }
-    car.querySelectorAll(".visor-slide").forEach(activarZoom);
-    // Doble toque en la foto = me gusta (si está ampliada, vuelve a su tamaño)
-    car.querySelectorAll(".visor-slide").forEach(sl => {
+    car.querySelectorAll(".visor-slide:not(.con-video)").forEach(activarZoom);
+    // Doble toque en la foto = me gusta (si está ampliada, vuelve a su tamaño). En los vídeos, el toque es para sus controles.
+    car.querySelectorAll(".visor-slide:not(.con-video)").forEach(sl => {
       let ultimo = 0;
       sl.addEventListener("click", () => {
         const ahora = Date.now();
@@ -1042,26 +1068,44 @@
     });
   }
 
-  // Subir fotos
+  // Subir fotos y vídeos
+  const MAX_DURACION = 180;                 // segundos
+  const MAX_VIDEO = 24 * 1024 * 1024;       // lo que ocupa como mucho un vídeo ya preparado
+  const esVideo = (a) => /^video\//.test(a.type) || /\.(mp4|m4v|mov|webm|3gp)$/i.test(a.name);
+  const esFoto = (a) => /^image\//.test(a.type) || /\.(heic|heif|jpe?g|png|webp)$/i.test(a.name);
   $("btnSubir").onclick = () => $("selectorFotos").click();
   $("selectorFotos").onchange = async () => {
-    const archivos = [...$("selectorFotos").files].filter(f => /^image\//.test(f.type) || /\.(heic|heif|jpe?g|png|webp)$/i.test(f.name));
+    const archivos = [...$("selectorFotos").files].filter(f => esFoto(f) || esVideo(f));
     $("selectorFotos").value = "";
     const e = G.eventos.find(x => x.id === eventoActual());
     if (!archivos.length || !e) return;
-    if (archivos.length > 20) aviso("Se subirán las 20 primeras. Luego puedes subir más");
-    const lista = archivos.slice(0, 20).map((archivo, i) => ({ archivo, i, url: URL.createObjectURL(archivo) }));
+    if (archivos.length > 20) aviso("Se subirán los 20 primeros. Luego puedes subir más");
+    const lista = archivos.slice(0, 20).map((archivo, i) => ({ archivo, i, video: esVideo(archivo), url: URL.createObjectURL(archivo) }));
+    const nV = lista.filter(x => x.video).length, nF = lista.length - nV;
+    const nombre = [nF ? `${nF} foto${nF === 1 ? "" : "s"}` : "", nV ? `${nV} vídeo${nV === 1 ? "" : "s"}` : ""].filter(Boolean).join(" y ");
     // Día propuesto: el del último día usado en el álbum o la fecha del evento
     const ultimas = ordenar(fotosDe(e.id)).filter(f => f.dia);
     const diaPropuesto = (ultimas.length ? ultimas[ultimas.length - 1].dia : "") || e.fecha || hoyISO();
-    abrirHoja(`Subir ${lista.length} foto${lista.length === 1 ? "" : "s"}`, `
-      <p style="margin:0 0 4px;color:var(--texto-secundario);font-size:14px">El día, el momento y el lugar se aplican a todas. Puedes cambiarlos luego en cada foto.</p>
+    abrirHoja(`Subir ${nombre}`, `
+      <p style="margin:0 0 4px;color:var(--texto-secundario);font-size:14px">El día, el momento y el lugar se aplican a todo. Puedes cambiarlos luego en cada foto o vídeo.</p>
+      ${nV ? `<div class="aviso-video">🎬 Los vídeos pueden durar hasta 3 minutos. Antes de subirlos, el móvil los prepara para que ocupen menos: tarda más o menos lo que dura el vídeo. <b>No apagues la pantalla ni cambies de app</b> hasta que termine.</div>` : ""}
       ${htmlDatosFoto(e, { dia: diaPropuesto })}
-      <span class="etq">Título y pie de cada foto (opcional)</span>
+      <span class="etq">Título y pie de cada una (opcional)</span>
       <div class="previas">${lista.map(x => `
-        <div class="previa" id="prev-${x.i}"><img src="${x.url}" alt=""><input maxlength="60" placeholder="Título (opcional)" data-titulo="${x.i}" class="previa-titulo"><input maxlength="200" placeholder="Pie de foto…" data-pie="${x.i}"><div class="estado-sub"></div></div>`).join("")}
+        <div class="previa" id="prev-${x.i}">${x.video ? `<div class="es-video"><video src="${x.url}#t=0.1" muted playsinline preload="metadata"></video></div>` : `<img src="${x.url}" alt="">`}<input maxlength="60" placeholder="Título (opcional)" data-titulo="${x.i}" class="previa-titulo"><input maxlength="200" placeholder="Pie…" data-pie="${x.i}"><div class="estado-sub"></div></div>`).join("")}
       </div>`,
-      `<div class="progreso oculto" id="progreso"><i></i></div><button class="boton ancho" id="btnEnviarFotos" type="button">Subir ${lista.length === 1 ? "la foto" : `las ${lista.length} fotos`}</button>`);
+      `<div class="progreso oculto" id="progreso"><i></i></div><button class="boton ancho" id="btnEnviarFotos" type="button">Subir ${lista.length === 1 ? (nV ? "el vídeo" : "la foto") : `las ${lista.length}`}</button>`);
+    // Duración de cada vídeo (y aviso si es demasiado largo)
+    lista.filter(x => x.video).forEach(async (x) => {
+      const est = document.querySelector(`#prev-${x.i} .estado-sub`);
+      try {
+        const v = await abrirVideo(x.url);
+        x.duracion = v.duration; v.removeAttribute("src"); v.load();
+        if (!(x.duracion > 0) || !isFinite(x.duracion)) x.duracion = 0;
+        if (x.duracion > MAX_DURACION + 0.5) { x.descartar = "Dura más de 3 minutos"; $("prev-" + x.i).classList.add("fallo"); est.textContent = "✗ " + x.descartar; }
+        else if (est && !est.textContent) est.textContent = "🎬 " + duracionTexto(x.duracion);
+      } catch (err) { x.descartar = err.message; if (est) { $("prev-" + x.i).classList.add("fallo"); est.textContent = "✗ " + err.message; } }
+    });
     const leerDatos = conectarDatosFoto();
     $("btnEnviarFotos").onclick = () => subirTodas(e, lista, leerDatos());
   };
@@ -1075,51 +1119,222 @@
       x.titulo = (document.querySelector(`[data-titulo="${x.i}"]`) || {}).value || "";
     });
     document.querySelectorAll("#hojaCuerpo input, #hojaCuerpo select, #hojaCuerpo button, #hojaCuerpo textarea").forEach(el => el.disabled = true);
-    let bien = 0, mal = 0;
+    let bien = 0, mal = 0, bloqueo = null;
+    // Que la pantalla no se apague mientras se preparan los vídeos
+    if (lista.some(x => x.video) && navigator.wakeLock) { try { bloqueo = await navigator.wakeLock.request("screen"); } catch (err) {} }
+    const barra = $("progreso").firstElementChild;
     for (let k = 0; k < lista.length; k++) {
       const x = lista[k], caja = $("prev-" + x.i), est = caja.querySelector(".estado-sub");
+      const avance = (p) => { barra.style.width = Math.round((k + Math.max(0, Math.min(1, p))) / lista.length * 100) + "%"; };
       b.textContent = `Subiendo ${k + 1} de ${lista.length}…`;
       est.textContent = "Preparando…";
       try {
-        const grande = await reducir(x.archivo, 1600, 0.82, 1050000, false);
-        const mini = await reducir(x.archivo, 480, 0.74, 200000, true);
-        est.textContent = "Subiendo…";
-        await servidor("subirFoto", Object.assign({ evento: e.id, foto: grande.b64, mini: mini.b64, ancho: grande.ancho, alto: grande.alto, titulo: x.titulo, pie: x.pie }, datos));
-        caja.classList.add("hecha"); est.textContent = "✓ Subida"; bien++;
+        if (x.descartar) throw new Error(x.descartar);
+        if (x.video) {
+          await subirUnVideo(e, x, datos, (texto, p) => { est.textContent = texto; avance(p); });
+        } else {
+          const grande = await reducir(x.archivo, 1600, 0.82, 1050000, false);
+          const mini = await reducir(x.archivo, 480, 0.74, 200000, true);
+          est.textContent = "Subiendo…";
+          await servidor("subirFoto", Object.assign({ evento: e.id, foto: grande.b64, mini: mini.b64, ancho: grande.ancho, alto: grande.alto, titulo: x.titulo, pie: x.pie }, datos));
+        }
+        caja.classList.add("hecha"); est.textContent = "✓ Subid" + (x.video ? "o" : "a"); bien++;
       } catch (err) {
         caja.classList.add("fallo"); est.textContent = "✗ " + err.message; mal++;
-        if (err.codigo) { bloqueoHoja = false; cerrarHoja(); trasError(err); return; }
+        if (err.codigo) { if (bloqueo) bloqueo.release().catch(() => {}); bloqueoHoja = false; cerrarHoja(); trasError(err); return; }
       }
-      $("progreso").firstElementChild.style.width = Math.round((k + 1) / lista.length * 100) + "%";
+      avance(1);
     }
+    if (bloqueo) bloqueo.release().catch(() => {});
     bloqueoHoja = false;
     lista.forEach(x => URL.revokeObjectURL(x.url));
-    if (!mal) { cerrarHoja(); aviso(bien === 1 ? "Foto subida ✓" : `${bien} fotos subidas ✓`); }
+    if (!mal) { cerrarHoja(); aviso(bien === 1 ? (lista[0].video ? "Vídeo subido ✓" : "Foto subida ✓") : `${bien} subidas ✓`); }
     else { b.disabled = false; b.textContent = "Cerrar"; b.onclick = cerrarHoja; aviso(`${bien} subida${bien === 1 ? "" : "s"}, ${mal} con error`); }
     pintar();
   }
 
-  // Reduce la foto a JPEG (y la recorta en cuadrado para la miniatura)
+  // ---------- Vídeos ----------
+  // 1) portada y miniatura (fotos de un fotograma), 2) si hace falta, se recomprime a 720p,
+  // 3) se sube el vídeo y 4) se registra en el álbum con sus datos.
+  async function subirUnVideo(e, x, datos, estado) {
+    estado("Leyendo el vídeo…", 0);
+    const v = await abrirVideo(x.url, true);
+    try {
+      const dur = isFinite(v.duration) && v.duration > 0 ? v.duration : (x.duracion || 0);
+      if (dur > MAX_DURACION + 0.5) throw new Error("Dura más de 3 minutos");
+      await irA(v, Math.min(0.5, dur / 3 || 0));
+      const ancho = v.videoWidth, alto = v.videoHeight;
+      if (!ancho || !alto) throw new Error("Este móvil no puede abrir este vídeo");
+      const portada = aJpeg(v, ancho, alto, 1280, 0.8, 1050000, false);
+      const mini = aJpeg(v, ancho, alto, 480, 0.74, 200000, true);
+      let blob = x.archivo, tipo = await tipoVideo(x.archivo);
+      // Se sube tal cual si ya es MP4/WebM ligero; si no, se prepara (más pequeño, 720p)
+      if (!tipo || x.archivo.size > MAX_VIDEO) {
+        // 720p (480p si es largo). Si aun así ocupa demasiado, otra pasada más pequeña.
+        const lado = dur > 90 ? 854 : 1280;
+        blob = await recomprimir(v, dur, lado, 1, (p) => estado(`Preparando el vídeo… ${Math.round(p * 100)}%`, p * 0.6));
+        if (blob.size > MAX_VIDEO * 1.1) {
+          blob = await recomprimir(v, dur, 640, 0.5, (p) => estado(`Haciéndolo más pequeño… ${Math.round(p * 100)}%`, p * 0.6));
+        }
+        tipo = await tipoVideo(blob);
+        if (!tipo) throw new Error("No se pudo preparar el vídeo en este navegador");
+        if (blob.size > MAX_VIDEO * 1.1) throw new Error("Sigue siendo demasiado grande. Prueba con uno más corto");
+      }
+      estado("Subiendo… 0%", 0.6);
+      const b64 = await aBase64(blob);
+      const r = await enviarVideo(e, b64, tipo, (p) => estado(`Subiendo… ${Math.round(p * 100)}%`, 0.6 + p * 0.38));
+      estado("Guardando…", 0.98);
+      await servidor("registrarVideo", Object.assign({ evento: e.id, video: r.video, foto: portada.b64, mini: mini.b64, ancho: portada.ancho, alto: portada.alto, duracion: dur, titulo: x.titulo, pie: x.pie }, datos));
+    } finally {
+      v.pause(); v.removeAttribute("src"); v.load(); v.remove();
+    }
+  }
+
+  function abrirVideo(url, enPagina) {
+    return new Promise((ok, mal) => {
+      const v = document.createElement("video");
+      v.muted = true; v.playsInline = true; v.setAttribute("playsinline", ""); v.preload = "auto";
+      // Algunos móviles solo descodifican el vídeo si está en la página (aunque no se vea)
+      if (enPagina) { v.style.cssText = "position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:.01;pointer-events:none;z-index:-1"; document.body.appendChild(v); }
+      const t = setTimeout(() => mal(new Error("Este móvil no puede abrir este vídeo")), 20000);
+      v.onloadedmetadata = () => { clearTimeout(t); ok(v); };
+      v.onerror = () => { clearTimeout(t); v.remove(); mal(new Error("Este móvil no puede abrir este vídeo")); };
+      v.src = url; v.load();
+    });
+  }
+  function irA(v, t) {
+    return new Promise((ok) => {
+      const listo = () => { clearTimeout(z); v.removeEventListener("seeked", listo); ok(); };
+      const z = setTimeout(listo, 4000);
+      v.addEventListener("seeked", listo);
+      try { v.currentTime = t; } catch (err) { listo(); }
+      if (Math.abs(v.currentTime - t) < 0.01 && v.readyState >= 2 && t === 0) listo();
+    });
+  }
+  // ¿Es un MP4 o un WebM de verdad? (mirando sus primeros bytes). Los .mov del iPhone se preparan.
+  async function tipoVideo(blob) {
+    const b = new Uint8Array(await blob.slice(0, 12).arrayBuffer());
+    const txt = String.fromCharCode.apply(null, b);
+    if (b[0] === 0x1A && b[1] === 0x45 && b[2] === 0xDF && b[3] === 0xA3) return "webm";
+    if (txt.slice(4, 8) === "ftyp" && txt.slice(8, 10) !== "qt") return "mp4";
+    return "";
+  }
+  // Vuelve a grabar el vídeo más pequeño (720p): se reproduce sin sonido por los altavoces
+  // y se graba a la vez. Tarda lo que dure el vídeo.
+  async function recomprimir(v, dur, ladoMax, factor, progreso) {
+    if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) throw new Error("Este navegador no puede preparar vídeos. Prueba desde otro navegador o con un vídeo más corto");
+    const tipos = ["video/mp4;codecs=avc1.42E01F,mp4a.40.2", "video/mp4;codecs=avc1,mp4a.40.2", "video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
+    const mime = tipos.find(t => { try { return MediaRecorder.isTypeSupported(t); } catch (e) { return false; } });
+    if (!mime) throw new Error("Este navegador no puede preparar vídeos");
+    const esc = Math.min(1, ladoMax / Math.max(v.videoWidth, v.videoHeight));
+    const c = document.createElement("canvas");
+    c.width = Math.max(2, Math.round(v.videoWidth * esc / 2) * 2); c.height = Math.max(2, Math.round(v.videoHeight * esc / 2) * 2);
+    const ctx = c.getContext("2d");
+    const pista = c.captureStream(30);
+    // Sonido: se lleva a la grabación, no a los altavoces
+    let audio = null;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      audio = new AC();
+      const fuente = audio.createMediaElementSource(v), destino = audio.createMediaStreamDestination();
+      fuente.connect(destino);
+      destino.stream.getAudioTracks().forEach(t => pista.addTrack(t));
+      if (audio.state !== "running") await audio.resume().catch(() => {});
+      v.muted = false;
+    } catch (err) { audio = null; v.muted = true; }
+    const bits = Math.round(factor * Math.max(300000, Math.min(2500000, Math.floor(MAX_VIDEO * 8 * 0.8 / Math.max(1, dur)) - 96000)));
+    const rec = new MediaRecorder(pista, { mimeType: mime, videoBitsPerSecond: bits, audioBitsPerSecond: 96000 });
+    const trozos = [];
+    rec.ondataavailable = (ev) => { if (ev.data && ev.data.size) trozos.push(ev.data); };
+    const parado = new Promise(ok => { rec.onstop = ok; });
+    await irA(v, 0);
+    ctx.drawImage(v, 0, 0, c.width, c.height);
+    let fin = false;
+    const dibujar = () => {
+      if (fin) return;
+      ctx.drawImage(v, 0, 0, c.width, c.height);
+      progreso(dur ? Math.min(1, v.currentTime / dur) : 0);
+      if (v.requestVideoFrameCallback) v.requestVideoFrameCallback(dibujar); else requestAnimationFrame(dibujar);
+    };
+    // Si se sale de la app, se pausa y se sigue al volver
+    const alCambiar = () => {
+      if (fin) return;
+      if (document.visibilityState === "hidden") { v.pause(); if (rec.state === "recording") rec.pause(); }
+      else { if (rec.state === "paused") rec.resume(); v.play().catch(() => {}); }
+    };
+    document.addEventListener("visibilitychange", alCambiar);
+    try {
+      rec.start(1000);
+      try { await v.play(); }
+      catch (err) { v.muted = true; await v.play(); }
+      dibujar();
+      await new Promise((ok, mal) => {
+        v.onended = ok;
+        v.onerror = () => mal(new Error("Error al leer el vídeo"));
+        // Por si algún navegador no avisa al acabar
+        const vigila = setInterval(() => { if (fin || (dur && v.currentTime >= dur - 0.05 && v.paused)) { clearInterval(vigila); ok(); } }, 500);
+      });
+    } finally {
+      fin = true;
+      document.removeEventListener("visibilitychange", alCambiar);
+      v.pause();
+      if (rec.state !== "inactive") rec.stop();
+    }
+    await parado;
+    if (audio) audio.close().catch(() => {});
+    return new Blob(trozos, { type: mime.split(";")[0] });
+  }
+  function aBase64(blob) {
+    return new Promise((ok, mal) => {
+      const r = new FileReader();
+      r.onload = () => ok(String(r.result).split(",")[1] || "");
+      r.onerror = () => mal(new Error("No se pudo leer el vídeo"));
+      r.readAsDataURL(blob);
+    });
+  }
+  // El vídeo va aparte (es grande): en bruto, con barra de progreso
+  function enviarVideo(e, b64, tipo, progreso) {
+    return new Promise((ok, mal) => {
+      if (!URL_SERVIDOR) return mal(Object.assign(new Error("La galería todavía no está activada"), { codigo: "sin-activar" }));
+      const x = new XMLHttpRequest();
+      x.open("POST", URL_SERVIDOR);
+      x.setRequestHeader("Content-Type", "text/plain");
+      x.setRequestHeader("X-Galeria", "video");
+      x.setRequestHeader("X-Token", sesion.token);
+      x.setRequestHeader("X-Evento", e.id);
+      x.setRequestHeader("X-Tipo", tipo);
+      x.upload.onprogress = (ev) => { if (ev.lengthComputable) progreso(ev.loaded / ev.total); };
+      x.onload = () => {
+        let j = {}; try { j = JSON.parse(x.responseText); } catch (err) {}
+        if (x.status >= 200 && x.status < 300 && !j.error && j.video) return ok(j);
+        mal(Object.assign(new Error(j.error || (x.status === 413 ? "El vídeo es demasiado grande" : "Error " + x.status)), { codigo: j.codigo || "" }));
+      };
+      x.onerror = () => mal(new Error("Se cortó la conexión. Inténtalo de nuevo con wifi"));
+      x.send(b64);
+    });
+  }
+
+  // Pasa una imagen (o un fotograma de vídeo) a JPEG, más pequeña (y en cuadrado para la miniatura)
+  function aJpeg(fuente, w0, h0, max, calidad, limite, cuadrado) {
+    let sx = 0, sy = 0, sw = w0, sh = h0;
+    if (cuadrado) { const l = Math.min(sw, sh); sx = (sw - l) / 2; sy = (sh - l) / 2; sw = sh = l; }
+    let lado = max, q = calidad, b64 = "", c;
+    for (let intento = 0; intento < 6; intento++) {
+      const esc = Math.min(1, lado / Math.max(sw, sh));
+      c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(sw * esc)); c.height = Math.max(1, Math.round(sh * esc));
+      const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(fuente, sx, sy, sw, sh, 0, 0, c.width, c.height);
+      b64 = c.toDataURL("image/jpeg", q).split(",")[1];
+      if (b64.length <= limite) break;
+      q = Math.max(0.5, q - 0.08); lado = Math.round(lado * 0.85);
+    }
+    return { b64, ancho: c.width, alto: c.height };
+  }
   function reducir(archivo, max, calidad, limite, cuadrado) {
     return new Promise((ok, mal) => {
       const img = new Image(), url = URL.createObjectURL(archivo);
-      img.onload = () => {
-        let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
-        if (cuadrado) { const l = Math.min(sw, sh); sx = (sw - l) / 2; sy = (sh - l) / 2; sw = sh = l; }
-        let lado = max, q = calidad, b64 = "", c;
-        for (let intento = 0; intento < 6; intento++) {
-          const esc = Math.min(1, lado / Math.max(sw, sh));
-          c = document.createElement("canvas");
-          c.width = Math.max(1, Math.round(sw * esc)); c.height = Math.max(1, Math.round(sh * esc));
-          const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
-          ctx.drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
-          b64 = c.toDataURL("image/jpeg", q).split(",")[1];
-          if (b64.length <= limite) break;
-          q = Math.max(0.5, q - 0.08); lado = Math.round(lado * 0.85);
-        }
-        URL.revokeObjectURL(url);
-        ok({ b64, ancho: c.width, alto: c.height });
-      };
+      img.onload = () => { const r = aJpeg(img, img.naturalWidth, img.naturalHeight, max, calidad, limite, cuadrado); URL.revokeObjectURL(url); ok(r); };
       img.onerror = () => { URL.revokeObjectURL(url); mal(new Error("No se pudo leer esta imagen")); };
       img.src = url;
     });
@@ -1129,11 +1344,12 @@
   function hojaMenuFoto(id, e) {
     const f = G.fotos.find(x => x.id === id); if (!f) return;
     const mia = miHuella && f.quien === miHuella;
-    abrirHoja("Foto", `<div class="menu-opciones">
-      <button type="button" id="mDescargar">${IC.descargar} Guardar la foto</button>
+    const cosa = f.video ? "vídeo" : "foto";
+    abrirHoja(f.video ? "Vídeo" : "Foto", `<div class="menu-opciones">
+      <button type="button" id="mDescargar">${IC.descargar} Guardar ${f.video ? "el vídeo" : "la foto"}</button>
       ${mia ? `<button type="button" id="mEditar">${IC.lapiz} Editar título, pie, día, momento o lugar</button>
       <button type="button" id="mVarias">${IC.check} Cambiar día, momento o lugar de varias fotos a la vez</button>
-      <button type="button" id="mBorrar" class="peligro">${IC.papelera} Borrar mi foto</button>` : ""}
+      <button type="button" id="mBorrar" class="peligro">${IC.papelera} Borrar mi ${cosa}</button>` : ""}
     </div>`);
     $("mDescargar").onclick = () => descargar(f);
     if (mia) {
@@ -1145,14 +1361,14 @@
         pintar(); window.scrollTo({ top: 0, behavior: "smooth" });
       };
       $("mBorrar").onclick = async () => {
-        if (!confirm("¿Borrar esta foto? También se borrarán sus comentarios.")) return;
+        if (!confirm(`¿Borrar ${f.video ? "este vídeo" : "esta foto"}? También se borrarán sus comentarios.`)) return;
         cerrarHoja();
-        try { await servidor("borrarFoto", { foto: f.id }); pintar(); aviso("Foto borrada"); } catch (err) { trasError(err); }
+        try { await servidor("borrarFoto", { foto: f.id }); pintar(); aviso(f.video ? "Vídeo borrado" : "Foto borrada"); } catch (err) { trasError(err); }
       };
     }
   }
   function hojaEditarFoto(f, e) {
-    abrirHoja("Editar mi foto", `
+    abrirHoja(f.video ? "Editar mi vídeo" : "Editar mi foto", `
       <img src="${escapar(urlFoto(f.mini))}" alt="" class="miniatura-editar">
       <label class="etq" for="fTitulo">Título</label>
       <input class="entrada" id="fTitulo" maxlength="60" placeholder="Ponle un nombre a la foto" value="${escapar(f.titulo || "")}">
@@ -1229,16 +1445,19 @@
   async function descargar(f) {
     cerrarHoja();
     try {
-      const r = await fetch(urlFoto(f.ruta)); if (!r.ok) throw new Error();
-      const blob = await r.blob(), nombre = `cucharillas-${f.id}.jpg`;
-      const archivo = new File([blob], nombre, { type: "image/jpeg" });
+      const ruta = f.video || f.ruta, ext = ruta.split(".").pop();
+      const tipo = f.video ? "video/" + ext : "image/jpeg";
+      let r = await fetch(rutaLocal(ruta)).catch(() => null);
+      if (!r || !r.ok) r = await fetch(urlFoto(ruta)); if (!r.ok) throw new Error();
+      const blob = new Blob([await r.blob()], { type: tipo }), nombre = `cucharillas-${f.id}.${ext}`;
+      const archivo = new File([blob], nombre, { type: tipo });
       if (matchMedia("(pointer: coarse)").matches && navigator.canShare && navigator.canShare({ files: [archivo] })) {
         await navigator.share({ files: [archivo] }).catch(() => {});
         return;
       }
       const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nombre;
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
-    } catch (e) { window.open(urlFoto(f.ruta), "_blank"); }
+    } catch (e) { window.open(urlFoto(f.video || f.ruta), "_blank"); }
   }
 
   // ---------- Arranque ----------
