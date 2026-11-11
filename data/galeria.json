@@ -752,7 +752,9 @@
    "autor": "DJ",
    "quien": "d50ce427e4df09a3a1d6",
    "fecha": "2026-11-11T00:10:41.368Z",
-   "likes": [],
+   "likes": [
+    "d50ce427e4df09a3a1d6"
+   ],
    "comentarios": []
   },
   {
