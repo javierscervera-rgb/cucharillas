@@ -12,9 +12,9 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
   <link rel="icon" href="img/icono-192.png">
-  <link rel="stylesheet" href="css/estilos.css">
-  <script src="js/config.js"></script>
-  <script src="js/app.js"></script>
+  <link rel="stylesheet" href="css/estilos.css?v=16">
+  <script src="js/config.js?v=16"></script>
+  <script src="js/app.js?v=16"></script>
   <style>
     :root { --rojo-like: #E5484D; }
     .oculto { display: none !important; }
@@ -179,6 +179,47 @@
     .menu-opciones svg { width: 22px; height: 22px; }
     body.sin-scroll { overflow: hidden; }
 
+    /* ---------- Álbum: grupos por momento y por lugar ---------- */
+    .grupo-dia { margin-bottom: 8px; }
+    .grupo-dia .grupo-fotos { margin: 22px 2px 8px; }
+    .grupo-dia:first-child .grupo-fotos { margin-top: 6px; }
+    .grupo-titulo { flex: 1; min-width: 0; }
+    .sub-lugar { display: flex; align-items: center; gap: 8px; margin: 12px 2px 7px; font-size: 14.5px; font-weight: 600; color: #2C7A57; }
+    .sub-lugar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sub-lugar small { color: var(--texto-secundario); font-weight: 400; font-size: 12.5px; white-space: nowrap; }
+    .sub-lugar .elegir-grupo, .grupo-fotos .elegir-grupo { margin-left: auto; border: 0; font: 600 12.5px inherit; font-family: inherit; cursor: pointer; flex-shrink: 0; }
+    .grupo-fotos { display: flex; align-items: center; }
+
+    /* ---------- Visor de fotos ---------- */
+    .visor { position: fixed; inset: 0; z-index: 180; background: #fff; overflow-y: auto; overscroll-behavior: contain; animation: aparecer .2s ease both; }
+    .visor-barra { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 10px; padding: calc(10px + env(safe-area-inset-top)) 12px 10px; background: rgba(17,22,34,.94); color: #fff; }
+    .visor-cerrar, .visor-mas { width: 40px; height: 40px; border: 0; border-radius: 50%; background: rgba(255,255,255,.12); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-size: 20px; }
+    .visor-cerrar svg { width: 22px; height: 22px; }
+    .visor-titulo { flex: 1; min-width: 0; text-align: center; line-height: 1.25; }
+    .visor-titulo b { display: block; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .visor-titulo small { font-size: 12.5px; opacity: .75; }
+    .visor-foto { position: relative; background: #111622; }
+    .visor-carrusel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+    .visor-carrusel::-webkit-scrollbar { display: none; }
+    .visor-slide { position: relative; flex: 0 0 100%; scroll-snap-align: center; scroll-snap-stop: always; display: flex; align-items: center; justify-content: center; height: min(72vh, 72dvh); }
+    .visor-slide img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; -webkit-user-drag: none; user-select: none; }
+    .visor-flecha { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(255,255,255,.88); color: var(--texto-principal); display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+    .visor-flecha svg { width: 22px; height: 22px; }
+    .visor-flecha.izq { left: 14px; } .visor-flecha.der { right: 14px; }
+    .visor-flecha:disabled { opacity: 0; pointer-events: none; }
+    @media (hover: hover) and (pointer: fine) { .visor-flecha { display: flex; } }
+    .visor-puntos { display: flex; justify-content: center; gap: 5px; padding: 10px 0 2px; background: #fff; }
+    .visor-puntos i { width: 6px; height: 6px; border-radius: 3px; background: #D3DCE8; transition: all .25s; }
+    .visor-puntos i.activo { width: 18px; background: var(--azul-cielo); }
+    .visor-info { max-width: 640px; margin: 0 auto; padding: 4px 4px calc(30px + env(safe-area-inset-bottom)); }
+    .visor-info .foto-cab { padding: 12px 12px 4px; }
+    .visor-info .titulo-foto { padding: 4px 16px 0; font-size: 19px; }
+    .visor-info .pie { padding: 6px 16px 0; }
+    .visor-info .comentarios { margin-top: 10px; border-radius: 18px; border: 1px solid var(--gris-borde); }
+    .titulo-comentarios { margin: 2px 2px 12px; font-size: 14px; color: var(--texto-secundario); text-transform: uppercase; letter-spacing: .5px; }
+    .sin-comentarios { color: var(--texto-secundario); font-size: 14.5px; margin: 0 2px 12px; }
+    @media (min-width: 1000px) { .visor { left: 240px; } .visor-slide { height: 74vh; } }
+
     /* ---------- Título de la foto y edición ---------- */
     .titulo-foto { padding: 6px 16px 0; font-size: 17px; font-weight: 700; line-height: 1.3; }
     .accion.editar { margin-left: auto; color: var(--azul-cielo); font-size: 14px; }
@@ -321,11 +362,9 @@
   // ---------- Estado ----------
   let G = { eventos: [], fotos: [] };
   try { const c = JSON.parse(leerLS(K.cache) || "null"); if (c && c.eventos) G = c; } catch (e) {}
-  let vista = leerLS(K.vista) === "filas" ? "filas" : "cuadricula";
   let filtroLugar = "";
   let seleccionando = false;      // modo para cambiar varias fotos a la vez
   const elegidas = new Set();
-  const abiertos = new Set();   // fotos con los comentarios desplegados
   const borradores = {};        // comentario a medio escribir, por foto
 
   function guardarGaleria(g) {
@@ -380,27 +419,42 @@
 
   const fotosDe = (idEvento) => G.fotos.filter(f => f.evento === idEvento);
   // Fotos que han aparecido desde la última vez que entraste en la galería (sin contar las tuyas)
-  const previoGaleria = App.Novedades.previo("galeria");
+  const previoGaleria = App.Novedades && App.Novedades.previo ? App.Novedades.previo("galeria") : null;
   const esNueva = (f) => !!previoGaleria && !previoGaleria.has("f:" + f.id) && f.quien !== miHuella;
   const ordenMomento = (m) => { const i = MOMENTOS.findIndex(x => x.id === m); return i < 0 ? 9 : i; };
   function ordenar(fotos) {
     return [...fotos].sort((a, b) =>
       (a.dia ? 0 : 1) - (b.dia ? 0 : 1) || String(a.dia).localeCompare(String(b.dia)) ||
-      ordenMomento(a.momento) - ordenMomento(b.momento) || String(a.fecha).localeCompare(String(b.fecha)));
+      ordenMomento(a.momento) - ordenMomento(b.momento) ||
+      (a.lugar ? 0 : 1) - (b.lugar ? 0 : 1) || String(a.lugar || "").trim().localeCompare(String(b.lugar || "").trim(), "es") ||
+      String(a.fecha).localeCompare(String(b.fecha)));
   }
   const lugaresDe = (idEvento) => [...new Set(fotosDe(idEvento).map(f => (f.lugar || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
 
   // ---------- Navegación (el botón "atrás" del móvil funciona) ----------
+  // #e=<álbum>            → álbum en cuadrícula
+  // #e=<álbum>&f=<foto>   → visor de esa foto
   function eventoActual() { const m = location.hash.match(/^#e=([a-z0-9-]+)/); return m ? m[1] : ""; }
-  window.addEventListener("hashchange", () => { cerrarHoja(); filtroLugar = ""; seleccionando = false; elegidas.clear(); pintar(); window.scrollTo(0, 0); });
+  function fotoActual() { const m = location.hash.match(/[#&]f=([a-z0-9]+)/); return m ? m[1] : ""; }
+  let ultimoAlbum = eventoActual();
+  let abiertoDesdeAlbum = false;
+  window.addEventListener("hashchange", () => {
+    cerrarHoja();
+    const ev = eventoActual();
+    if (ev !== ultimoAlbum) { filtroLugar = ""; seleccionando = false; elegidas.clear(); ultimoAlbum = ev; window.scrollTo(0, 0); }
+    if (!fotoActual()) abiertoDesdeAlbum = false;
+    pintar();
+  });
 
   function pintar() {
     const ev = eventoActual();
-    if (ev) {
-      const e = G.eventos.find(x => x.id === ev);
-      if (e) return pintarAlbum(e);
-    }
-    pintarEventos();
+    const e = ev && G.eventos.find(x => x.id === ev);
+    if (!e) { cerrarVisor(); return pintarEventos(); }
+    pintarAlbum(e);
+    const idF = fotoActual();
+    const f = idF && G.fotos.find(x => x.id === idF && x.evento === e.id);
+    if (f) pintarVisor(e, f);
+    else { cerrarVisor(); if (idF) history.replaceState(null, "", "#e=" + e.id); }
   }
 
   // ---------- Sin activar ----------
@@ -449,9 +503,8 @@
     $("btnActualizar").onclick = () => actualizar(true);
   }
 
-  // ---------- Álbum ----------
+  // ---------- Álbum: cuadrícula por día y momento, y dentro por lugar ----------
   function pintarAlbum(e) {
-    $("btnSubir").classList.remove("oculto");
     app.classList.remove("vista-eventos"); app.classList.add("vista-album");
     const todas = ordenar(fotosDe(e.id));
     const lugares = lugaresDe(e.id);
@@ -467,41 +520,23 @@
       <p class="album-meta">${[e.fecha ? diaLargo(e.fecha) : "", `${todas.length} foto${todas.length === 1 ? "" : "s"}`].filter(Boolean).join(" · ")}</p>
       ${e.descripcion ? `<p class="album-desc">${texto(e.descripcion)}</p>` : ""}
       ${todas.length ? `
-      ${seleccionando ? `<div class="aviso info aviso-sel">Toca tus fotos para elegirlas (o el título de un día para elegir todas las tuyas de ese momento). Después pulsa <b>Cambiar datos</b>.</div>` : `
-      <div class="interruptor ${vista === "filas" ? "filas" : ""}" id="interruptor" role="tablist" aria-label="Ver como">
-        <i class="bola"></i>
-        <button type="button" data-vista="cuadricula" role="tab">${IC.cuadricula} Cuadrícula</button>
-        <button type="button" data-vista="filas" role="tab">${IC.filas} Filas</button>
-      </div>`}
+      ${seleccionando ? `<div class="aviso info aviso-sel">Toca tus fotos para elegirlas, o «Elegir» junto a un momento o un lugar para elegir todas las tuyas de ahí. Después pulsa <b>Cambiar datos</b>.</div>` : ""}
       ${mias.length && !seleccionando ? `<div class="fila-sel"><button type="button" class="boton-sel" id="btnSeleccionar">${IC.check} Cambiar día, momento o lugar de varias fotos</button></div>` : ""}
       ${lugares.length > 1 ? `<div class="filtros" id="filtros">
         <button type="button" data-lugar="" class="${filtroLugar ? "" : "activo"}">Todos los lugares</button>
         ${lugares.map(l => `<button type="button" data-lugar="${escapar(l)}" class="${l === filtroLugar ? "activo" : ""}">📍 ${escapar(l)}</button>`).join("")}
       </div>` : ""}
-      <div class="pista-vistas" id="pista"><div class="vista" id="vista">${seleccionando ? htmlCuadricula(fotos) : vista === "filas" ? htmlFilas(fotos) : htmlCuadricula(fotos)}</div></div>`
+      <div class="vista" id="vista">${htmlCuadricula(fotos)}</div>`
       : `<div class="vacio"><div class="icono-pastilla icono-azul">${IC.album}</div>Este álbum está vacío.<br>Pulsa <b>Subir fotos</b> para añadir las tuyas.</div>`}
       <div style="height:${seleccionando ? 160 : 70}px"></div>`;
     window.scrollTo(0, y);
 
-    app.querySelector(".btn-volver").onclick = (ev) => { ev.preventDefault(); history.length > 1 && location.hash ? history.back() : (location.hash = ""); };
-    const sw = $("interruptor");
-    if (sw) {
-      sw.querySelectorAll("button").forEach(b => b.onclick = () => cambiarVista(b.dataset.vista));
-      // Deslizar el dedo a izquierda/derecha cambia de vista
-      let x0 = null, y0 = null;
-      const pista = $("pista");
-      pista.addEventListener("touchstart", ev => { x0 = ev.touches[0].clientX; y0 = ev.touches[0].clientY; }, { passive: true });
-      pista.addEventListener("touchend", ev => {
-        if (x0 === null) return;
-        const dx = ev.changedTouches[0].clientX - x0, dy = ev.changedTouches[0].clientY - y0; x0 = null;
-        if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8) cambiarVista(dx < 0 ? "filas" : "cuadricula");
-      }, { passive: true });
-    }
+    app.querySelector(".btn-volver").onclick = (ev) => { ev.preventDefault(); location.hash = ""; };
     const fl = $("filtros");
     if (fl) fl.querySelectorAll("button").forEach(b => b.onclick = () => { filtroLugar = b.dataset.lugar; pintar(); });
     const bs = $("btnSeleccionar");
     if (bs) bs.onclick = () => { seleccionando = true; elegidas.clear(); pintar(); };
-    conectarFotos(e);
+    conectarCuadricula(e, fotos);
     pintarBarraSeleccion(e, mias);
   }
 
@@ -523,17 +558,8 @@
     $("selCambiar").onclick = () => hojaCambiarVarias(e);
   }
 
-  function cambiarVista(v, irA) {
-    if (v === vista && !irA) return;
-    vista = v; ponerLS(K.vista, v);
-    pintar();
-    if (irA) {
-      const el = document.getElementById("f-" + irA);
-      if (el) el.scrollIntoView({ block: "start" });
-    }
-  }
-
-  function grupos(fotos) {
+  // Grupos: día + momento, y dentro de cada uno, un subgrupo por lugar
+  function gruposAlbum(fotos) {
     const out = []; let clave = null;
     for (const f of fotos) {
       const k = (f.dia || "") + "|" + (f.momento || "");
@@ -541,18 +567,23 @@
         clave = k;
         const m = momentoDe(f.momento);
         const titulo = [f.dia ? diaLargo(f.dia) : (f.momento ? "" : "Sin fecha"), m ? m.nombre : ""].filter(Boolean).join(" · ");
-        out.push({ titulo, ico: m ? m.ico : (f.dia ? "📅" : ""), fotos: [] });
+        out.push({ titulo, ico: m ? m.ico : (f.dia ? "📅" : "🖼️"), subs: [] });
       }
-      out[out.length - 1].fotos.push(f);
+      const g = out[out.length - 1], lugar = (f.lugar || "").trim();
+      let sub = g.subs[g.subs.length - 1];
+      if (!sub || sub.lugar !== lugar) { sub = { lugar, fotos: [] }; g.subs.push(sub); }
+      sub.fotos.push(f);
     }
     return out;
   }
-  const hayGrupos = (fotos) => fotos.some(f => f.dia || f.momento);
-  const cabeceraGrupo = (g, filas) => `<div class="grupo-fotos${filas ? " en-filas" : ""}"><span class="momento-ico">${g.ico}</span>${escapar(g.titulo)}</div>`;
+  const mias = (lista) => lista.filter(f => miHuella && f.quien === miHuella);
+  const botonElegir = (lista, attr) => {
+    const m = mias(lista); if (!seleccionando || !m.length) return "";
+    return `<button type="button" class="elegir-grupo" ${attr}>${m.every(f => elegidas.has(f.id)) ? "Quitar" : "Elegir"} ${m.length}</button>`;
+  };
 
   function htmlCuadricula(fotos) {
     const celda = (f) => {
-      const n = (f.likes || []).length, c = (f.comentarios || []).length;
       if (seleccionando) {
         const mia = miHuella && f.quien === miHuella, on = elegidas.has(f.id);
         return `<button class="celda ${mia ? "seleccionable" : "bloqueada"} ${on ? "elegida" : ""}" type="button" ${mia ? `data-elegir="${escapar(f.id)}"` : "disabled"} aria-pressed="${on}" aria-label="${mia ? "Elegir foto" : "Foto de otra persona"}">
@@ -560,108 +591,181 @@
           ${mia ? `<span class="marca-sel">${on ? IC.check : ""}</span>` : ""}
         </button>`;
       }
-      return `<button class="celda ${esNueva(f) ? "nueva" : ""}" type="button" data-ver="${escapar(f.id)}" aria-label="${esNueva(f) ? "Foto nueva" : "Ver foto"}">
+      const n = (f.likes || []).length, c = (f.comentarios || []).length;
+      return `<button class="celda ${esNueva(f) ? "nueva" : ""}" type="button" data-ver="${escapar(f.id)}" aria-label="${escapar(f.titulo || (esNueva(f) ? "Foto nueva" : "Ver foto"))}">
         <img ${imgAttrs(f.mini, 'loading="lazy" alt=""')}>
         ${n || c ? `<span class="marcas">${n ? `<span>${IC.corazonLleno}${n}</span>` : ""}${c ? `<span>${IC.bocadillo}${c}</span>` : ""}</span>` : ""}
       </button>`;
     };
-    if (!hayGrupos(fotos)) return `<div class="cuadricula">${fotos.map(celda).join("")}</div>`;
-    return grupos(fotos).map((g, i) => {
-      const mias = seleccionando ? g.fotos.filter(f => miHuella && f.quien === miHuella) : [];
-      const cab = mias.length
-        ? `<button type="button" class="grupo-fotos grupo-elegible" data-grupo="${i}"><span class="momento-ico">${g.ico}</span>${escapar(g.titulo)}<span class="elegir-grupo">${mias.every(f => elegidas.has(f.id)) ? "Quitar" : "Elegir"} ${mias.length}</span></button>`
-        : cabeceraGrupo(g);
-      return cab + `<div class="cuadricula">${g.fotos.map(celda).join("")}</div>`;
+    return gruposAlbum(fotos).map((g, i) => {
+      const todasG = g.subs.flatMap(s => s.fotos);
+      const variosLugares = g.subs.length > 1 || g.subs[0].lugar;
+      return `<section class="grupo-dia">
+        <h3 class="grupo-fotos"><span class="momento-ico">${g.ico}</span><span class="grupo-titulo">${escapar(g.titulo)}</span>${botonElegir(todasG, `data-grupo="${i}"`)}</h3>
+        ${g.subs.map((sub, j) => `
+          ${variosLugares ? `<div class="sub-lugar"><span>📍 ${escapar(sub.lugar || "Sin lugar")}</span><small>${sub.fotos.length} foto${sub.fotos.length === 1 ? "" : "s"}</small>${botonElegir(sub.fotos, `data-sub="${i}:${j}"`)}</div>` : ""}
+          <div class="cuadricula">${sub.fotos.map(celda).join("")}</div>`).join("")}
+      </section>`;
     }).join("");
   }
 
-  function htmlFoto(f) {
+  function conectarCuadricula(e, fotos) {
+    const grupos = gruposAlbum(fotos);
+    app.querySelectorAll("[data-ver]").forEach(b => b.onclick = () => {
+      abiertoDesdeAlbum = true;
+      location.hash = `e=${e.id}&f=${b.dataset.ver}`;
+    });
+    app.querySelectorAll("[data-elegir]").forEach(b => b.onclick = () => {
+      const id = b.dataset.elegir;
+      if (elegidas.has(id)) elegidas.delete(id); else elegidas.add(id);
+      pintar();
+    });
+    const alternar = (lista) => {
+      const m = mias(lista), todas = m.every(f => elegidas.has(f.id));
+      m.forEach(f => todas ? elegidas.delete(f.id) : elegidas.add(f.id));
+      pintar();
+    };
+    app.querySelectorAll("[data-grupo]").forEach(b => b.onclick = () => alternar(grupos[+b.dataset.grupo].subs.flatMap(s => s.fotos)));
+    app.querySelectorAll("[data-sub]").forEach(b => b.onclick = () => { const [i, j] = b.dataset.sub.split(":").map(Number); alternar(grupos[i].subs[j].fotos); });
+  }
+
+  // ---------- Visor: deslizar a los lados entre las fotos del mismo día y lugar ----------
+  function grupoVisor(e, f) {
+    const lugar = (f.lugar || "").trim();
+    return ordenar(fotosDe(e.id)).filter(x => (x.dia || "") === (f.dia || "") && (x.lugar || "").trim() === lugar);
+  }
+  let visorClave = "";
+  function pintarVisor(e, f) {
+    const lista = grupoVisor(e, f);
+    const clave = e.id + "|" + (f.dia || "") + "|" + (f.lugar || "").trim() + "|" + lista.map(x => x.id).join(",");
+    let visor = $("visor");
+    if (!visor || visorClave !== clave) {
+      if (!visor) {
+        visor = document.createElement("div"); visor.id = "visor"; visor.className = "visor";
+        visor.setAttribute("role", "dialog"); visor.setAttribute("aria-modal", "true");
+        document.body.appendChild(visor);
+      }
+      visorClave = clave;
+      const lugar = (f.lugar || "").trim();
+      visor.innerHTML = `
+        <div class="visor-barra">
+          <button type="button" class="visor-cerrar" id="visorCerrar" aria-label="Volver al álbum">${ICONOS.atras}</button>
+          <div class="visor-titulo"><b>${escapar(lugar ? "📍 " + lugar : e.titulo)}</b><small id="visorCuenta"></small></div>
+          <button type="button" class="visor-mas" id="visorMas" aria-label="Más opciones">⋯</button>
+        </div>
+        <div class="visor-foto">
+          <div class="visor-carrusel" id="carrusel">
+            ${lista.map((x, k) => `<div class="visor-slide" data-id="${escapar(x.id)}"><img ${imgAttrs(x.ruta, `alt="${escapar(x.titulo || x.pie || "Foto de " + x.autor)}" ${Math.abs(k - lista.indexOf(f)) > 1 ? 'loading="lazy"' : ""}`)}><span class="corazon-grande">${IC.corazonLleno}</span></div>`).join("")}
+          </div>
+          ${lista.length > 1 ? `<button type="button" class="visor-flecha izq" id="visorAnt" aria-label="Foto anterior">${ICONOS.atras}</button>
+          <button type="button" class="visor-flecha der" id="visorSig" aria-label="Foto siguiente">${ICONOS.flecha}</button>` : ""}
+        </div>
+        ${lista.length > 1 && lista.length <= 20 ? `<div class="visor-puntos" id="visorPuntos">${lista.map(() => "<i></i>").join("")}</div>` : ""}
+        <div class="visor-info" id="visorInfo"></div>`;
+      document.body.classList.add("sin-scroll");
+      conectarVisor(e, lista);
+      const car = $("carrusel"), i = Math.max(0, lista.findIndex(x => x.id === f.id));
+      car.scrollLeft = i * car.clientWidth;
+      requestAnimationFrame(() => { car.scrollLeft = i * car.clientWidth; });
+      visor.scrollTop = 0;
+    }
+    pintarInfoVisor(e, f, lista);
+  }
+
+  function cerrarVisor() {
+    const v = $("visor");
+    if (v) { v.remove(); visorClave = ""; document.body.classList.remove("sin-scroll"); }
+  }
+  function salirVisor() {
+    const ev = eventoActual();
+    if (abiertoDesdeAlbum) history.back(); else location.replace("#e=" + ev);
+  }
+
+  function conectarVisor(e, lista) {
+    $("visorCerrar").onclick = salirVisor;
+    $("visorMas").onclick = () => { const id = fotoActual(); if (id) hojaMenuFoto(id, e); };
+    const car = $("carrusel");
+    let t = null;
+    const alParar = () => {
+      const i = Math.round(car.scrollLeft / Math.max(1, car.clientWidth));
+      const x = lista[Math.max(0, Math.min(lista.length - 1, i))];
+      if (x && x.id !== fotoActual()) {
+        // Cambia la foto sin añadir un paso más al botón "atrás"
+        history.replaceState(null, "", `#e=${e.id}&f=${x.id}`);
+        pintarInfoVisor(e, x, lista);
+        $("visor").scrollTo({ top: 0, behavior: "smooth" });
+      }
+    };
+    car.addEventListener("scroll", () => { clearTimeout(t); t = setTimeout(alParar, 90); }, { passive: true });
+    const ir = (d) => { car.scrollBy({ left: d * car.clientWidth, behavior: "smooth" }); };
+    if ($("visorAnt")) { $("visorAnt").onclick = () => ir(-1); $("visorSig").onclick = () => ir(1); }
+    // Doble toque en la foto = me gusta
+    car.querySelectorAll(".visor-slide").forEach(sl => {
+      let ultimo = 0;
+      sl.addEventListener("click", () => {
+        const ahora = Date.now();
+        if (ahora - ultimo < 320) {
+          const c = sl.querySelector(".corazon-grande"); c.classList.remove("latido"); void c.offsetWidth; c.classList.add("latido");
+          const x = G.fotos.find(y => y.id === sl.dataset.id);
+          if (x && !(x.likes || []).includes(miHuella)) darLike(x.id, true);
+          ultimo = 0;
+        } else ultimo = ahora;
+      });
+    });
+  }
+  // Flechas del teclado y Esc en el ordenador
+  document.addEventListener("keydown", (ev) => {
+    if (!$("visor") || $("hoja").classList.contains("visible") || /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName)) return;
+    const car = $("carrusel");
+    if (ev.key === "ArrowRight") car.scrollBy({ left: car.clientWidth, behavior: "smooth" });
+    else if (ev.key === "ArrowLeft") car.scrollBy({ left: -car.clientWidth, behavior: "smooth" });
+    else if (ev.key === "Escape") salirVisor();
+  });
+
+  // Debajo de la foto: título, datos, me gusta y comentarios (scroll vertical)
+  function pintarInfoVisor(e, f, lista) {
+    const info = $("visorInfo"); if (!info) return;
+    const i = lista.findIndex(x => x.id === f.id);
+    $("visorCuenta").textContent = [f.dia ? diaCorto(f.dia) : "", `${i + 1} de ${lista.length}`].filter(Boolean).join(" · ");
+    const puntos = $("visorPuntos");
+    if (puntos) [...puntos.children].forEach((p, k) => p.classList.toggle("activo", k === i));
+    const ant = $("visorAnt"), sig = $("visorSig");
+    if (ant) { ant.disabled = i <= 0; sig.disabled = i >= lista.length - 1; }
     const n = (f.likes || []).length, me = miHuella && (f.likes || []).includes(miHuella);
-    const coms = f.comentarios || [], abierto = abiertos.has(f.id);
-    const m = momentoDe(f.momento);
-    const ratio = f.ancho && f.alto ? `style="aspect-ratio:${f.ancho}/${f.alto}"` : "";
+    const coms = f.comentarios || [], m = momentoDe(f.momento);
     const chips = [
       f.dia ? `<span class="dato-chip">📅 ${escapar(diaCorto(f.dia))}</span>` : "",
       m ? `<span class="dato-chip">${m.ico} ${m.nombre}</span>` : "",
       f.lugar ? `<span class="dato-chip lugar">📍 ${escapar(f.lugar)}</span>` : ""
     ].join("");
-    return `
-    <article class="foto" id="f-${escapar(f.id)}">
+    info.innerHTML = `
       <div class="foto-cab">
         ${inicial(f.autor)}
         <div class="quien"><b>${escapar(f.autor)}</b><small>${escapar(App.horaRelativa(f.fecha))}</small></div>
-        <button class="mas-opciones" type="button" data-menu="${escapar(f.id)}" aria-label="Más opciones">⋯</button>
       </div>
-      <div class="foto-img" data-dobletoque="${escapar(f.id)}">
-        <img ${imgAttrs(f.ruta, `loading="lazy" alt="${escapar(f.titulo || f.pie || "Foto de " + f.autor)}" ${ratio}`)}>
-        <span class="corazon-grande">${IC.corazonLleno}</span>
-      </div>
+      ${f.titulo ? `<div class="titulo-foto">${escapar(f.titulo)}</div>` : ""}
+      ${f.pie ? `<div class="pie">${texto(f.pie)}</div>` : ""}
       ${chips ? `<div class="datos-foto">${chips}</div>` : ""}
       <div class="foto-acciones">
         <button class="accion ${me ? "me-gusta" : ""}" type="button" data-like="${escapar(f.id)}" aria-pressed="${me}" aria-label="Me gusta">${me ? IC.corazonLleno : IC.corazon}<span>${n || ""}</span></button>
         <button class="accion" type="button" data-coment="${escapar(f.id)}" aria-label="Comentar">${IC.bocadillo}<span>${coms.length || ""}</span></button>
         ${miHuella && f.quien === miHuella ? `<button class="accion editar" type="button" data-editar="${escapar(f.id)}">${IC.lapiz}<span>${f.titulo ? "Editar" : "Añadir título"}</span></button>` : ""}
       </div>
-      ${f.titulo ? `<div class="titulo-foto">${escapar(f.titulo)}</div>` : ""}
-      ${f.pie ? `<div class="pie"><b>${escapar(f.autor)}</b> ${texto(f.pie)}</div>` : ""}
-      <button class="desplegar ${abierto ? "abierto" : ""}" type="button" data-desplegar="${escapar(f.id)}">
-        ${abierto ? "Ocultar comentarios" : coms.length ? `Ver ${coms.length === 1 ? "el comentario" : `los ${coms.length} comentarios`}` : "Escribe el primer comentario"} ${IC.flechaAbajo}
-      </button>
-      ${abierto ? `<div class="comentarios">
+      <div class="comentarios">
+        <h4 class="titulo-comentarios">${coms.length ? `${coms.length} comentario${coms.length === 1 ? "" : "s"}` : "Comentarios"}</h4>
+        ${coms.length ? "" : `<p class="sin-comentarios">Sé el primero en comentar esta foto.</p>`}
         ${coms.map(c => `<div class="comentario">${inicial(c.autor)}<div class="burbuja"><b>${escapar(c.autor)}</b><small>${escapar(App.horaRelativa(c.fecha))}</small><br>${texto(c.texto)}
           ${miHuella && c.quien === miHuella ? `<br><button class="borrar-com" type="button" data-borrarcom="${escapar(f.id)}|${escapar(c.id)}">Borrar</button>` : ""}</div></div>`).join("")}
         <form class="nuevo-com" data-form="${escapar(f.id)}">
           <textarea class="entrada" rows="1" maxlength="500" placeholder="Escribe un comentario…">${escapar(borradores[f.id] || "")}</textarea>
           <button class="enviar-com" type="submit" aria-label="Enviar">${IC.enviar}</button>
         </form>
-      </div>` : ""}
-    </article>`;
-  }
-  function htmlFilas(fotos) {
-    if (!hayGrupos(fotos)) return fotos.map(htmlFoto).join("");
-    return grupos(fotos).map(g => cabeceraGrupo(g, true) + g.fotos.map(htmlFoto).join("")).join("");
-  }
-
-  function conectarFotos(e) {
-    app.querySelectorAll("[data-ver]").forEach(b => b.onclick = () => cambiarVista("filas", b.dataset.ver));
-    app.querySelectorAll("[data-elegir]").forEach(b => b.onclick = () => {
-      const id = b.dataset.elegir;
-      if (elegidas.has(id)) elegidas.delete(id); else elegidas.add(id);
-      pintar();
-    });
-    app.querySelectorAll("[data-grupo]").forEach(b => b.onclick = () => {
-      const g = grupos(ordenar(fotosDe(e.id)).filter(f => !filtroLugar || (f.lugar || "").trim() === filtroLugar))[+b.dataset.grupo];
-      const mias = g.fotos.filter(f => f.quien === miHuella);
-      const todas = mias.every(f => elegidas.has(f.id));
-      mias.forEach(f => todas ? elegidas.delete(f.id) : elegidas.add(f.id));
-      pintar();
-    });
-    app.querySelectorAll("[data-editar]").forEach(b => b.onclick = () => { const f = G.fotos.find(x => x.id === b.dataset.editar); if (f) hojaEditarFoto(f, e); });
-    app.querySelectorAll("[data-like]").forEach(b => b.onclick = () => darLike(b.dataset.like));
-    app.querySelectorAll("[data-coment]").forEach(b => b.onclick = () => { abiertos.add(b.dataset.coment); pintar(); enfocarComentario(b.dataset.coment); });
-    app.querySelectorAll("[data-desplegar]").forEach(b => b.onclick = () => {
-      const id = b.dataset.desplegar;
-      if (abiertos.has(id)) abiertos.delete(id); else abiertos.add(id);
-      pintar();
-      if (abiertos.has(id) && !(G.fotos.find(f => f.id === id).comentarios || []).length) enfocarComentario(id);
-    });
-    app.querySelectorAll("[data-menu]").forEach(b => b.onclick = () => hojaMenuFoto(b.dataset.menu, e));
-    app.querySelectorAll("[data-borrarcom]").forEach(b => b.onclick = () => borrarComentario(...b.dataset.borrarcom.split("|")));
-    // Doble toque en la foto = me gusta
-    app.querySelectorAll("[data-dobletoque]").forEach(el => {
-      let ultimo = 0;
-      el.addEventListener("click", () => {
-        const ahora = Date.now();
-        if (ahora - ultimo < 320) {
-          const id = el.dataset.dobletoque;
-          const c = el.querySelector(".corazon-grande"); c.classList.remove("latido"); void c.offsetWidth; c.classList.add("latido");
-          const f = G.fotos.find(x => x.id === id);
-          if (f && !(f.likes || []).includes(miHuella)) darLike(id, true);
-          ultimo = 0;
-        } else ultimo = ahora;
-      });
-    });
-    app.querySelectorAll("[data-form]").forEach(form => {
+      </div>`;
+    info.querySelectorAll("[data-like]").forEach(b => b.onclick = () => darLike(b.dataset.like));
+    info.querySelectorAll("[data-coment]").forEach(b => b.onclick = () => enfocarComentario(b.dataset.coment));
+    info.querySelectorAll("[data-editar]").forEach(b => b.onclick = () => hojaEditarFoto(f, e));
+    info.querySelectorAll("[data-borrarcom]").forEach(b => b.onclick = () => borrarComentario(...b.dataset.borrarcom.split("|")));
+    info.querySelectorAll("[data-form]").forEach(form => {
       const id = form.dataset.form, ta = form.querySelector("textarea"), btn = form.querySelector("button");
       const ajustar = () => { ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight + 2, 120) + "px"; btn.disabled = !ta.value.trim(); };
       ta.addEventListener("input", () => { borradores[id] = ta.value; ajustar(); });
@@ -693,7 +797,7 @@
     btn.disabled = true;
     try {
       await servidor("comentar", { foto: id, texto: t });
-      borradores[id] = ""; abiertos.add(id); pintar();
+      borradores[id] = ""; pintar();
     } catch (e) { btn.disabled = false; trasError(e); }
   }
 
@@ -867,6 +971,7 @@
       $("mEditar").onclick = () => hojaEditarFoto(f, e);
       $("mVarias").onclick = () => {
         cerrarHoja();
+        if (fotoActual()) { abiertoDesdeAlbum = false; history.replaceState(null, "", "#e=" + e.id); cerrarVisor(); }
         seleccionando = true; elegidas.clear(); elegidas.add(f.id);
         pintar(); window.scrollTo({ top: 0, behavior: "smooth" });
       };
