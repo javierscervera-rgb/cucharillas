@@ -306,13 +306,13 @@
       "nombre": "Jaime",
       "emoji": "🌻",
       "color": "#E8F4FD",
-      "sobreMi": "Estudio psicología, soy orientadora en un colegio y trabajo de fotógrafo.",
+      "sobreMi": "Estudio psicología, soy orientador en un colegio y trabajo de fotógrafo.",
       "gustos": "Música indie, gimnasio, moda, cine...",
       "intencion": "Por mí docilidad a la Voluntad.",
       "cumple": "02-16",
       "foto": "img/perfiles/2d05cb2fc041.jpg?v=1794059941191",
-      "aprobado": true,
-      "actualizado": "2026-11-07T13:59:01.530Z",
+      "aprobado": false,
+      "actualizado": "2026-11-11T14:51:15.901Z",
       "claveHash": "b17556ee0d77624ceb1ceae29359a1e97e19a74b64de8026b9944ccf34088172"
     },
     {
