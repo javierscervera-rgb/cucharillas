@@ -316,7 +316,9 @@
    "autor": "DJ",
    "quien": "d50ce427e4df09a3a1d6",
    "fecha": "2026-11-11T00:00:15.910Z",
-   "likes": [],
+   "likes": [
+    "d50ce427e4df09a3a1d6"
+   ],
    "comentarios": [
     {
      "id": "82b2f9ce721f3985",
