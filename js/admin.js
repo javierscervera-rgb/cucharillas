@@ -402,44 +402,116 @@
     };
   }
 
+  // Álbum en el admin: cuadrícula por día, momento y lugar; se eligen fotos de
+  // cualquiera para cambiarles el día, el momento o el lugar, o para borrarlas.
+  const adminSel = new Set();
+  let panelCambios = false, albumSel = "";
+  const ORDEN_MOM = ["mañana", "mediodía", "tarde", "noche"];
+  const ordMom = (m) => { const i = ORDEN_MOM.indexOf(m); return i < 0 ? 9 : i; };
+  const ordenFotos = (fs) => [...fs].sort((a, b) =>
+    (a.dia ? 0 : 1) - (b.dia ? 0 : 1) || String(a.dia).localeCompare(String(b.dia)) || ordMom(a.momento) - ordMom(b.momento) ||
+    (a.lugar ? 0 : 1) - (b.lugar ? 0 : 1) || String(a.lugar || "").trim().localeCompare(String(b.lugar || "").trim(), "es") ||
+    String(a.fecha).localeCompare(String(b.fecha)));
+  const DIAS_G = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  const diaLargoG = (iso) => { const d = App.aFecha(iso); return d ? `${DIAS_G[d.getDay()]} ${d.getDate()} de ${App.MESES[d.getMonth()]}` : ""; };
+  // Miniatura: primero desde la web; si aún no está publicada, desde GitHub
+  const imgFoto = (ruta, extra = "") => `<img src="${escapar(ruta)}" data-raw="${escapar(urlFotoG(ruta))}" onerror="if(!this.dataset.r){this.dataset.r=1;this.src=this.dataset.raw}" ${extra}>`;
+  function gruposFotos(fotos) {
+    const out = []; let clave = null;
+    for (const f of fotos) {
+      const k = (f.dia || "") + "|" + (f.momento || "");
+      if (k !== clave) {
+        clave = k;
+        const titulo = [f.dia ? diaLargoG(f.dia) : (f.momento ? "" : "Sin fecha"), (MOMENTOS_G[f.momento] || "").replace(/^\S+\s/, "")].filter(Boolean).join(" · ");
+        out.push({ titulo, ico: (MOMENTOS_G[f.momento] || "📅 ").split(" ")[0], subs: [] });
+      }
+      const g = out[out.length - 1], lugar = (f.lugar || "").trim();
+      let sub = g.subs[g.subs.length - 1];
+      if (!sub || sub.lugar !== lugar) { sub = { lugar, fotos: [] }; g.subs.push(sub); }
+      sub.fotos.push(f);
+    }
+    return out;
+  }
+
   function pintarAlbumAdmin(zona, e) {
-    const fotos = cache.galeria.datos.fotos.filter(f => f.evento === e.id)
-      .sort((a, b) => String(a.dia || "9").localeCompare(String(b.dia || "9")) || String(a.fecha).localeCompare(String(b.fecha)));
+    if (albumSel !== e.id) { adminSel.clear(); panelCambios = false; albumSel = e.id; }
+    const fotos = ordenFotos(cache.galeria.datos.fotos.filter(f => f.evento === e.id));
+    [...adminSel].forEach(id => { if (!fotos.some(f => f.id === id)) adminSel.delete(id); });
+    if (!adminSel.size) panelCambios = false;
+    const lugares = [...new Set(fotos.map(f => (f.lugar || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
+    const n = adminSel.size, todas = fotos.length && fotos.every(f => adminSel.has(f.id));
+    const grupos = gruposFotos(fotos);
+    const elegir = (lista, attr) => `<button type="button" class="ga-elegir" ${attr}>${lista.every(f => adminSel.has(f.id)) ? "Quitar" : "Elegir"} ${lista.length}</button>`;
+    const conComentarios = fotos.filter(f => (f.comentarios || []).length);
+    const y = window.scrollY;
     zona.innerHTML = `
       <button class="boton suave" id="ga-volver" style="padding:8px 14px;margin-bottom:6px">${ICONOS.atras} Álbumes</button>
-      <div class="ficha">
-        <label class="campo" for="ga-et" style="margin-top:0">Nombre del evento</label><input id="ga-et" maxlength="60" value="${escapar(e.titulo)}">
+      <details class="ficha" ${fotos.length ? "" : "open"}><summary style="font-weight:700;cursor:pointer">Datos del álbum: ${escapar(e.titulo)}</summary>
+        <label class="campo" for="ga-et">Nombre del evento</label><input id="ga-et" maxlength="60" value="${escapar(e.titulo)}">
         <label class="campo" for="ga-ef">Fecha</label><input id="ga-ef" type="date" value="${escapar(e.fecha || "")}">
         <label class="campo" for="ga-ed">Descripción</label><textarea id="ga-ed" maxlength="300" style="min-height:70px">${escapar(e.descripcion || "")}</textarea>
         <div class="fila-botones">
           <button class="boton" id="ga-guardar">Guardar cambios</button>
           <button class="boton peligro" id="ga-borrar-album">${ICONOS.papelera} Borrar álbum</button>
         </div>
+      </details>
+      ${fotos.length ? `
+      <div class="ga-barra">
+        <div class="ga-barra-info"><b>${n}</b> de ${fotos.length} foto${fotos.length === 1 ? "" : "s"} elegida${n === 1 ? "" : "s"}
+          <button type="button" id="ga-todas">${todas ? "Quitar todas" : "Elegir todas"}</button></div>
+        <div class="fila-botones" style="margin-top:8px">
+          <button class="boton" id="ga-cambiar" ${n ? "" : "disabled"}>Cambiar día, momento o lugar</button>
+          <button class="boton peligro" id="ga-borrar-sel" ${n ? "" : "disabled"}>${ICONOS.papelera} Borrar</button>
+        </div>
       </div>
-      <h3 class="titulo-grupo">${fotos.length} foto${fotos.length === 1 ? "" : "s"}</h3>
-      ${fotos.length ? "" : `<div class="vacio">Este álbum no tiene fotos.</div>`}
-      ${fotos.map(f => `
+      ${panelCambios ? `
+      <div class="ficha ga-panel">
+        <p class="detalle" style="margin:0 0 4px;color:var(--texto-secundario);font-size:13.5px">Se aplicará a <b>${n}</b> foto${n === 1 ? "" : "s"}, sean de quien sean. Lo que dejes en «No cambiar» se queda como estaba en cada foto.</p>
+        <label class="campo" for="gc-dia-modo">Día</label>
+        <select id="gc-dia-modo"><option value="">No cambiar</option><option value="poner">Poner este día…</option><option value="quitar">Quitar el día</option></select>
+        <input id="gc-dia" type="date" value="${escapar(e.fecha || "")}" hidden style="margin-top:8px">
+        <label class="campo" for="gc-momento">Momento</label>
+        <select id="gc-momento"><option value="__igual">No cambiar</option>${ORDEN_MOM.map(m => `<option value="${m}">${MOMENTOS_G[m]}</option>`).join("")}<option value="">Quitar el momento</option></select>
+        <label class="campo" for="gc-lugar">Lugar</label>
+        <select id="gc-lugar"><option value="__igual">No cambiar</option>${lugares.map(l => `<option>${escapar(l)}</option>`).join("")}<option value="__nuevo">✏️ Escribir un lugar nuevo…</option><option value="__quitar">Quitar el lugar</option></select>
+        <input id="gc-lugar-nuevo" maxlength="60" placeholder="Escribe el lugar" hidden style="margin-top:8px">
+        <div class="fila-botones" style="margin-top:14px">
+          <button class="boton suave" id="gc-cancelar">Cancelar</button>
+          <button class="boton" id="gc-aplicar">Aplicar a ${n} foto${n === 1 ? "" : "s"}</button>
+        </div>
+      </div>` : ""}
+      <p class="detalle" style="color:var(--texto-secundario);font-size:13.5px;margin:4px 2px 0">Toca las fotos para elegirlas, o «Elegir» junto a un momento o un lugar.</p>
+      ${grupos.map((g, i) => `
+        <section class="ga-grupo">
+          <h3 class="ga-grupo-titulo"><span>${g.ico}</span><span class="ga-grupo-nombre">${escapar(g.titulo)}</span>${elegir(g.subs.flatMap(s => s.fotos), `data-g="${i}"`)}</h3>
+          ${g.subs.map((sub, k) => `
+            <div class="ga-sub"><span>📍 ${escapar(sub.lugar || "Sin lugar")}</span><small>${sub.fotos.length}</small>${elegir(sub.fotos, `data-s="${i}:${k}"`)}</div>
+            <div class="ga-cuadricula">${sub.fotos.map(f => `
+              <button type="button" class="ga-celda ${adminSel.has(f.id) ? "elegida" : ""}" data-sel="${escapar(f.id)}" title="${escapar([f.titulo, "de " + f.autor, f.lugar].filter(Boolean).join(" · "))}">
+                ${imgFoto(f.mini, 'loading="lazy" alt=""')}
+                <span class="ga-check">${adminSel.has(f.id) ? "✓" : ""}</span>
+                <span class="ga-autor">${escapar(f.autor)}</span>
+              </button>`).join("")}</div>`).join("")}
+        </section>`).join("")}
+      ${conComentarios.length ? `<h3 class="titulo-grupo" style="margin-top:26px">Comentarios</h3>` : ""}
+      ${conComentarios.map(f => `
         <div class="pastilla columna" style="align-items:stretch">
           <div class="fila" style="align-items:flex-start">
-            <img src="${escapar(urlFotoG(f.mini))}" alt="" loading="lazy" style="width:76px;height:76px;border-radius:12px;object-fit:cover;flex-shrink:0;background:var(--azul-suave)">
+            ${imgFoto(f.mini, 'alt="" loading="lazy" style="width:64px;height:64px;border-radius:12px;object-fit:cover;flex-shrink:0;background:var(--azul-suave)"')}
             <div class="texto">
-              <div class="titulo" style="font-size:15px">${escapar(f.autor)}</div>
-              <div class="detalle">${[f.dia ? App.fechaCorta(f.dia) : "", MOMENTOS_G[f.momento] || "", f.lugar ? "📍 " + escapar(f.lugar) : ""].filter(Boolean).join(" · ") || "Sin día ni lugar"}</div>
-              ${f.titulo ? `<div class="detalle" style="color:var(--texto-principal);font-weight:700">${escapar(f.titulo)}</div>` : ""}
-              ${f.pie ? `<div class="detalle" style="color:var(--texto-principal)">«${escapar(f.pie)}»</div>` : ""}
-              <div class="detalle">❤️ ${(f.likes || []).length} · subida ${escapar(App.horaRelativa(f.fecha))}</div>
+              <div class="titulo" style="font-size:15px">${escapar(f.titulo || "Foto de " + f.autor)}</div>
+              <div class="detalle">${[f.dia ? App.fechaCorta(f.dia) : "", MOMENTOS_G[f.momento] || "", f.lugar ? "📍 " + escapar(f.lugar) : ""].filter(Boolean).join(" · ")}</div>
             </div>
           </div>
           ${(f.comentarios || []).map(c => `
             <div class="dato" style="display:flex;gap:10px;align-items:flex-start"><div style="flex:1"><b>${escapar(c.autor)}</b>${escapar(c.texto)}</div>
             <button class="boton peligro" style="padding:6px 10px;font-size:12.5px" data-borrar-com="${escapar(f.id)}|${escapar(c.id)}">Borrar</button></div>`).join("")}
-          <div class="fila-botones">
-            <a class="boton suave" href="${escapar(urlFotoG(f.ruta))}" target="_blank" rel="noopener">Ver grande</a>
-            <button class="boton peligro" data-borrar-foto="${escapar(f.id)}">${ICONOS.papelera} Borrar foto</button>
-          </div>
-        </div>`).join("")}`;
+        </div>`).join("")}`
+      : `<div class="vacio">Este álbum no tiene fotos.</div>`}`;
+    window.scrollTo(0, y);
+    const repintar = () => pintarAlbumAdmin(zona, e);
 
-    document.getElementById("ga-volver").onclick = () => { albumAbierto = ""; pintarGaleria(zona); };
+    document.getElementById("ga-volver").onclick = () => { albumAbierto = ""; adminSel.clear(); panelCambios = false; pintarGaleria(zona); };
     document.getElementById("ga-guardar").onclick = (ev) => {
       const titulo = document.getElementById("ga-et").value.trim();
       if (!titulo) return aviso("Falta el nombre del evento");
@@ -457,12 +529,54 @@
         d.fotos = d.fotos.filter(x => x.evento !== e.id);
       }, `Galería: borra el álbum «${e.titulo}» (admin)`, archivos);
     };
-    zona.querySelectorAll("[data-borrar-foto]").forEach(b => b.onclick = () => {
-      const f = fotos.find(x => x.id === b.dataset.borrarFoto);
-      if (!confirm(`¿Borrar esta foto de ${f.autor} y sus comentarios?`)) return;
-      accionGaleria(b, d => { const n = d.fotos.length; d.fotos = d.fotos.filter(x => x.id !== f.id); if (d.fotos.length === n) return false; },
-        `Galería: borra foto ${f.id} (admin)`, [f.ruta, f.mini]);
+    if (!fotos.length) return;
+
+    // Elegir fotos
+    zona.querySelectorAll("[data-sel]").forEach(b => b.onclick = () => {
+      const id = b.dataset.sel; if (adminSel.has(id)) adminSel.delete(id); else adminSel.add(id); repintar();
     });
+    const alternar = (lista) => { const t = lista.every(f => adminSel.has(f.id)); lista.forEach(f => t ? adminSel.delete(f.id) : adminSel.add(f.id)); repintar(); };
+    zona.querySelectorAll("[data-g]").forEach(b => b.onclick = () => alternar(grupos[+b.dataset.g].subs.flatMap(s => s.fotos)));
+    zona.querySelectorAll("[data-s]").forEach(b => b.onclick = () => { const [i, k] = b.dataset.s.split(":").map(Number); alternar(grupos[i].subs[k].fotos); });
+    document.getElementById("ga-todas").onclick = () => { if (todas) adminSel.clear(); else fotos.forEach(f => adminSel.add(f.id)); repintar(); };
+
+    // Cambiar día, momento y/o lugar
+    document.getElementById("ga-cambiar").onclick = () => { panelCambios = true; repintar(); document.querySelector(".ga-panel").scrollIntoView({ behavior: "smooth", block: "center" }); };
+    if (panelCambios) {
+      const dm = document.getElementById("gc-dia-modo"), ln = document.getElementById("gc-lugar");
+      dm.onchange = () => { document.getElementById("gc-dia").hidden = dm.value !== "poner"; };
+      ln.onchange = () => { const i = document.getElementById("gc-lugar-nuevo"); i.hidden = ln.value !== "__nuevo"; if (!i.hidden) i.focus(); };
+      document.getElementById("gc-cancelar").onclick = () => { panelCambios = false; repintar(); };
+      document.getElementById("gc-aplicar").onclick = (ev) => {
+        const cambios = {};
+        if (dm.value === "poner") { const d = document.getElementById("gc-dia").value; if (!d) return aviso("Elige el día"); cambios.dia = d; }
+        if (dm.value === "quitar") cambios.dia = "";
+        const m = document.getElementById("gc-momento").value; if (m !== "__igual") cambios.momento = m;
+        if (ln.value === "__nuevo") { const v = document.getElementById("gc-lugar-nuevo").value.trim().slice(0, 60); if (!v) return aviso("Escribe el lugar"); cambios.lugar = v; }
+        else if (ln.value === "__quitar") cambios.lugar = "";
+        else if (ln.value !== "__igual") cambios.lugar = ln.value;
+        if (!Object.keys(cambios).length) return aviso("No has elegido nada que cambiar");
+        const ids = [...adminSel];
+        accionGaleria(ev.currentTarget, d => {
+          let hechas = 0;
+          d.fotos.forEach(f => { if (ids.includes(f.id)) { Object.assign(f, cambios); hechas++; } });
+          if (!hechas) return false;
+          adminSel.clear(); panelCambios = false;
+        }, `Galería: el admin cambia los datos de ${ids.length} foto${ids.length === 1 ? "" : "s"}`);
+      };
+    }
+
+    // Borrar las elegidas
+    document.getElementById("ga-borrar-sel").onclick = (ev) => {
+      const ids = [...adminSel], elegidas = fotos.filter(f => ids.includes(f.id));
+      if (!confirm(`¿Borrar ${ids.length} foto${ids.length === 1 ? "" : "s"} y sus comentarios? No se puede deshacer.`)) return;
+      accionGaleria(ev.currentTarget, d => {
+        const antes = d.fotos.length; d.fotos = d.fotos.filter(x => !ids.includes(x.id));
+        if (d.fotos.length === antes) return false;
+        adminSel.clear(); panelCambios = false;
+      }, `Galería: el admin borra ${ids.length} foto${ids.length === 1 ? "" : "s"}`, elegidas.flatMap(f => [f.ruta, f.mini]));
+    };
+
     zona.querySelectorAll("[data-borrar-com]").forEach(b => b.onclick = () => {
       const [idF, idC] = b.dataset.borrarCom.split("|");
       if (!confirm("¿Borrar este comentario?")) return;
