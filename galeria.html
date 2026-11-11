@@ -44,9 +44,19 @@
     .evento .collage.vacio-col svg { width: 44px; height: 44px; }
 
     /* ---------- Álbum ---------- */
-    .album-cabecera h1 { font-size: 23px; line-height: 1.2; }
-    .album-meta { color: var(--texto-secundario); font-size: 14.5px; margin: 0 0 4px 52px; }
-    .album-desc { margin: 8px 0 0 52px; font-size: 15px; line-height: 1.5; }
+    /* Cabecera del álbum: barra para volver y tarjeta con el título y los datos */
+    .album-top { display: flex; align-items: center; gap: 12px; margin: 4px 0 14px; }
+    .album-top .btn-volver { flex-shrink: 0; }
+    .album-migas { font-size: 15px; font-weight: 600; color: var(--texto-secundario); }
+    .album-hero {
+      position: relative; overflow: hidden; border-radius: 22px; padding: 20px 20px 18px; margin: 0 0 18px;
+      background: linear-gradient(135deg, #E8F4FD, #F0F9FF); box-shadow: 0 6px 20px rgba(74,144,226,.12);
+    }
+    .album-hero::after { content: ""; position: absolute; right: -40px; top: -40px; width: 140px; height: 140px; border-radius: 50%; background: rgba(255,255,255,.45); pointer-events: none; }
+    .album-titulo { position: relative; z-index: 1; margin: 0; font-size: 25px; font-weight: 700; line-height: 1.2; letter-spacing: -.3px; color: var(--texto-principal); overflow-wrap: anywhere; }
+    .album-datos { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .album-datos span { display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,.85); border-radius: 999px; padding: 5px 11px; font-size: 13px; font-weight: 600; color: #2F6FBF; white-space: nowrap; }
+    .album-desc { position: relative; z-index: 1; margin: 12px 0 0; font-size: 15px; line-height: 1.5; color: var(--texto-principal); }
 
     .interruptor {
       position: relative; display: grid; grid-template-columns: 1fr 1fr; background: #F1F5FA; border-radius: 14px; padding: 4px;
@@ -64,7 +74,7 @@
     .interruptor button svg { width: 18px; height: 18px; }
     .interruptor:not(.filas) button[data-vista="cuadricula"], .interruptor.filas button[data-vista="filas"] { color: var(--azul-cielo); }
 
-    .filtros { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px 12px; padding: 2px 16px; }
+    .filtros { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px 14px; padding: 2px 16px 4px; }
     .filtros::-webkit-scrollbar { display: none; }
     .filtros button {
       flex: 0 0 auto; border: 1px solid var(--gris-borde); background: #fff; border-radius: 999px; padding: 7px 13px;
@@ -516,9 +526,12 @@
     $("btnSubir").classList.toggle("oculto", seleccionando);
     const y = window.scrollY;
     app.innerHTML = `
-      <header class="cabecera-pagina album-cabecera"><a class="btn-volver" href="#" aria-label="Volver a los álbumes">${ICONOS.atras}</a><h1>${escapar(e.titulo)}</h1></header>
-      <p class="album-meta">${[e.fecha ? diaLargo(e.fecha) : "", `${todas.length} foto${todas.length === 1 ? "" : "s"}`].filter(Boolean).join(" · ")}</p>
-      ${e.descripcion ? `<p class="album-desc">${texto(e.descripcion)}</p>` : ""}
+      <div class="album-top"><a class="btn-volver" href="#" aria-label="Volver a los álbumes">${ICONOS.atras}</a><span class="album-migas">Galería</span></div>
+      <section class="album-hero">
+        <h1 class="album-titulo">${escapar(e.titulo)}</h1>
+        <div class="album-datos">${datosAlbum(e, todas, lugares).map(d => `<span>${d}</span>`).join("")}</div>
+        ${e.descripcion ? `<p class="album-desc">${texto(e.descripcion)}</p>` : ""}
+      </section>
       ${todas.length ? `
       ${seleccionando ? `<div class="aviso info aviso-sel">Toca tus fotos para elegirlas, o «Elegir» junto a un momento o un lugar para elegir todas las tuyas de ahí. Después pulsa <b>Cambiar datos</b>.</div>` : ""}
       ${mias.length && !seleccionando ? `<div class="fila-sel"><button type="button" class="boton-sel" id="btnSeleccionar">${IC.check} Cambiar día, momento o lugar de varias fotos</button></div>` : ""}
@@ -538,6 +551,29 @@
     if (bs) bs.onclick = () => { seleccionando = true; elegidas.clear(); pintar(); };
     conectarCuadricula(e, fotos);
     pintarBarraSeleccion(e, mias);
+  }
+
+  // Datos del álbum: fechas reales de las fotos, fotos, lugares, me gusta y comentarios
+  function datosAlbum(e, fotos, lugares) {
+    const dias = fotos.map(f => f.dia).filter(Boolean).sort();
+    let fechas = "";
+    const d1 = App.aFecha(dias[0]), d2 = App.aFecha(dias[dias.length - 1]);
+    const mes = (d) => App.MESES[d.getMonth()].slice(0, 3);
+    if (d1 && d2 && dias[0] !== dias[dias.length - 1]) {
+      fechas = d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear()
+        ? `${d1.getDate()} – ${d2.getDate()} ${mes(d2)} ${d2.getFullYear()}`
+        : `${d1.getDate()} ${mes(d1)} – ${d2.getDate()} ${mes(d2)} ${d2.getFullYear()}`;
+    } else if (d1) fechas = `${d1.getDate()} ${mes(d1)} ${d1.getFullYear()}`;
+    else if (e.fecha) fechas = App.fechaCorta(e.fecha);
+    const likes = fotos.reduce((n, f) => n + (f.likes || []).length, 0);
+    const coms = fotos.reduce((n, f) => n + (f.comentarios || []).length, 0);
+    return [
+      fechas ? `📅 ${escapar(fechas)}` : "",
+      `📷 ${fotos.length} foto${fotos.length === 1 ? "" : "s"}`,
+      lugares.length ? `📍 ${lugares.length} lugar${lugares.length === 1 ? "" : "es"}` : "",
+      likes ? `❤️ ${likes}` : "",
+      coms ? `💬 ${coms}` : ""
+    ].filter(Boolean);
   }
 
   // Barra inferior del modo selección
