@@ -1676,6 +1676,24 @@
    "fecha": "2026-11-11T10:09:36.354Z",
    "likes": [],
    "comentarios": []
+  },
+  {
+   "id": "4ebf99e70fb9b45dc4bf",
+   "evento": "allariz-6-9-nov-2026-mwbcig88",
+   "ruta": "img/galeria/allariz-6-9-nov-2026-mwbcig88/4ebf99e70fb9b45dc4bf.jpg",
+   "mini": "img/galeria/allariz-6-9-nov-2026-mwbcig88/4ebf99e70fb9b45dc4bf-m.jpg",
+   "ancho": 1200,
+   "alto": 1600,
+   "titulo": "",
+   "pie": "",
+   "dia": "2026-11-06",
+   "momento": "noche",
+   "lugar": "Allariz",
+   "autor": "Valeria",
+   "quien": "da8ec6c0b767fe7db050",
+   "fecha": "2026-11-11T10:09:43.022Z",
+   "likes": [],
+   "comentarios": []
   }
  ]
 }
