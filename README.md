@@ -71,6 +71,8 @@ La app se publica en **https://cucharillas.es** (registrado en DonDominio).
 - **GitHub**: *Settings → Pages → Custom domain* = `cucharillas.es` (es el archivo `CNAME` de la raíz) y *Enforce HTTPS* marcado.
 - **Cloudflare**: `ORIGEN_PERMITIDO` = `https://cucharillas.es,https://javierscervera-rgb.github.io`.
 - La web se adapta al móvil, a tablet y a escritorio (en pantallas grandes el menú pasa a la izquierda).
+- **Portada**: pastillas de Lectio Divina, Retiro mensual, Escapadas, Galería de fotos y Saber más, y una frase bíblica al azar bajo el saludo. Menú inferior: Inicio, Devocionario, Agenda, Mis notas y Todos por todos.
+- **Novedades**: cada sección muestra un punto rojo con el número de cosas nuevas desde la última vez que la abriste en ese móvil (Inicio suma las de la portada). En la galería, cada álbum indica sus fotos nuevas.
 - Las notas, el perfil y el acceso a la galería se guardan en cada móvil ligados a la dirección. Para pasarlos de una dirección a otra: *Mis notas → Guardar copia* en la antigua y *Recuperar* en la nueva.
 
 ### 6. Instalarla en el móvil

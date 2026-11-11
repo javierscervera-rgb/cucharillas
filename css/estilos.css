@@ -477,3 +477,22 @@ mark { background: #FDF0C4; color: inherit; border-radius: 3px; padding: 0 1px; 
 @media (min-width: 1400px) {
   body[data-pagina="inicio"] .contenedor { grid-template-columns: 1fr 1fr 1fr; max-width: 1180px; }
 }
+
+/* ---------- Punto de novedades ---------- */
+.globo {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px;
+  border-radius: 999px; background: #E5484D; color: #fff; font-size: 11.5px; font-weight: 700; line-height: 1;
+  box-shadow: 0 2px 6px rgba(229, 72, 77, .35); vertical-align: 2px; margin-left: 6px; animation: globoEntra .35s ease;
+}
+.globo[hidden] { display: none; }
+@keyframes globoEntra { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
+.nav-icono { position: relative; display: inline-flex; }
+.nav-icono .globo { position: absolute; top: -8px; left: 15px; margin: 0; min-width: 15px; height: 15px; font-size: 9.5px; padding: 0 4px; border: 2px solid #fff; box-sizing: content-box; box-shadow: none; }
+
+/* ---------- Frase de la Palabra en la portada ---------- */
+.frase-dia {
+  margin: 8px 0 0; font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 15.5px; line-height: 1.45;
+  color: #2F6FBF; max-width: 34em;
+}
+.frase-dia span { font-style: normal; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 12.5px; color: var(--texto-secundario); white-space: nowrap; }
+.frase-dia:empty { display: none; }

@@ -27,6 +27,7 @@
       <div>
         <h1>Cucharillas</h1>
         <p class="saludo" id="saludo">Hola, ¿listo para hoy?</p>
+        <p class="frase-dia" id="frase"></p>
       </div>
     </header>
 
@@ -52,55 +53,31 @@
 
     <a class="pastilla" href="lectio.html">
       <div class="icono-pastilla icono-verde" data-icono="libro"></div>
-      <div class="texto"><div class="titulo">Lectio Divina</div><div class="detalle" id="det-lectio">Textos para estudiar y rezar</div></div>
+      <div class="texto"><div class="titulo">Lectio Divina <span class="globo" data-globo="lectio" hidden></span></div><div class="detalle" id="det-lectio">Textos para estudiar y rezar</div></div>
       <span class="flecha" data-icono="flecha"></span>
     </a>
 
     <a class="pastilla" href="retiro.html">
       <div class="icono-pastilla icono-verde" data-icono="montana"></div>
-      <div class="texto"><div class="titulo">Retiro mensual</div><div class="detalle" id="det-retiro">Un rato largo con Dios</div></div>
-      <span class="flecha" data-icono="flecha"></span>
-    </a>
-
-    <a class="pastilla" href="devocionario.html">
-      <div class="icono-pastilla icono-lila" data-icono="devocionario"></div>
-      <div class="texto"><div class="titulo">Devocionario</div><div class="detalle">Oraciones para cada momento</div></div>
-      <span class="flecha" data-icono="flecha"></span>
-    </a>
-
-    <a class="pastilla" href="notas.html">
-      <div class="icono-pastilla icono-lila" data-icono="lapiz"></div>
-      <div class="texto"><div class="titulo">Mis notas</div><div class="detalle" id="det-notas">Solo en tu móvil</div></div>
-      <span class="flecha" data-icono="flecha"></span>
-    </a>
-
-    <a class="pastilla" href="agenda.html">
-      <div class="icono-pastilla icono-azul" data-icono="calendario"></div>
-      <div class="texto"><div class="titulo">Agenda</div><div class="detalle" id="det-agenda">Próximas actividades</div></div>
+      <div class="texto"><div class="titulo">Retiro mensual <span class="globo" data-globo="retiro" hidden></span></div><div class="detalle" id="det-retiro">Un rato largo con Dios</div></div>
       <span class="flecha" data-icono="flecha"></span>
     </a>
 
     <a class="pastilla" href="escapadas.html">
       <div class="icono-pastilla icono-ambar" data-icono="brujula"></div>
-      <div class="texto"><div class="titulo">Escapadas</div><div class="detalle">Planes, juegos y caminos</div></div>
+      <div class="texto"><div class="titulo">Escapadas <span class="globo" data-globo="escapadas" hidden></span></div><div class="detalle">Planes, juegos y caminos</div></div>
       <span class="flecha" data-icono="flecha"></span>
     </a>
 
     <a class="pastilla" href="galeria.html">
       <div class="icono-pastilla icono-azul" data-icono="foto"></div>
-      <div class="texto"><div class="titulo">Galería de fotos</div><div class="detalle" id="det-galeria">Las fotos de cada evento</div></div>
-      <span class="flecha" data-icono="flecha"></span>
-    </a>
-
-    <a class="pastilla" href="comunidad.html">
-      <div class="icono-pastilla icono-verde" data-icono="personas"></div>
-      <div class="texto"><div class="titulo">Todos por todos</div><div class="detalle">Conócenos y reza por los demás</div></div>
+      <div class="texto"><div class="titulo">Galería de fotos <span class="globo" data-globo="galeria" hidden></span></div><div class="detalle" id="det-galeria">Las fotos de cada evento</div></div>
       <span class="flecha" data-icono="flecha"></span>
     </a>
 
     <a class="pastilla" href="recursos.html">
       <div class="icono-pastilla icono-ambar" data-icono="video"></div>
-      <div class="texto"><div class="titulo">Para leer y ver</div><div class="detalle" id="det-recursos">Artículos, libros y vídeos</div></div>
+      <div class="texto"><div class="titulo">Saber más <span class="globo" data-globo="recursos" hidden></span></div><div class="detalle" id="det-recursos">Artículos, libros y vídeos</div></div>
       <span class="flecha" data-icono="flecha"></span>
     </a>
 
@@ -127,8 +104,10 @@
         App.Sesion.cerrar(); location.replace("entrar.html");
       };
 
-      const n = Object.keys(App.Notas.todas()).length;
-      document.getElementById("det-notas").textContent = n ? `${n} nota${n > 1 ? "s" : ""} guardada${n > 1 ? "s" : ""}` : "Solo en tu móvil";
+      // Una frase de la Palabra al azar cada vez que se abre
+      const FRASES = [["Amarás al Señor tu Dios con todo tu corazón, con toda tu alma y con toda tu mente.", "Mt 22,37"], ["Amarás a tu prójimo como a ti mismo.", "Mt 22,39"], ["Nosotros amamos porque él nos amó primero.", "1 Jn 4,19"], ["Amaos unos a otros como yo os he amado.", "Jn 15,12"], ["El que permanece en el amor permanece en Dios.", "1 Jn 4,16"], ["No amemos de palabra y de boca, sino de verdad y con obras.", "1 Jn 3,18"], ["Nadie tiene amor más grande que el que da la vida por sus amigos.", "Jn 15,13"], ["El amor es paciente, es benigno.", "1 Cor 13,4"], ["El amor no pasa nunca.", "1 Cor 13,8"], ["Dios es amor.", "1 Jn 4,8"], ["El que ama a Dios, ame también a su hermano.", "1 Jn 4,21"], ["Con amor eterno te amé.", "Jr 31,3"], ["Si nos amamos unos a otros, Dios permanece en nosotros.", "1 Jn 4,12"], ["En esto conocerán todos que sois discípulos míos: si os amáis unos a otros.", "Jn 13,35"], ["Cada vez que lo hicisteis con uno de estos, mis hermanos más pequeños, conmigo lo hicisteis.", "Mt 25,40"], ["Sobrellevaos mutuamente con amor.", "Ef 4,2"], ["Por encima de todo esto, el amor, que es el vínculo de la unidad perfecta.", "Col 3,14"], ["El que ama a su prójimo ha cumplido la ley.", "Rom 13,8"], ["Mi alma está sedienta de ti, mi carne tiene ansia de ti.", "Sal 63,2"], ["Señor, tú lo sabes todo, tú sabes que te quiero.", "Jn 21,17"], ["Nada podrá separarnos del amor de Dios manifestado en Cristo Jesús.", "Rom 8,39"], ["Ayudaos mutuamente a llevar vuestras cargas.", "Gál 6,2"], ["El que no ama no ha conocido a Dios, porque Dios es amor.", "1 Jn 4,8"], ["Tú eres mi Señor, mi bien, nada hay fuera de ti.", "Sal 16,2"], ["Haced el bien a los que os odian.", "Lc 6,27"], ["Para mí lo bueno es estar junto a Dios.", "Sal 73,28"], ["Me sedujiste, Señor, y me dejé seducir.", "Jr 20,7"], ["Que vuestra caridad no sea una farsa.", "Rom 12,9"], ["Como un padre siente ternura por sus hijos, siente el Señor ternura por los que lo temen.", "Sal 103,13"]];
+      const [frase, cita] = FRASES[Math.floor(Math.random() * FRASES.length)];
+      document.getElementById("frase").innerHTML = `«${App.escapar(frase)}» <span>— ${App.escapar(cita)}</span>`;
 
       const [agenda, lectio, retiro] = await Promise.all([App.cargar("agenda"), App.cargar("lectio"), App.cargar("retiro")]);
 
@@ -137,8 +116,6 @@
       document.getElementById("chip-semana").textContent =
         semana.length ? `${semana.length} actividad${semana.length > 1 ? "es" : ""}` : "Sin actividades";
 
-      const proxima = App.ordenarPorFecha(agenda.entradas, false).find(e => App.aFecha(e.fecha) >= App.hoy());
-      if (proxima) document.getElementById("det-agenda").textContent = `${proxima.titulo} · ${App.fechaLarga(proxima.fecha)}`;
 
       Promise.all([App.cargar("recursos"), App.cargar("articulos")]).then(([r, a]) => {
         const claves = [...(a.entradas || []).map(x => "art:" + x.id), ...(r.entradas || []).map(x => "rec:" + x.id)];

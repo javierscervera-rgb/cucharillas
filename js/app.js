@@ -131,13 +131,11 @@
 
   // ---------- Navegación inferior ----------
   const NAV = [
-    { id: "inicio",    nombre: "Inicio",    href: "index.html",     icono: "casa" },
-    { id: "lectio",    nombre: "Lectio",    href: "lectio.html",    icono: "libro" },
-    { id: "retiro",    nombre: "Retiros",   href: "retiro.html",    icono: "montana" },
-    { id: "devocionario", nombre: "Oraciones", href: "devocionario.html", icono: "devocionario" },
-    { id: "agenda",    nombre: "Agenda",    href: "agenda.html",    icono: "calendario" },
-    { id: "escapadas", nombre: "Escapadas", href: "escapadas.html", icono: "brujula" },
-    { id: "comunidad", nombre: "Comunidad", href: "comunidad.html", icono: "personas" }
+    { id: "inicio",       nombre: "Inicio",          href: "index.html",        icono: "casa" },
+    { id: "devocionario", nombre: "Devocionario",    href: "devocionario.html", icono: "devocionario" },
+    { id: "agenda",       nombre: "Agenda",          href: "agenda.html",       icono: "calendario" },
+    { id: "notas",        nombre: "Mis notas",       href: "notas.html",        icono: "lapiz" },
+    { id: "comunidad",    nombre: "Todos por todos", href: "comunidad.html",    icono: "personas" }
   ];
 
   function pintarNav() {
@@ -147,7 +145,7 @@
     nav.innerHTML = NAV.map(n => {
       const on = n.id === activo;
       const icono = on && n.id === "inicio" ? ICONOS.casaLlena : ICONOS[n.icono];
-      return `<a class="nav-item${on ? " activo" : ""}" href="${n.href}">${icono}<span>${n.nombre}</span></a>`;
+      return `<a class="nav-item${on ? " activo" : ""}" href="${n.href}"><span class="nav-icono">${icono}<span class="globo" data-globo="${n.id}" hidden></span></span><span>${n.nombre}</span></a>`;
     }).join("");
     document.body.appendChild(nav);
   }
@@ -208,7 +206,7 @@
     } catch (e) {
       // Sin conexión: usamos la última copia guardada
       try { const c = localStorage.getItem(clave); if (c) return JSON.parse(c); } catch (e2) {}
-      return tipo === "perfiles" ? { perfiles: [] } : tipo === "devocionario" ? { temas: [] } : { entradas: [] };
+      return tipo === "perfiles" ? { perfiles: [] } : tipo === "devocionario" ? { temas: [] } : tipo === "galeria" ? { eventos: [], fotos: [] } : { entradas: [] };
     }
   }
 
@@ -420,12 +418,74 @@
     if (b) b.onclick = () => { try { localStorage.setItem("cucharillas_aviso_mudanza", "1"); } catch (e) {} caja.remove(); };
   }
 
+  // ---------- Novedades: punto con el número de cosas nuevas de cada sección ----------
+  // Cada móvil recuerda qué había en cada sección la última vez que entró en ella.
+  // Lo que ya existía la primera vez no cuenta como nuevo.
+  const Novedades = (function () {
+    const CLAVE = "cucharillas_vistos";
+    const leer = () => { try { return JSON.parse(localStorage.getItem(CLAVE)) || {}; } catch (e) { return {}; } };
+    const guardar = (v) => { try { localStorage.setItem(CLAVE, JSON.stringify(v)); } catch (e) {} };
+    const alEntrar = leer();   // cómo estaba todo antes de esta visita
+    const ids = (d, prefijo = "") => ((d && d.entradas) || []).map(e => prefijo + e.id);
+    async function huellaGaleria() {
+      const s = Sesion.obtener(); if (!s) return "";
+      const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("galeria:" + s.cuenta.id));
+      return Array.from(new Uint8Array(h), b => b.toString(16).padStart(2, "0")).join("").slice(0, 20);
+    }
+    const FUENTES = {
+      lectio: async () => ids(await cargar("lectio")),
+      retiro: async () => ids(await cargar("retiro")),
+      agenda: async () => ids(await cargar("agenda")),
+      recursos: async () => { const [a, r] = await Promise.all([cargar("articulos"), cargar("recursos")]); return [...ids(a, "art:"), ...ids(r, "rec:")]; },
+      devocionario: async () => ((await cargar("devocionario")).temas || []).flatMap(t => (t.oraciones || []).map(o => t.id + ":" + (o.id || o.titulo))),
+      comunidad: async () => {
+        let mio = ""; try { mio = (JSON.parse(localStorage.getItem("cucharillas_mi_perfil") || "null") || {}).id || ""; } catch (e) {}
+        return ((await cargar("perfiles")).perfiles || []).filter(p => p.aprobado && p.id !== mio).map(p => p.id);
+      },
+      galeria: async () => {
+        const [g, yo] = await Promise.all([cargar("galeria"), huellaGaleria()]);
+        return [...(g.eventos || []).map(e => "e:" + e.id), ...(g.fotos || []).filter(f => !yo || f.quien !== yo).map(f => "f:" + f.id)];
+      }
+    };
+    // Qué sección «está» en cada página
+    const PAGINAS = { lectio: "lectio", retiro: "retiro", agenda: "agenda", recursos: "recursos", devocionario: "devocionario", comunidad: "comunidad", galeria: "galeria" };
+    // El botón Inicio suma lo nuevo de las secciones que están en la portada
+    const EN_PORTADA = ["lectio", "retiro", "galeria", "recursos"];
+    let cuentas = {};
+
+    async function iniciar(pagina) {
+      const vistos = leer(), listas = {};
+      await Promise.all(Object.keys(FUENTES).map(async (sec) => { try { listas[sec] = await FUENTES[sec](); } catch (e) {} }));
+      const actual = PAGINAS[pagina];
+      for (const [sec, lista] of Object.entries(listas)) {
+        if (!vistos[sec] || sec === actual) { vistos[sec] = lista; cuentas[sec] = 0; continue; }
+        const antes = new Set(vistos[sec]);
+        cuentas[sec] = lista.filter(x => !antes.has(x)).length;
+      }
+      guardar(vistos);
+      cuentas.inicio = pagina === "inicio" ? 0 : EN_PORTADA.reduce((n, s) => n + (cuentas[s] || 0), 0);
+      pintar();
+    }
+    function pintar() {
+      document.querySelectorAll("[data-globo]").forEach(el => {
+        const n = cuentas[el.dataset.globo] || 0;
+        el.hidden = !n;
+        el.textContent = n > 99 ? "99+" : String(n);
+        el.setAttribute("aria-label", n ? `${n} novedad${n === 1 ? "" : "es"}` : "");
+      });
+    }
+    // Lo que había la última vez (para marcar, por ejemplo, las fotos nuevas de cada álbum)
+    const previo = (sec) => Array.isArray(alEntrar[sec]) ? new Set(alEntrar[sec]) : null;
+    return { iniciar, pintar, previo };
+  })();
+
   document.addEventListener("DOMContentLoaded", () => {
     avisoMudanza();
     if (!["admin", "entrar"].includes(document.body.dataset.pagina)) pintarNav();
     document.querySelectorAll("[data-icono]").forEach(el => { el.innerHTML = ICONOS[el.dataset.icono] || ""; });
     document.querySelectorAll("[data-marca]").forEach(el => { el.outerHTML = MARCA; });
+    if (!["admin", "entrar"].includes(document.body.dataset.pagina) && Sesion.obtener()) Novedades.iniciar(document.body.dataset.pagina);
   });
 
-  window.App = { Sesion, hashClave, servidorCuentas, recuperarPerfil, RAIZ_APP, ICONOS, MARCA, escapar, formatear, fechaLarga, fechaCorta, aFecha, hoy, semanaActual, cargar, ordenarPorFecha, Notas, Estados, cajaNota, redimensionar, avatar, irAlAncla, horaRelativa, aviso, parametro, MESES };
+  window.App = { Novedades, Sesion, hashClave, servidorCuentas, recuperarPerfil, RAIZ_APP, ICONOS, MARCA, escapar, formatear, fechaLarga, fechaCorta, aFecha, hoy, semanaActual, cargar, ordenarPorFecha, Notas, Estados, cajaNota, redimensionar, avatar, irAlAncla, horaRelativa, aviso, parametro, MESES };
 })();

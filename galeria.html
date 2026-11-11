@@ -193,6 +193,7 @@
     .boton-sel svg { width: 16px; height: 16px; }
     .aviso-sel { margin: 14px 0 12px; font-size: 14px; }
     .celda.bloqueada { opacity: .3; cursor: default; }
+    .celda.nueva::after { content: ""; position: absolute; right: 7px; top: 7px; width: 11px; height: 11px; border-radius: 50%; background: #E5484D; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
     .celda.seleccionable .marca-sel {
       position: absolute; right: 6px; top: 6px; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #fff;
       background: rgba(31,42,68,.25); box-shadow: 0 1px 4px rgba(0,0,0,.3); display: flex; align-items: center; justify-content: center; color: #fff;
@@ -378,6 +379,9 @@
   const hoyISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 
   const fotosDe = (idEvento) => G.fotos.filter(f => f.evento === idEvento);
+  // Fotos que han aparecido desde la última vez que entraste en la galería (sin contar las tuyas)
+  const previoGaleria = App.Novedades.previo("galeria");
+  const esNueva = (f) => !!previoGaleria && !previoGaleria.has("f:" + f.id) && f.quien !== miHuella;
   const ordenMomento = (m) => { const i = MOMENTOS.findIndex(x => x.id === m); return i < 0 ? 9 : i; };
   function ordenar(fotos) {
     return [...fotos].sort((a, b) =>
@@ -428,13 +432,14 @@
         const resto = fotos.filter(f => f !== portada).slice(-2);
         const imgs = (portada ? [portada, ...resto] : []).slice(0, 3);
         const coms = fotos.reduce((n, f) => n + (f.comentarios || []).length, 0);
+        const nuevas = fotos.filter(esNueva).length, albumNuevo = previoGaleria && !previoGaleria.has("e:" + e.id);
         const clase = imgs.length === 0 ? "vacio-col" : imgs.length === 1 ? "uno" : imgs.length === 2 ? "dos" : "";
         return `
         <a class="pastilla tarjeta-portada evento" href="#e=${escapar(e.id)}">
           <div class="collage ${clase}">${imgs.length ? imgs.map(f => `<img ${imgAttrs(f.mini, 'loading="lazy" alt=""')}>`).join("") : IC.album}</div>
           <div class="fila">
             <div class="texto">
-              <div class="titulo">${escapar(e.titulo)}</div>
+              <div class="titulo">${escapar(e.titulo)}${albumNuevo ? ` <span class="globo">Nuevo</span>` : nuevas ? ` <span class="globo">${nuevas}</span>` : ""}</div>
               <div class="detalle">${[e.fecha ? App.fechaCorta(e.fecha) : "", `${fotos.length} foto${fotos.length === 1 ? "" : "s"}`, coms ? `${coms} comentario${coms === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ")}</div>
             </div>
             <span class="flecha">${ICONOS.flecha}</span>
@@ -555,7 +560,7 @@
           ${mia ? `<span class="marca-sel">${on ? IC.check : ""}</span>` : ""}
         </button>`;
       }
-      return `<button class="celda" type="button" data-ver="${escapar(f.id)}" aria-label="Ver foto">
+      return `<button class="celda ${esNueva(f) ? "nueva" : ""}" type="button" data-ver="${escapar(f.id)}" aria-label="${esNueva(f) ? "Foto nueva" : "Ver foto"}">
         <img ${imgAttrs(f.mini, 'loading="lazy" alt=""')}>
         ${n || c ? `<span class="marcas">${n ? `<span>${IC.corazonLleno}${n}</span>` : ""}${c ? `<span>${IC.bocadillo}${c}</span>` : ""}</span>` : ""}
       </button>`;
