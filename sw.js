@@ -2,7 +2,7 @@
    Siempre intenta la red primero (así el contenido nuevo aparece enseguida)
    y, si no hay conexión, usa la última copia guardada. */
 
-const VERSION = "cucharillas-v13";
+const VERSION = "cucharillas-v14";
 const BASICOS = [
   "./", "index.html", "lectio.html", "retiro.html", "notas.html", "agenda.html", "comunidad.html", "recursos.html", "articulo.html", "devocionario.html", "rosario.html", "escapadas.html", "galeria.html", "entrar.html", "data/rosario.json", "js/oraciones.js", "data/devocionario.json",
   "css/estilos.css", "js/config.js", "js/app.js", "js/entradas.js", "js/videos.js", "img/logo.png", "img/icono-192.png", "manifest.json"
@@ -24,7 +24,9 @@ self.addEventListener("fetch", e => {
   if (url.pathname.endsWith("admin.html") || url.pathname.endsWith("admin.js")) return;
 
   e.respondWith(
-    fetch(e.request).then(r => {
+    // "no-cache": pregunta siempre al servidor si hay versión nueva (si no la hay,
+    // responde enseguida sin volver a descargar). Así los cambios se ven al momento.
+    fetch(url.href, { cache: "no-cache", credentials: "same-origin" }).then(r => {
       if (r.ok) {
         const copia = r.clone();
         // Guardamos sin parámetros (?t=, ?id=) para no llenar la caché

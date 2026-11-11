@@ -854,11 +854,17 @@
     abrirHoja("Foto", `<div class="menu-opciones">
       <button type="button" id="mDescargar">${IC.descargar} Guardar la foto</button>
       ${mia ? `<button type="button" id="mEditar">${IC.lapiz} Editar título, pie, día, momento o lugar</button>
+      <button type="button" id="mVarias">${IC.check} Cambiar día, momento o lugar de varias fotos a la vez</button>
       <button type="button" id="mBorrar" class="peligro">${IC.papelera} Borrar mi foto</button>` : ""}
     </div>`);
     $("mDescargar").onclick = () => descargar(f);
     if (mia) {
       $("mEditar").onclick = () => hojaEditarFoto(f, e);
+      $("mVarias").onclick = () => {
+        cerrarHoja();
+        seleccionando = true; elegidas.clear(); elegidas.add(f.id);
+        pintar(); window.scrollTo({ top: 0, behavior: "smooth" });
+      };
       $("mBorrar").onclick = async () => {
         if (!confirm("¿Borrar esta foto? También se borrarán sus comentarios.")) return;
         cerrarHoja();
