@@ -189,6 +189,23 @@
     .menu-opciones svg { width: 22px; height: 22px; }
     body.sin-scroll { overflow: hidden; }
 
+    /* Fotos: aparecen solo cuando han terminado de cargar */
+    .celda img, .collage img, .visor-slide img { opacity: 0; transition: opacity .3s ease; }
+    .celda img.cargada, .collage img.cargada, .visor-slide img.cargada { opacity: 1; }
+    .celda, .collage { background: linear-gradient(110deg, #EEF3F9 30%, #F7FAFD 50%, #EEF3F9 70%); background-size: 250% 100%; animation: brillo 1.4s linear infinite; }
+    @keyframes brillo { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+    img.fallida { visibility: hidden; }
+
+    /* Zoom con dos dedos dentro del marco de la foto */
+    .visor-slide { touch-action: pan-x pan-y; overflow: hidden; }
+    .visor-slide img { transform-origin: 50% 50%; will-change: transform; }
+    .visor-slide.zoom { touch-action: none; cursor: grab; }
+    .visor-slide.zoom img { transition: none; }
+    .visor.con-zoom { overflow: hidden; }
+    .visor.con-zoom .visor-carrusel { overflow: hidden; }
+    .ayuda-zoom { position: absolute; z-index: 2; left: 50%; bottom: 12px; transform: translateX(-50%); background: rgba(0,0,0,.55); color: #fff; font-size: 12.5px; padding: 6px 12px; border-radius: 999px; pointer-events: none; opacity: 0; transition: opacity .3s; white-space: nowrap; }
+    .visor.con-zoom .ayuda-zoom { opacity: 1; }
+
     /* ---------- Álbum: grupos por momento y por lugar ---------- */
     .grupo-dia { margin-bottom: 8px; }
     .grupo-dia .grupo-fotos { margin: 22px 2px 8px; }
@@ -410,7 +427,17 @@
 
   // ---------- Utilidades ----------
   const urlFoto = (ruta) => BASE_FOTOS + String(ruta || "").split("/").map(encodeURIComponent).join("/");
-  const imgAttrs = (ruta, extra = "") => `src="${escapar(urlFoto(ruta))}" data-ruta="${escapar(ruta)}" onerror="if(!this.dataset.r){this.dataset.r=1;this.src=this.dataset.ruta}" ${extra}`;
+  // Las fotos se piden a la propia web (servidor preparado para imágenes). Si aún no
+  // está publicada (recién subida), se pide a GitHub; si falla, se reintenta.
+  // Solo se muestran cuando están completas, para que nunca se vean a medio cargar.
+  const imgAttrs = (ruta, extra = "") => `src="${escapar(String(ruta || "").split("/").map(encodeURIComponent).join("/"))}" data-raw="${escapar(urlFoto(ruta))}" decoding="async" onload="this.classList.add('cargada')" onerror="fotoFallo(this)" ${extra}`;
+  window.fotoFallo = (img) => {
+    const n = +(img.dataset.intento || 0);
+    img.dataset.intento = n + 1;
+    if (n === 0) img.src = img.dataset.raw;
+    else if (n < 3) setTimeout(() => { img.src = img.dataset.raw + (img.dataset.raw.includes("?") ? "&" : "?") + "r=" + Date.now(); }, 800 * n);
+    else img.classList.add("cargada", "fallida");
+  };
   const COLORES = [["#E8F4FD", "#2F6FBF"], ["#E6F7F0", "#2C7A57"], ["#F3EFFF", "#6B4FC7"], ["#FFF3DC", "#9A6510"], ["#FDECEC", "#B4232A"], ["#E7F6F8", "#1F7A86"]];
   function inicial(nombre) {
     let h = 0; for (const c of String(nombre)) h = (h * 31 + c.codePointAt(0)) >>> 0;
@@ -689,7 +716,7 @@
           <div class="visor-titulo"><b>${escapar(lugar ? "📍 " + lugar : e.titulo)}</b><small id="visorCuenta"></small></div>
           <button type="button" class="visor-mas" id="visorMas" aria-label="Más opciones">⋯</button>
         </div>
-        <div class="visor-foto">
+        <div class="visor-foto"><span class="ayuda-zoom">Arrastra para moverte · doble toque para salir</span>
           <div class="visor-carrusel" id="carrusel">
             ${lista.map((x, k) => `<div class="visor-slide" data-id="${escapar(x.id)}"><img ${imgAttrs(x.ruta, `alt="${escapar(x.titulo || x.pie || "Foto de " + x.autor)}" ${Math.abs(k - lista.indexOf(f)) > 1 ? 'loading="lazy"' : ""}`)}><span class="corazon-grande">${IC.corazonLleno}</span></div>`).join("")}
           </div>
@@ -726,6 +753,7 @@
       const i = Math.round(car.scrollLeft / Math.max(1, car.clientWidth));
       const x = lista[Math.max(0, Math.min(lista.length - 1, i))];
       if (x && x.id !== fotoActual()) {
+        car.querySelectorAll(".visor-slide.zoom").forEach(sl => sl._reiniciar && sl._reiniciar());
         // Cambia la foto sin añadir un paso más al botón "atrás"
         history.replaceState(null, "", `#e=${e.id}&f=${x.id}`);
         pintarInfoVisor(e, x, lista);
@@ -735,11 +763,13 @@
     car.addEventListener("scroll", () => { clearTimeout(t); t = setTimeout(alParar, 90); }, { passive: true });
     const ir = (d) => { car.scrollBy({ left: d * car.clientWidth, behavior: "smooth" }); };
     if ($("visorAnt")) { $("visorAnt").onclick = () => ir(-1); $("visorSig").onclick = () => ir(1); }
-    // Doble toque en la foto = me gusta
+    car.querySelectorAll(".visor-slide").forEach(activarZoom);
+    // Doble toque en la foto = me gusta (si está ampliada, vuelve a su tamaño)
     car.querySelectorAll(".visor-slide").forEach(sl => {
       let ultimo = 0;
       sl.addEventListener("click", () => {
         const ahora = Date.now();
+        if (sl.classList.contains("zoom") || sl._movida) { if (ahora - ultimo < 320) { sl._reiniciar(); ultimo = 0; } else ultimo = ahora; return; }
         if (ahora - ultimo < 320) {
           const c = sl.querySelector(".corazon-grande"); c.classList.remove("latido"); void c.offsetWidth; c.classList.add("latido");
           const x = G.fotos.find(y => y.id === sl.dataset.id);
@@ -749,6 +779,90 @@
       });
     });
   }
+  // ---------- Zoom: pellizcar con dos dedos (o rueda con Ctrl / trackpad en el ordenador) ----------
+  // Mientras la foto está ampliada, arrastrar mueve la foto y no se cambia de foto
+  // ni se baja a los comentarios. Al volver al tamaño normal, todo funciona como siempre.
+  function activarZoom(sl) {
+    const img = sl.querySelector("img");
+    const visor = () => $("visor");
+    let s = 1, tx = 0, ty = 0;
+    const dedos = new Map();
+    let inicio = null;
+    const MAX = 4;
+    const limitar = () => {
+      const r = sl.getBoundingClientRect();
+      const w = img.offsetWidth, h = img.offsetHeight;
+      const mx = Math.max(0, (w * s - r.width) / 2), my = Math.max(0, (h * s - r.height) / 2);
+      tx = Math.max(-mx, Math.min(mx, tx)); ty = Math.max(-my, Math.min(my, ty));
+    };
+    const aplicar = () => {
+      img.style.transform = s === 1 ? "" : `translate(${tx}px, ${ty}px) scale(${s})`;
+      const z = s > 1.01;
+      sl.classList.toggle("zoom", z);
+      const v = visor(); if (v) v.classList.toggle("con-zoom", !!document.querySelector(".visor-slide.zoom"));
+    };
+    sl._reiniciar = () => { s = 1; tx = 0; ty = 0; img.style.transition = "transform .25s ease"; aplicar(); setTimeout(() => { img.style.transition = ""; }, 260); };
+    const centro = () => { const r = sl.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };
+    const medio = () => { const p = [...dedos.values()]; return { x: (p[0].x + p[1].x) / 2, y: (p[0].y + p[1].y) / 2, d: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y) }; };
+
+    sl.addEventListener("pointerdown", (ev) => {
+      if (ev.pointerType === "mouse" && s === 1) return;   // con ratón, sin zoom: no hace nada
+      dedos.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+      if (dedos.size === 2) {
+        const m = medio(), c = centro();
+        inicio = { s, tx, ty, d: m.d, mx: m.x - c.x, my: m.y - c.y };
+        try { sl.setPointerCapture(ev.pointerId); } catch (e) {}
+      } else if (dedos.size === 1 && s > 1) {
+        inicio = { s, tx, ty, x: ev.clientX, y: ev.clientY };
+        try { sl.setPointerCapture(ev.pointerId); } catch (e) {}
+      }
+    });
+    sl.addEventListener("pointermove", (ev) => {
+      if (!dedos.has(ev.pointerId)) return;
+      dedos.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+      if (dedos.size === 2 && inicio && inicio.d) {
+        ev.preventDefault();
+        const m = medio(), c = centro();
+        const nueva = Math.max(1, Math.min(MAX, inicio.s * m.d / inicio.d));
+        const k = nueva / inicio.s;
+        // El punto entre los dos dedos se queda debajo de los dedos
+        tx = (m.x - c.x) - (inicio.mx - inicio.tx) * k;
+        ty = (m.y - c.y) - (inicio.my - inicio.ty) * k;
+        s = nueva; limitar(); aplicar();
+        sl._movida = true;
+      } else if (dedos.size === 1 && s > 1 && inicio && inicio.x !== undefined) {
+        ev.preventDefault();
+        tx = inicio.tx + (ev.clientX - inicio.x); ty = inicio.ty + (ev.clientY - inicio.y);
+        limitar(); aplicar();
+        if (Math.abs(ev.clientX - inicio.x) + Math.abs(ev.clientY - inicio.y) > 6) sl._movida = true;
+      }
+    });
+    const soltar = (ev) => {
+      dedos.delete(ev.pointerId);
+      if (dedos.size === 1 && s > 1) { const p = [...dedos.values()][0]; inicio = { s, tx, ty, x: p.x, y: p.y }; }
+      else if (dedos.size === 0) { inicio = null; if (s < 1.05) sl._reiniciar(); setTimeout(() => { sl._movida = false; }, 50); }
+    };
+    sl.addEventListener("pointerup", soltar);
+    sl.addEventListener("pointercancel", soltar);
+    // Con dos dedos (o con la foto ampliada) el navegador no debe desplazar nada
+    const frenar = (ev) => { if (ev.touches.length >= 2 || s > 1) ev.preventDefault(); };
+    sl.addEventListener("touchstart", frenar, { passive: false });
+    sl.addEventListener("touchmove", frenar, { passive: false });
+    // Ordenador: Ctrl + rueda o el gesto de pellizcar del trackpad
+    sl.addEventListener("wheel", (ev) => {
+      if (!ev.ctrlKey && s === 1) return;
+      ev.preventDefault();
+      const c = centro(), px = ev.clientX - c.x, py = ev.clientY - c.y;
+      const nueva = Math.max(1, Math.min(MAX, s * Math.exp(-ev.deltaY * (ev.ctrlKey ? 0.01 : 0.002))));
+      const k = nueva / s;
+      tx = px - (px - tx) * k; ty = py - (py - ty) * k; s = nueva;
+      if (s < 1.02) { s = 1; tx = ty = 0; }
+      limitar(); aplicar();
+    }, { passive: false });
+  }
+  // iPhone: que el gesto de pellizcar no amplíe toda la página
+  ["gesturestart", "gesturechange"].forEach(t => document.addEventListener(t, (ev) => { if ($("visor")) ev.preventDefault(); }, { passive: false }));
+
   // Flechas del teclado y Esc en el ordenador
   document.addEventListener("keydown", (ev) => {
     if (!$("visor") || $("hoja").classList.contains("visible") || /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName)) return;

@@ -2,7 +2,7 @@
    Siempre intenta la red primero (así el contenido nuevo aparece enseguida)
    y, si no hay conexión, usa la última copia guardada. */
 
-const VERSION = "cucharillas-v16";
+const VERSION = "cucharillas-v17";
 const BASICOS = [
   "./", "index.html", "lectio.html", "retiro.html", "notas.html", "agenda.html", "comunidad.html", "recursos.html", "articulo.html", "devocionario.html", "rosario.html", "escapadas.html", "galeria.html", "entrar.html", "data/rosario.json", "js/oraciones.js", "data/devocionario.json",
   "css/estilos.css", "js/config.js", "js/app.js", "js/entradas.js", "js/videos.js", "img/logo.png", "img/icono-192.png", "manifest.json"
@@ -22,6 +22,9 @@ self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== location.origin) return;
   if (url.pathname.endsWith("admin.html") || url.pathname.endsWith("admin.js")) return;
+  // Fotos de la galería: las gestiona el navegador directamente (su propia caché),
+  // sin pasar por aquí, para no llenar el almacenamiento del móvil
+  if (url.pathname.includes("/img/galeria/")) return;
 
   e.respondWith(
     // "no-cache": pregunta siempre al servidor si hay versión nueva (si no la hay,
