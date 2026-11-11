@@ -1640,6 +1640,24 @@
    "fecha": "2026-11-11T08:47:38.478Z",
    "likes": [],
    "comentarios": []
+  },
+  {
+   "id": "2df1db59fc06317be2dc",
+   "evento": "allariz-6-9-nov-2026-mwbcig88",
+   "ruta": "img/galeria/allariz-6-9-nov-2026-mwbcig88/2df1db59fc06317be2dc.jpg",
+   "mini": "img/galeria/allariz-6-9-nov-2026-mwbcig88/2df1db59fc06317be2dc-m.jpg",
+   "ancho": 1200,
+   "alto": 1600,
+   "titulo": "",
+   "pie": "",
+   "dia": "2026-11-06",
+   "momento": "mañana",
+   "lugar": "El viaje",
+   "autor": "Valeria",
+   "quien": "da8ec6c0b767fe7db050",
+   "fecha": "2026-11-11T10:08:11.093Z",
+   "likes": [],
+   "comentarios": []
   }
  ]
 }
