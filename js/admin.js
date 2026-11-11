@@ -425,6 +425,7 @@
             <div class="texto">
               <div class="titulo" style="font-size:15px">${escapar(f.autor)}</div>
               <div class="detalle">${[f.dia ? App.fechaCorta(f.dia) : "", MOMENTOS_G[f.momento] || "", f.lugar ? "📍 " + escapar(f.lugar) : ""].filter(Boolean).join(" · ") || "Sin día ni lugar"}</div>
+              ${f.titulo ? `<div class="detalle" style="color:var(--texto-principal);font-weight:700">${escapar(f.titulo)}</div>` : ""}
               ${f.pie ? `<div class="detalle" style="color:var(--texto-principal)">«${escapar(f.pie)}»</div>` : ""}
               <div class="detalle">❤️ ${(f.likes || []).length} · subida ${escapar(App.horaRelativa(f.fecha))}</div>
             </div>

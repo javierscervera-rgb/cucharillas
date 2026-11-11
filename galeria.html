@@ -179,6 +179,44 @@
     .menu-opciones svg { width: 22px; height: 22px; }
     body.sin-scroll { overflow: hidden; }
 
+    /* ---------- Título de la foto y edición ---------- */
+    .titulo-foto { padding: 6px 16px 0; font-size: 17px; font-weight: 700; line-height: 1.3; }
+    .accion.editar { margin-left: auto; color: var(--azul-cielo); font-size: 14px; }
+    .accion.editar svg { width: 19px; height: 19px; }
+    .miniatura-editar { width: 76px; height: 76px; object-fit: cover; border-radius: 14px; display: block; margin: 0 0 4px; background: var(--azul-suave); }
+    .previa .previa-titulo { font-weight: 600; }
+
+    /* ---------- Cambiar varias fotos a la vez ---------- */
+    .fila-sel { margin: -2px 0 12px; }
+    .boton-sel { border: 1px dashed #BFD3EE; background: #F7FAFE; color: #2F6FBF; border-radius: 12px; padding: 9px 12px; width: 100%;
+      font: 600 13.5px inherit; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer; }
+    .boton-sel svg { width: 16px; height: 16px; }
+    .aviso-sel { margin: 14px 0 12px; font-size: 14px; }
+    .celda.bloqueada { opacity: .3; cursor: default; }
+    .celda.seleccionable .marca-sel {
+      position: absolute; right: 6px; top: 6px; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #fff;
+      background: rgba(31,42,68,.25); box-shadow: 0 1px 4px rgba(0,0,0,.3); display: flex; align-items: center; justify-content: center; color: #fff;
+    }
+    .celda.seleccionable .marca-sel svg { width: 14px; height: 14px; }
+    .celda.elegida .marca-sel { background: var(--azul-cielo); }
+    .celda.elegida img { transform: scale(.88); border-radius: 8px; }
+    .celda img { transition: transform .15s ease; }
+    .celda.elegida { background: #DCEBFB; }
+    .grupo-elegible { border: 0; background: none; width: 100%; text-align: left; padding: 0; cursor: pointer; font-family: inherit; }
+    .elegir-grupo { margin-left: auto; text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--azul-cielo); background: var(--azul-suave); padding: 3px 10px; border-radius: 999px; }
+    .barra-sel {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 150; background: #fff; border-top: 1px solid var(--gris-borde);
+      box-shadow: 0 -6px 20px rgba(31,42,68,.1); padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
+    }
+    .barra-sel-info { max-width: 448px; margin: 0 auto 10px; display: flex; align-items: center; gap: 8px; font-size: 14.5px; }
+    .barra-sel-info button { margin-left: auto; border: 0; background: none; color: var(--azul-cielo); font: 600 13.5px inherit; font-family: inherit; cursor: pointer; padding: 4px; }
+    .barra-sel-botones { max-width: 448px; margin: 0 auto; display: flex; gap: 10px; }
+    .barra-sel-botones .boton { flex: 1; }
+    .barra-sel-botones .boton:disabled { opacity: .45; }
+    .momentos-varias { grid-template-columns: repeat(3, 1fr); }
+    .texto-ayuda-sel { margin: 0 0 4px; color: var(--texto-secundario); font-size: 14px; line-height: 1.5; }
+    @media (min-width: 1000px) { .barra-sel { left: 240px; } }
+
     /* ---------- Pantallas grandes ---------- */
     @media (min-width: 700px) {
       .cuadricula { grid-template-columns: repeat(4, 1fr); gap: 4px; }
@@ -260,6 +298,7 @@
     corazon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-9-9.5C2 7 4.5 4.5 7.3 4.5c2 0 3.6 1.2 4.7 3 1.1-1.8 2.7-3 4.7-3C19.5 4.5 22 7 21 10.5 19.5 15.4 12 20 12 20Z"/></svg>',
     corazonLleno: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20s-7.5-4.6-9-9.5C2 7 4.5 4.5 7.3 4.5c2 0 3.6 1.2 4.7 3 1.1-1.8 2.7-3 4.7-3C19.5 4.5 22 7 21 10.5 19.5 15.4 12 20 12 20Z"/></svg>',
     bocadillo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20.5 11.5c0 4.1-3.8 7.5-8.5 7.5-1.2 0-2.3-.2-3.3-.6L4 20l1.3-3.6A7 7 0 0 1 3.5 11.5C3.5 7.4 7.3 4 12 4s8.5 3.4 8.5 7.5Z"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
     flechaAbajo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>',
     enviar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg>',
     lapiz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
@@ -283,6 +322,8 @@
   try { const c = JSON.parse(leerLS(K.cache) || "null"); if (c && c.eventos) G = c; } catch (e) {}
   let vista = leerLS(K.vista) === "filas" ? "filas" : "cuadricula";
   let filtroLugar = "";
+  let seleccionando = false;      // modo para cambiar varias fotos a la vez
+  const elegidas = new Set();
   const abiertos = new Set();   // fotos con los comentarios desplegados
   const borradores = {};        // comentario a medio escribir, por foto
 
@@ -347,7 +388,7 @@
 
   // ---------- Navegación (el botón "atrás" del móvil funciona) ----------
   function eventoActual() { const m = location.hash.match(/^#e=([a-z0-9-]+)/); return m ? m[1] : ""; }
-  window.addEventListener("hashchange", () => { cerrarHoja(); filtroLugar = ""; pintar(); window.scrollTo(0, 0); });
+  window.addEventListener("hashchange", () => { cerrarHoja(); filtroLugar = ""; seleccionando = false; elegidas.clear(); pintar(); window.scrollTo(0, 0); });
 
   function pintar() {
     const ev = eventoActual();
@@ -371,6 +412,7 @@
   // ---------- Lista de eventos ----------
   function pintarEventos() {
     $("btnSubir").classList.add("oculto");
+    seleccionando = false; elegidas.clear(); pintarBarraSeleccion();
     app.classList.add("vista-eventos"); app.classList.remove("vista-album");
     const eventos = [...G.eventos].sort((a, b) => String(b.fecha || b.creado).localeCompare(String(a.fecha || a.creado)));
     app.innerHTML = `
@@ -410,24 +452,30 @@
     const lugares = lugaresDe(e.id);
     if (filtroLugar && !lugares.includes(filtroLugar)) filtroLugar = "";
     const fotos = filtroLugar ? todas.filter(f => (f.lugar || "").trim() === filtroLugar) : todas;
+    const mias = todas.filter(f => miHuella && f.quien === miHuella);
+    if (!mias.length) seleccionando = false;
+    [...elegidas].forEach(id => { if (!mias.some(f => f.id === id)) elegidas.delete(id); });
+    $("btnSubir").classList.toggle("oculto", seleccionando);
     const y = window.scrollY;
     app.innerHTML = `
       <header class="cabecera-pagina album-cabecera"><a class="btn-volver" href="#" aria-label="Volver a los álbumes">${ICONOS.atras}</a><h1>${escapar(e.titulo)}</h1></header>
       <p class="album-meta">${[e.fecha ? diaLargo(e.fecha) : "", `${todas.length} foto${todas.length === 1 ? "" : "s"}`].filter(Boolean).join(" · ")}</p>
       ${e.descripcion ? `<p class="album-desc">${texto(e.descripcion)}</p>` : ""}
       ${todas.length ? `
+      ${seleccionando ? `<div class="aviso info aviso-sel">Toca tus fotos para elegirlas (o el título de un día para elegir todas las tuyas de ese momento). Después pulsa <b>Cambiar datos</b>.</div>` : `
       <div class="interruptor ${vista === "filas" ? "filas" : ""}" id="interruptor" role="tablist" aria-label="Ver como">
         <i class="bola"></i>
         <button type="button" data-vista="cuadricula" role="tab">${IC.cuadricula} Cuadrícula</button>
         <button type="button" data-vista="filas" role="tab">${IC.filas} Filas</button>
-      </div>
+      </div>`}
+      ${mias.length && !seleccionando ? `<div class="fila-sel"><button type="button" class="boton-sel" id="btnSeleccionar">${IC.check} Cambiar día, momento o lugar de varias fotos</button></div>` : ""}
       ${lugares.length > 1 ? `<div class="filtros" id="filtros">
         <button type="button" data-lugar="" class="${filtroLugar ? "" : "activo"}">Todos los lugares</button>
         ${lugares.map(l => `<button type="button" data-lugar="${escapar(l)}" class="${l === filtroLugar ? "activo" : ""}">📍 ${escapar(l)}</button>`).join("")}
       </div>` : ""}
-      <div class="pista-vistas" id="pista"><div class="vista" id="vista">${vista === "filas" ? htmlFilas(fotos) : htmlCuadricula(fotos)}</div></div>`
+      <div class="pista-vistas" id="pista"><div class="vista" id="vista">${seleccionando ? htmlCuadricula(fotos) : vista === "filas" ? htmlFilas(fotos) : htmlCuadricula(fotos)}</div></div>`
       : `<div class="vacio"><div class="icono-pastilla icono-azul">${IC.album}</div>Este álbum está vacío.<br>Pulsa <b>Subir fotos</b> para añadir las tuyas.</div>`}
-      <div style="height:70px"></div>`;
+      <div style="height:${seleccionando ? 160 : 70}px"></div>`;
     window.scrollTo(0, y);
 
     app.querySelector(".btn-volver").onclick = (ev) => { ev.preventDefault(); history.length > 1 && location.hash ? history.back() : (location.hash = ""); };
@@ -446,7 +494,28 @@
     }
     const fl = $("filtros");
     if (fl) fl.querySelectorAll("button").forEach(b => b.onclick = () => { filtroLugar = b.dataset.lugar; pintar(); });
+    const bs = $("btnSeleccionar");
+    if (bs) bs.onclick = () => { seleccionando = true; elegidas.clear(); pintar(); };
     conectarFotos(e);
+    pintarBarraSeleccion(e, mias);
+  }
+
+  // Barra inferior del modo selección
+  function pintarBarraSeleccion(e, mias) {
+    let barra = $("barraSel");
+    if (!seleccionando) { if (barra) barra.remove(); return; }
+    if (!barra) { barra = document.createElement("div"); barra.id = "barraSel"; barra.className = "barra-sel"; document.body.appendChild(barra); }
+    const n = elegidas.size, todas = mias.length && mias.every(f => elegidas.has(f.id));
+    barra.innerHTML = `
+      <div class="barra-sel-info"><b>${n}</b> foto${n === 1 ? "" : "s"} elegida${n === 1 ? "" : "s"}
+        <button type="button" id="selTodas">${todas ? "Quitar todas" : "Elegir todas las mías"}</button></div>
+      <div class="barra-sel-botones">
+        <button type="button" class="boton suave" id="selCancelar">Cancelar</button>
+        <button type="button" class="boton" id="selCambiar" ${n ? "" : "disabled"}>Cambiar datos</button>
+      </div>`;
+    $("selTodas").onclick = () => { if (todas) elegidas.clear(); else mias.forEach(f => elegidas.add(f.id)); pintar(); };
+    $("selCancelar").onclick = () => { seleccionando = false; elegidas.clear(); pintar(); };
+    $("selCambiar").onclick = () => hojaCambiarVarias(e);
   }
 
   function cambiarVista(v, irA) {
@@ -479,13 +548,26 @@
   function htmlCuadricula(fotos) {
     const celda = (f) => {
       const n = (f.likes || []).length, c = (f.comentarios || []).length;
+      if (seleccionando) {
+        const mia = miHuella && f.quien === miHuella, on = elegidas.has(f.id);
+        return `<button class="celda ${mia ? "seleccionable" : "bloqueada"} ${on ? "elegida" : ""}" type="button" ${mia ? `data-elegir="${escapar(f.id)}"` : "disabled"} aria-pressed="${on}" aria-label="${mia ? "Elegir foto" : "Foto de otra persona"}">
+          <img ${imgAttrs(f.mini, 'loading="lazy" alt=""')}>
+          ${mia ? `<span class="marca-sel">${on ? IC.check : ""}</span>` : ""}
+        </button>`;
+      }
       return `<button class="celda" type="button" data-ver="${escapar(f.id)}" aria-label="Ver foto">
         <img ${imgAttrs(f.mini, 'loading="lazy" alt=""')}>
         ${n || c ? `<span class="marcas">${n ? `<span>${IC.corazonLleno}${n}</span>` : ""}${c ? `<span>${IC.bocadillo}${c}</span>` : ""}</span>` : ""}
       </button>`;
     };
     if (!hayGrupos(fotos)) return `<div class="cuadricula">${fotos.map(celda).join("")}</div>`;
-    return grupos(fotos).map(g => cabeceraGrupo(g) + `<div class="cuadricula">${g.fotos.map(celda).join("")}</div>`).join("");
+    return grupos(fotos).map((g, i) => {
+      const mias = seleccionando ? g.fotos.filter(f => miHuella && f.quien === miHuella) : [];
+      const cab = mias.length
+        ? `<button type="button" class="grupo-fotos grupo-elegible" data-grupo="${i}"><span class="momento-ico">${g.ico}</span>${escapar(g.titulo)}<span class="elegir-grupo">${mias.every(f => elegidas.has(f.id)) ? "Quitar" : "Elegir"} ${mias.length}</span></button>`
+        : cabeceraGrupo(g);
+      return cab + `<div class="cuadricula">${g.fotos.map(celda).join("")}</div>`;
+    }).join("");
   }
 
   function htmlFoto(f) {
@@ -506,14 +588,16 @@
         <button class="mas-opciones" type="button" data-menu="${escapar(f.id)}" aria-label="Más opciones">⋯</button>
       </div>
       <div class="foto-img" data-dobletoque="${escapar(f.id)}">
-        <img ${imgAttrs(f.ruta, `loading="lazy" alt="${escapar(f.pie || "Foto de " + f.autor)}" ${ratio}`)}>
+        <img ${imgAttrs(f.ruta, `loading="lazy" alt="${escapar(f.titulo || f.pie || "Foto de " + f.autor)}" ${ratio}`)}>
         <span class="corazon-grande">${IC.corazonLleno}</span>
       </div>
       ${chips ? `<div class="datos-foto">${chips}</div>` : ""}
       <div class="foto-acciones">
         <button class="accion ${me ? "me-gusta" : ""}" type="button" data-like="${escapar(f.id)}" aria-pressed="${me}" aria-label="Me gusta">${me ? IC.corazonLleno : IC.corazon}<span>${n || ""}</span></button>
         <button class="accion" type="button" data-coment="${escapar(f.id)}" aria-label="Comentar">${IC.bocadillo}<span>${coms.length || ""}</span></button>
+        ${miHuella && f.quien === miHuella ? `<button class="accion editar" type="button" data-editar="${escapar(f.id)}">${IC.lapiz}<span>${f.titulo ? "Editar" : "Añadir título"}</span></button>` : ""}
       </div>
+      ${f.titulo ? `<div class="titulo-foto">${escapar(f.titulo)}</div>` : ""}
       ${f.pie ? `<div class="pie"><b>${escapar(f.autor)}</b> ${texto(f.pie)}</div>` : ""}
       <button class="desplegar ${abierto ? "abierto" : ""}" type="button" data-desplegar="${escapar(f.id)}">
         ${abierto ? "Ocultar comentarios" : coms.length ? `Ver ${coms.length === 1 ? "el comentario" : `los ${coms.length} comentarios`}` : "Escribe el primer comentario"} ${IC.flechaAbajo}
@@ -535,6 +619,19 @@
 
   function conectarFotos(e) {
     app.querySelectorAll("[data-ver]").forEach(b => b.onclick = () => cambiarVista("filas", b.dataset.ver));
+    app.querySelectorAll("[data-elegir]").forEach(b => b.onclick = () => {
+      const id = b.dataset.elegir;
+      if (elegidas.has(id)) elegidas.delete(id); else elegidas.add(id);
+      pintar();
+    });
+    app.querySelectorAll("[data-grupo]").forEach(b => b.onclick = () => {
+      const g = grupos(ordenar(fotosDe(e.id)).filter(f => !filtroLugar || (f.lugar || "").trim() === filtroLugar))[+b.dataset.grupo];
+      const mias = g.fotos.filter(f => f.quien === miHuella);
+      const todas = mias.every(f => elegidas.has(f.id));
+      mias.forEach(f => todas ? elegidas.delete(f.id) : elegidas.add(f.id));
+      pintar();
+    });
+    app.querySelectorAll("[data-editar]").forEach(b => b.onclick = () => { const f = G.fotos.find(x => x.id === b.dataset.editar); if (f) hojaEditarFoto(f, e); });
     app.querySelectorAll("[data-like]").forEach(b => b.onclick = () => darLike(b.dataset.like));
     app.querySelectorAll("[data-coment]").forEach(b => b.onclick = () => { abiertos.add(b.dataset.coment); pintar(); enfocarComentario(b.dataset.coment); });
     app.querySelectorAll("[data-desplegar]").forEach(b => b.onclick = () => {
@@ -682,9 +779,9 @@
     abrirHoja(`Subir ${lista.length} foto${lista.length === 1 ? "" : "s"}`, `
       <p style="margin:0 0 4px;color:var(--texto-secundario);font-size:14px">El día, el momento y el lugar se aplican a todas. Puedes cambiarlos luego en cada foto.</p>
       ${htmlDatosFoto(e, { dia: diaPropuesto })}
-      <span class="etq">Pie de foto (opcional)</span>
+      <span class="etq">Título y pie de cada foto (opcional)</span>
       <div class="previas">${lista.map(x => `
-        <div class="previa" id="prev-${x.i}"><img src="${x.url}" alt=""><input maxlength="200" placeholder="Escribe un pie…" data-pie="${x.i}"><div class="estado-sub"></div></div>`).join("")}
+        <div class="previa" id="prev-${x.i}"><img src="${x.url}" alt=""><input maxlength="60" placeholder="Título (opcional)" data-titulo="${x.i}" class="previa-titulo"><input maxlength="200" placeholder="Pie de foto…" data-pie="${x.i}"><div class="estado-sub"></div></div>`).join("")}
       </div>`,
       `<div class="progreso oculto" id="progreso"><i></i></div><button class="boton ancho" id="btnEnviarFotos" type="button">Subir ${lista.length === 1 ? "la foto" : `las ${lista.length} fotos`}</button>`);
     const leerDatos = conectarDatosFoto();
@@ -695,7 +792,10 @@
     const b = $("btnEnviarFotos");
     b.disabled = true; bloqueoHoja = true;
     $("progreso").classList.remove("oculto");
-    lista.forEach(x => { x.pie = (document.querySelector(`[data-pie="${x.i}"]`) || {}).value || ""; });
+    lista.forEach(x => {
+      x.pie = (document.querySelector(`[data-pie="${x.i}"]`) || {}).value || "";
+      x.titulo = (document.querySelector(`[data-titulo="${x.i}"]`) || {}).value || "";
+    });
     document.querySelectorAll("#hojaCuerpo input, #hojaCuerpo select, #hojaCuerpo button, #hojaCuerpo textarea").forEach(el => el.disabled = true);
     let bien = 0, mal = 0;
     for (let k = 0; k < lista.length; k++) {
@@ -706,7 +806,7 @@
         const grande = await reducir(x.archivo, 1600, 0.82, 1050000, false);
         const mini = await reducir(x.archivo, 480, 0.74, 200000, true);
         est.textContent = "Subiendo…";
-        await servidor("subirFoto", Object.assign({ evento: e.id, foto: grande.b64, mini: mini.b64, ancho: grande.ancho, alto: grande.alto, pie: x.pie }, datos));
+        await servidor("subirFoto", Object.assign({ evento: e.id, foto: grande.b64, mini: mini.b64, ancho: grande.ancho, alto: grande.alto, titulo: x.titulo, pie: x.pie }, datos));
         caja.classList.add("hecha"); est.textContent = "✓ Subida"; bien++;
       } catch (err) {
         caja.classList.add("fallo"); est.textContent = "✗ " + err.message; mal++;
@@ -753,7 +853,7 @@
     const mia = miHuella && f.quien === miHuella;
     abrirHoja("Foto", `<div class="menu-opciones">
       <button type="button" id="mDescargar">${IC.descargar} Guardar la foto</button>
-      ${mia ? `<button type="button" id="mEditar">${IC.lapiz} Cambiar día, momento, lugar o pie</button>
+      ${mia ? `<button type="button" id="mEditar">${IC.lapiz} Editar título, pie, día, momento o lugar</button>
       <button type="button" id="mBorrar" class="peligro">${IC.papelera} Borrar mi foto</button>` : ""}
     </div>`);
     $("mDescargar").onclick = () => descargar(f);
@@ -767,17 +867,80 @@
     }
   }
   function hojaEditarFoto(f, e) {
-    abrirHoja("Datos de la foto", htmlDatosFoto(e, f) + `
+    abrirHoja("Editar mi foto", `
+      <img src="${escapar(urlFoto(f.mini))}" alt="" class="miniatura-editar">
+      <label class="etq" for="fTitulo">Título</label>
+      <input class="entrada" id="fTitulo" maxlength="60" placeholder="Ponle un nombre a la foto" value="${escapar(f.titulo || "")}">
       <label class="etq" for="fPie">Pie de foto</label>
-      <textarea class="entrada" id="fPie" maxlength="200" rows="2">${escapar(f.pie || "")}</textarea>`,
+      <textarea class="entrada" id="fPie" maxlength="200" rows="2" placeholder="Cuenta algo de este momento">${escapar(f.pie || "")}</textarea>` + htmlDatosFoto(e, f),
       `<button class="boton ancho" id="btnGuardarFoto" type="button">Guardar</button>`);
     const leerDatos = conectarDatosFoto();
+    if (!f.titulo) setTimeout(() => { const t = $("fTitulo"); if (t) t.focus(); }, 350);
     $("btnGuardarFoto").onclick = async () => {
       const b = $("btnGuardarFoto"); b.disabled = true; b.textContent = "Guardando…";
-      try { await servidor("editarFoto", Object.assign({ foto: f.id, pie: $("fPie").value }, leerDatos())); cerrarHoja(); pintar(); aviso("Foto actualizada"); }
+      try { await servidor("editarFoto", Object.assign({ foto: f.id, titulo: $("fTitulo").value, pie: $("fPie").value }, leerDatos())); cerrarHoja(); pintar(); aviso("Foto actualizada"); }
       catch (err) { b.disabled = false; b.textContent = "Guardar"; trasError(err); }
     };
   }
+
+  // Cambiar día, momento y/o lugar de las fotos elegidas. "No cambiar" deja cada dato como está.
+  function hojaCambiarVarias(e) {
+    const ids = [...elegidas]; if (!ids.length) return;
+    const lugares = lugaresDe(e.id);
+    abrirHoja(`Cambiar ${ids.length} foto${ids.length === 1 ? "" : "s"}`, `
+      <p class="texto-ayuda-sel">Elige solo lo que quieras cambiar. Lo que dejes en <b>No cambiar</b> se queda como estaba en cada foto.</p>
+      <label class="etq" for="vDiaModo">Día</label>
+      <select class="entrada" id="vDiaModo">
+        <option value="">No cambiar</option>
+        <option value="poner">Poner este día…</option>
+        <option value="quitar">Quitar el día</option>
+      </select>
+      <input class="entrada oculto" id="vDia" type="date" style="margin-top:8px" value="${escapar(e.fecha || hoyISO())}">
+      <span class="etq">Momento</span>
+      <div class="momentos momentos-varias" id="vMomentos">
+        <button type="button" data-m="__igual" class="activo"><span>↔️</span>No cambiar</button>
+        ${MOMENTOS.map(m => `<button type="button" data-m="${m.id}"><span>${m.ico}</span>${m.nombre}</button>`).join("")}
+        <button type="button" data-m=""><span>✖️</span>Quitar</button>
+      </div>
+      <label class="etq" for="vLugarSel">Lugar</label>
+      <select class="entrada" id="vLugarSel">
+        <option value="__igual">No cambiar</option>
+        ${lugares.map(l => `<option>${escapar(l)}</option>`).join("")}
+        <option value="__nuevo">✏️ Escribir un lugar nuevo…</option>
+        <option value="__quitar">Quitar el lugar</option>
+      </select>
+      <input class="entrada lugar-nuevo oculto" id="vLugar" maxlength="60" placeholder="Escribe el lugar">`,
+      `<button class="boton ancho" id="btnCambiarVarias" type="button">Aplicar a ${ids.length} foto${ids.length === 1 ? "" : "s"}</button>`);
+    let momento = "__igual";
+    $("vDiaModo").onchange = () => { $("vDia").classList.toggle("oculto", $("vDiaModo").value !== "poner"); };
+    document.querySelectorAll("#vMomentos button").forEach(b => b.onclick = () => {
+      momento = b.dataset.m;
+      document.querySelectorAll("#vMomentos button").forEach(x => x.classList.toggle("activo", x === b));
+    });
+    $("vLugarSel").onchange = () => {
+      const nuevo = $("vLugarSel").value === "__nuevo";
+      $("vLugar").classList.toggle("oculto", !nuevo); if (nuevo) $("vLugar").focus();
+    };
+    $("btnCambiarVarias").onclick = async () => {
+      const cambios = {};
+      const modoDia = $("vDiaModo").value;
+      if (modoDia === "poner") { if (!$("vDia").value) return aviso("Elige el día"); cambios.dia = $("vDia").value; }
+      if (modoDia === "quitar") cambios.dia = "";
+      if (momento !== "__igual") cambios.momento = momento;
+      const l = $("vLugarSel").value;
+      if (l === "__nuevo") { const v = $("vLugar").value.trim(); if (!v) return $("vLugar").focus(); cambios.lugar = v; }
+      else if (l === "__quitar") cambios.lugar = "";
+      else if (l !== "__igual") cambios.lugar = l;
+      if (!Object.keys(cambios).length) return aviso("No has elegido nada que cambiar");
+      const b = $("btnCambiarVarias"); b.disabled = true; b.textContent = "Guardando…";
+      try {
+        await servidor("editarFotos", { fotos: ids, cambios });
+        seleccionando = false; elegidas.clear();
+        cerrarHoja(); pintar(); aviso(`${ids.length} foto${ids.length === 1 ? "" : "s"} actualizada${ids.length === 1 ? "" : "s"} ✓`);
+      } catch (err) { b.disabled = false; b.textContent = `Aplicar a ${ids.length} foto${ids.length === 1 ? "" : "s"}`; trasError(err); }
+    };
+  }
+
   async function descargar(f) {
     cerrarHoja();
     try {

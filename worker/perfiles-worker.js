@@ -226,7 +226,7 @@ async function galeria(d, env, responder) {
     const alto = Math.max(0, Math.min(10000, parseInt(d.alto, 10) || 0));
     const res = await modificarGaleria(env, null, `Galería: añade foto ${id}`, (g) => {
       if (!g.eventos.some(e => e.id === d.evento)) return "Ese evento ya no existe";
-      g.fotos.push(Object.assign({ id, evento: d.evento, ruta, mini, ancho, alto, pie: recortar(d.pie, G_LIM.pie) }, datosFoto(d),
+      g.fotos.push(Object.assign({ id, evento: d.evento, ruta, mini, ancho, alto, titulo: recortar(d.titulo, G_LIM.titulo), pie: recortar(d.pie, G_LIM.pie) }, datosFoto(d),
         { autor, quien, fecha: ahora, likes: [], comentarios: [] }));
     }, { foto: id });
     if (res.error) { await borrarArchivo(env, ruta, `Galería: deshace foto ${id}`); await borrarArchivo(env, mini, `Galería: deshace miniatura ${id}`); }
@@ -239,7 +239,26 @@ async function galeria(d, env, responder) {
       const f = g.fotos.find(x => x.id === d.foto);
       if (!f) return "Esa foto ya no existe";
       if (f.quien !== quien) return "Solo quien subió la foto puede cambiarla";
-      Object.assign(f, { pie: recortar(d.pie, G_LIM.pie) }, datosFoto(d));
+      Object.assign(f, { titulo: recortar(d.titulo, G_LIM.titulo), pie: recortar(d.pie, G_LIM.pie) }, datosFoto(d));
+    });
+  }
+
+  // ----- Cambiar día, momento y/o lugar de varias fotos a la vez (las propias) -----
+  // Solo se tocan los campos que llegan en "cambios"; el resto se queda como estaba.
+  if (accion === "editarFotos") {
+    const ids = Array.isArray(d.fotos) ? [...new Set(d.fotos.filter(x => typeof x === "string"))].slice(0, 400) : [];
+    const c = d.cambios && typeof d.cambios === "object" ? d.cambios : {};
+    if (!ids.length) return responder({ error: "No has elegido ninguna foto" }, 400);
+    const nuevos = datosFoto(c), aplicar = {};
+    if ("dia" in c) aplicar.dia = nuevos.dia;
+    if ("momento" in c) aplicar.momento = nuevos.momento;
+    if ("lugar" in c) aplicar.lugar = nuevos.lugar;
+    if (!Object.keys(aplicar).length) return responder({ error: "No hay nada que cambiar" }, 400);
+    return modificarGaleria(env, responder, `Galería: cambia los datos de ${ids.length} foto${ids.length === 1 ? "" : "s"}`, (g) => {
+      const fotos = g.fotos.filter(f => ids.includes(f.id));
+      if (fotos.some(f => f.quien !== quien)) return "Solo puedes cambiar las fotos que has subido tú";
+      if (!fotos.length) return "Esas fotos ya no existen";
+      fotos.forEach(f => Object.assign(f, aplicar));
     });
   }
 
