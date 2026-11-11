@@ -2342,7 +2342,9 @@
    "autor": "Carmen",
    "quien": "4bddf40af8e3f8c5637a",
    "fecha": "2026-11-11T11:02:36.312Z",
-   "likes": [],
+   "likes": [
+    "b971f078f5216932ac0d"
+   ],
    "comentarios": []
   },
   {
