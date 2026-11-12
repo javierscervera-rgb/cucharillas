@@ -342,6 +342,20 @@
       "aprobado": false,
       "actualizado": "2026-11-11T08:07:21.993Z",
       "claveHash": "0c8cb43e9e181ecae21b51c078d322277536aa1b7d56c3e0a32470fa04c34604"
+    },
+    {
+      "id": "1ba1d2fb820c",
+      "nombre": "Pati",
+      "emoji": "🌻",
+      "color": "#E8F4FD",
+      "sobreMi": "Oficialmente: encargada de poner orden y brillo en casitas de personas que necesitan asistencia. En el papel: administrativa. En el grupo: la protestante arrepentida que casi fue pastora. Ahora limpio polvo… y también algunas ideas del pasado.",
+      "gustos": "Me gusta mucho la música en general pero me encanta en Rock, también me gusta cantar y ver pelis psicológicas",
+      "intencion": "Por mi santidad y la conversión de mi familia",
+      "cumple": "07-13",
+      "foto": "img/perfiles/1ba1d2fb820c.jpg?v=1794470711731",
+      "aprobado": false,
+      "actualizado": "2026-11-12T08:05:12.001Z",
+      "claveHash": "b72bd9b394b2e79467f143493735e3c3de2fa5f01db77436a4662c6eb067b86f"
     }
   ]
 }
