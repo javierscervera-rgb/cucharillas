@@ -372,6 +372,20 @@
       "aprobado": false,
       "actualizado": "2026-11-12T12:13:56.549Z",
       "claveHash": "2731fcd066f3f894094d7345d6c290f623aab0541d7d161b54e4f8831cb9d8f7"
+    },
+    {
+      "id": "e6d2cfe6e824",
+      "nombre": "Patri",
+      "emoji": "🌻",
+      "color": "#E8F4FD",
+      "sobreMi": "sigo sin saber donde ubicar mi vida",
+      "gustos": "profesora como vocacion... mi hermano fue quien se encargó de entrenar mi paciencia",
+      "intencion": "",
+      "cumple": "05-30",
+      "foto": "",
+      "aprobado": false,
+      "actualizado": "2026-11-12T21:43:18.742Z",
+      "claveHash": "a206d84cc7bd291abcda8714251e876d848a3535734a1ce55a26ec4a818cd36b"
     }
   ]
 }
