@@ -227,9 +227,10 @@
       "sobreMi": "Estudio audiovisuales",
       "gustos": "El cine, el fútbol, conducir",
       "intencion": "",
+      "cumple": "12-10",
       "foto": "img/perfiles/55bbf6167738.jpg?v=1793311274271",
-      "aprobado": true,
-      "actualizado": "2026-10-29T22:01:14.948Z",
+      "aprobado": false,
+      "actualizado": "2026-11-12T21:41:28.680Z",
       "claveHash": "0774660f01f4d23d6b5047d161dcfe8817a995081f2e58be4ac2ca683e3a1742"
     },
     {
