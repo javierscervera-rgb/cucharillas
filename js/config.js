@@ -40,6 +40,7 @@
         nombre: "Lectio Divina",
         campos: [
           { id: "titulo",     nombre: "Título",               tipo: "texto", obligatorio: true },
+          { id: "fecha",      nombre: "Fecha de la Lectio",   tipo: "fecha" },
           { id: "geografico", nombre: "Contexto geográfico",  tipo: "largo" },
           { id: "biografico", nombre: "Contexto biográfico",  tipo: "largo" },
           { id: "cita",       nombre: "Cita bíblica",         tipo: "largo", biblico: true, ayuda: "Referencia y texto" },

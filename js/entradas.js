@@ -3,7 +3,7 @@
    Se pinta todo a partir de los campos de js/config.js
    ========================================================= */
 
-window.pintarEntradas = async function ({ tipo, color, icono, subtitulo, conPortada }) {
+window.pintarEntradas = async function ({ tipo, color, icono, subtitulo, conPortada, porMeses, buscador }) {
   const esquema = CONFIG.esquemas[tipo];
   const cont = document.getElementById("contenido");
   const datos = await App.cargar(tipo);
@@ -19,7 +19,7 @@ window.pintarEntradas = async function ({ tipo, color, icono, subtitulo, conPort
   function detalleLista(e) {
     const partes = [];
     if (e.fecha) partes.push(App.fechaCorta(e.fecha));
-    else if (e.cita) partes.push(e.cita.split("\n")[0].replace(/(\*\*|__|~~|\*)/g, "").trim().slice(0, 40));
+    if (e.cita && (porMeses || !e.fecha)) partes.push(e.cita.split("\n")[0].replace(/(\*\*|__|~~|\*)/g, "").trim().slice(0, 40));
     const n = cuantasNotas(e);
     if (n) partes.push(`✎ ${n} nota${n > 1 ? "s" : ""}`);
     return partes.map(App.escapar).join(" · ");
@@ -34,7 +34,7 @@ window.pintarEntradas = async function ({ tipo, color, icono, subtitulo, conPort
       cont.innerHTML = `<div class="vacio"><div class="icono-pastilla icono-${color}">${App.ICONOS[icono]}</div>Aún no hay nada publicado.<br>¡Vuelve pronto!</div>`;
       return;
     }
-    cont.innerHTML = `<p class="subtitulo">${subtitulo}</p>` + lista.map(e => {
+    const tarjeta = (e) => {
       const img = campoImagen && e[campoImagen.id];
       if (conPortada) {
         return `<a class="pastilla tarjeta-portada" href="${pagina}?id=${encodeURIComponent(e.id)}">
@@ -53,7 +53,44 @@ window.pintarEntradas = async function ({ tipo, color, icono, subtitulo, conPort
         <div class="detalle">${detalleLista(e)}</div></div>
         <span class="flecha">${App.ICONOS.flecha}</span>
       </a>`;
-    }).join("");
+    };
+
+    // Fecha que manda: la de la entrada o, si no tiene, el día en que se publicó
+    const fechaDe = e => e.fecha || (e.creado || "").slice(0, 10);
+    const MESES_MAY = App.MESES.map(m => m[0].toUpperCase() + m.slice(1));
+    const sinAcentos = t => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[*_~#>{}]/g, "");
+    const textoBusqueda = e => sinAcentos([e.titulo, fechaDe(e) && App.fechaCorta(fechaDe(e)),
+      ...esquema.campos.filter(c => ["texto", "largo", "subtitulo"].includes(c.tipo)).map(c => e[c.id])].join(" "));
+
+    cont.innerHTML = `<p class="subtitulo">${subtitulo}</p>
+      ${buscador ? `<div class="buscador">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5.5 5.5"/></svg>
+        <input type="search" id="buscar-entradas" placeholder="Buscar por título, cita o palabra…" autocomplete="off">
+      </div>` : ""}
+      <div id="lista-entradas"></div>`;
+    const zona = document.getElementById("lista-entradas");
+
+    function pintarResultados(q) {
+      const visibles = q ? lista.filter(e => textoBusqueda(e).includes(q)) : lista;
+      if (!visibles.length) { zona.innerHTML = `<div class="vacio">No hay ninguna entrada con esas palabras.</div>`; return; }
+      if (!porMeses) { zona.innerHTML = visibles.map(tarjeta).join(""); return; }
+      // Agrupadas por mes, de la más reciente a la más antigua
+      let html = "", mesActual = null;
+      visibles.forEach(e => {
+        const f = fechaDe(e);
+        const clave = f ? f.slice(0, 7) : "sin";
+        if (clave !== mesActual) {
+          mesActual = clave;
+          const nombre = f ? `${MESES_MAY[Number(f.slice(5, 7)) - 1]} ${f.slice(0, 4)}` : "Sin fecha";
+          html += `<h3 class="separador-mes"><span>${nombre}</span></h3>`;
+        }
+        html += tarjeta(e);
+      });
+      zona.innerHTML = html;
+    }
+    pintarResultados("");
+    const input = document.getElementById("buscar-entradas");
+    if (input) input.addEventListener("input", () => pintarResultados(sinAcentos(input.value.trim())));
   }
 
   function pintarDetalle(e) {
