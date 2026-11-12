@@ -1065,7 +1065,9 @@
    "autor": "Karen",
    "quien": "905cdaa8b22cb766f4ee",
    "fecha": "2026-11-11T08:12:40.343Z",
-   "likes": [],
+   "likes": [
+    "905cdaa8b22cb766f4ee"
+   ],
    "comentarios": []
   },
   {
