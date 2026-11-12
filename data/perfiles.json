@@ -356,6 +356,20 @@
       "aprobado": false,
       "actualizado": "2026-11-12T08:09:49.798Z",
       "claveHash": "b72bd9b394b2e79467f143493735e3c3de2fa5f01db77436a4662c6eb067b86f"
+    },
+    {
+      "id": "3c84a2805f1a",
+      "nombre": "Laura",
+      "emoji": "⭐",
+      "color": "#FDECEC",
+      "sobreMi": "Maestra de educación Infantil y aficionada a la repostería.",
+      "gustos": "Las patatas fritas, el chocolate blanco, Malú y Melendi.",
+      "intencion": "Para que sepa abandonarme en las manos de Dios.",
+      "cumple": "03-23",
+      "foto": "img/perfiles/3c84a2805f1a.jpg?v=1794485636285",
+      "aprobado": false,
+      "actualizado": "2026-11-12T12:13:56.549Z",
+      "claveHash": "2731fcd066f3f894094d7345d6c290f623aab0541d7d161b54e4f8831cb9d8f7"
     }
   ]
 }
