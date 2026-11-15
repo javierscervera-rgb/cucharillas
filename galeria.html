@@ -12,9 +12,9 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
   <link rel="icon" href="img/icono-192.png">
-  <link rel="stylesheet" href="css/estilos.css?v=19">
-  <script src="js/config.js?v=19"></script>
-  <script src="js/app.js?v=19"></script>
+  <link rel="stylesheet" href="css/estilos.css?v=20">
+  <script src="js/config.js?v=20"></script>
+  <script src="js/app.js?v=20"></script>
   <style>
     :root { --rojo-like: #E5484D; }
     .oculto { display: none !important; }
@@ -255,6 +255,16 @@
     .titulo-comentarios { margin: 2px 2px 12px; font-size: 14px; color: var(--texto-secundario); text-transform: uppercase; letter-spacing: .5px; }
     .sin-comentarios { color: var(--texto-secundario); font-size: 14.5px; margin: 0 2px 12px; }
     @media (min-width: 1000px) { .visor { left: 240px; } .visor-slide { height: 74vh; } }
+
+    /* ---------- Móvil en horizontal: solo la foto, a pantalla completa ---------- */
+    @media (orientation: landscape) and (max-height: 540px) {
+      .visor { background: #000; overflow: hidden; left: 0; }
+      .visor-barra, .visor-puntos, .visor-info, .visor-flecha, .ayuda-zoom { display: none !important; }
+      .visor-foto { position: fixed; inset: 0; z-index: 5; background: #000; }
+      .visor-carrusel { height: 100%; }
+      .visor-slide { height: 100vh; height: 100dvh; background: #000; }
+      .visor-slide video { background: #000; }
+    }
 
     /* ---------- Título de la foto y edición ---------- */
     .titulo-foto { padding: 6px 16px 0; font-size: 17px; font-weight: 700; line-height: 1.3; }
@@ -784,7 +794,21 @@
     $("visorMas").onclick = () => { const id = fotoActual(); if (id) hojaMenuFoto(id, e); };
     const car = $("carrusel");
     let t = null;
+    // Al girar el móvil cambia el ancho: se vuelve a colocar la misma foto
+    let quieto = 0, fotoAlGirar = null;
+    const recolocar = () => {
+      if (!document.body.contains(car)) { window.removeEventListener("resize", recolocar); return; }
+      if (Date.now() > quieto) fotoAlGirar = fotoActual();
+      quieto = Date.now() + 450;
+      const i = lista.findIndex(x => x.id === fotoAlGirar);
+      if (i < 0) return;
+      car.style.scrollSnapType = "none";
+      car.scrollLeft = i * car.clientWidth;
+      requestAnimationFrame(() => { car.scrollLeft = i * car.clientWidth; car.style.scrollSnapType = ""; });
+    };
+    window.addEventListener("resize", recolocar);
     const alParar = () => {
+      if (Date.now() < quieto) return;
       const i = Math.round(car.scrollLeft / Math.max(1, car.clientWidth));
       const x = lista[Math.max(0, Math.min(lista.length - 1, i))];
       if (x && x.id !== fotoActual()) {
