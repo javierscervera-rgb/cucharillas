@@ -48,7 +48,7 @@ window.pintarEntradas = async function ({ tipo, color, icono, subtitulo, conPort
         </a>`;
       }
       return `<a class="pastilla" href="${pagina}?id=${encodeURIComponent(e.id)}">
-        <div class="icono-pastilla icono-${color}">${App.ICONOS[icono]}</div>
+        ${img ? `<img class="miniatura-entrada" src="${App.escapar(img)}" alt="" loading="lazy">` : `<div class="icono-pastilla icono-${color}">${App.ICONOS[icono]}</div>`}
         <div class="texto"><div class="titulo">${App.escapar(e.titulo)}</div>
         <div class="detalle">${detalleLista(e)}</div></div>
         <span class="flecha">${App.ICONOS.flecha}</span>
@@ -99,12 +99,15 @@ window.pintarEntradas = async function ({ tipo, color, icono, subtitulo, conPort
     const meta = [e.fecha && App.fechaCorta(e.fecha), e.lugar].filter(Boolean).map(App.escapar).join(" · ");
     const verde = color === "verde" ? " verde" : "";
 
+    // La imagen va dentro de la cabecera, arriba, formando una sola tarjeta con el título
     cont.innerHTML = `
-      ${img ? `<img class="portada" src="${App.escapar(img)}" alt="">` : ""}
-      <div class="ficha-cabecera ${verde ? "verde" : "azul"}">
-        <div class="etiqueta">${App.escapar(esquema.nombre)}</div>
-        <h2>${App.escapar(e.titulo)}</h2>
-        ${meta ? `<div class="meta">${meta}</div>` : ""}
+      <div class="ficha-cabecera ${verde ? "verde" : "azul"}${img ? " con-imagen" : ""}">
+        ${img ? `<img class="cabecera-imagen" src="${App.escapar(img)}" alt="" onerror="this.remove()">` : ""}
+        <div class="cabecera-textos">
+          <div class="etiqueta">${App.escapar(esquema.nombre)}</div>
+          <h2>${App.escapar(e.titulo)}</h2>
+          ${meta ? `<div class="meta">${meta}</div>` : ""}
+        </div>
       </div>`;
 
     // Recorre los campos en orden: los "subtitulo" abren tarjeta, los "notas" la cierran
