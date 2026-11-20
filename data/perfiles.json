@@ -387,6 +387,20 @@
       "aprobado": false,
       "actualizado": "2026-11-12T21:43:18.742Z",
       "claveHash": "a206d84cc7bd291abcda8714251e876d848a3535734a1ce55a26ec4a818cd36b"
+    },
+    {
+      "id": "d15757d3e06c",
+      "nombre": "Héctor alexis ozuna",
+      "emoji": "🌻",
+      "color": "#E8F4FD",
+      "sobreMi": "Formación y discapacidad intelectual\nY soy empatico y distraído",
+      "gustos": "Música y deporte",
+      "intencion": "Por mi familias especial por mi madre difunta madre querida Aracelis ozuna",
+      "cumple": "07-06",
+      "foto": "",
+      "aprobado": false,
+      "actualizado": "2026-11-20T17:08:54.339Z",
+      "claveHash": "37ae076aa8a47e39aef840bde398d51e2f91d62694f2f87c9afa33991a6fd512"
     }
   ]
 }
