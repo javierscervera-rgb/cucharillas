@@ -11,9 +11,9 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
   <link rel="icon" href="img/icono-192.png">
-  <link rel="stylesheet" href="css/estilos.css?v=21">
-  <script src="js/config.js?v=21"></script>
-  <script src="js/app.js?v=21"></script>
+  <link rel="stylesheet" href="css/estilos.css?v=22">
+  <script src="js/config.js?v=22"></script>
+  <script src="js/app.js?v=22"></script>
 </head>
 <body data-pagina="comunidad">
   <main class="contenedor">
@@ -127,7 +127,7 @@
       let estado = "";
       if (!CONFIG.urlPerfiles) estado = `<div class="aviso">El envío de perfiles todavía no está activado. Puedes rellenarlo y se guardará en tu móvil hasta entonces.</div>`;
       else if (publicado && publicado.aprobado) estado = `<div class="aviso info">✓ Tu perfil está publicado en el grupo.</div>`;
-      else if (yo.enviado) estado = `<div class="aviso info">Enviado. Aparecerá en el grupo cuando un responsable lo apruebe.</div>`;
+      else if (yo.enviado) estado = `<div class="aviso info">✓ Enviado. Ya aparece en el grupo (puede tardar uno o dos minutos).</div>`;
 
       y.innerHTML = `${estado}
         <div class="ficha">

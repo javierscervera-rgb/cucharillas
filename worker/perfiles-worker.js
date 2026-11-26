@@ -108,9 +108,9 @@ export default {
         // Cumpleaños como "MM-DD" (sin año)
         if (!/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(limpio.cumple)) limpio.cumple = "";
 
-        // Cada cambio vuelve a quedar pendiente de aprobación por un responsable
+        // Se publica directamente (aprobación automática). Un responsable puede ocultarlo desde el panel.
         const fotoFinal = nuevaFoto !== null ? nuevaFoto : (i >= 0 ? lista[i].foto || "" : "");
-        const nuevo = Object.assign({ id }, limpio, { foto: fotoFinal, aprobado: false, actualizado: new Date().toISOString(), claveHash });
+        const nuevo = Object.assign({ id }, limpio, { foto: fotoFinal, aprobado: true, actualizado: new Date().toISOString(), claveHash });
         if (i >= 0) lista[i] = nuevo; else lista.push(nuevo);
       }
 
