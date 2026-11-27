@@ -417,6 +417,20 @@
       "aprobado": true,
       "actualizado": "2026-11-27T08:42:33.733Z",
       "claveHash": "523e8edbc8534decd414ee876513f5d63f7d0d447aabd749ad662ed0abd43ab0"
+    },
+    {
+      "id": "e021ca5a7a7b",
+      "nombre": "Don Gonzalo",
+      "emoji": "🌻",
+      "color": "#E8F4FD",
+      "sobreMi": "",
+      "gustos": "",
+      "intencion": "",
+      "cumple": "05-10",
+      "foto": "img/perfiles/e021ca5a7a7b.jpg?v=1795778805571",
+      "aprobado": true,
+      "actualizado": "2026-11-27T11:26:45.935Z",
+      "claveHash": "6e915d2c155456bc015ee35be9c71a0ab0d3418b87a0426eba48f98303734c4f"
     }
   ]
 }
