@@ -11,9 +11,9 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
   <link rel="icon" href="img/icono-192.png">
-  <link rel="stylesheet" href="css/estilos.css?v=23">
-  <script src="js/config.js?v=23"></script>
-  <script src="js/app.js?v=23"></script>
+  <link rel="stylesheet" href="css/estilos.css?v=24">
+  <script src="js/config.js?v=24"></script>
+  <script src="js/app.js?v=24"></script>
 </head>
 <body data-pagina="frases">
   <main class="contenedor">
@@ -53,7 +53,8 @@
       const CLAVE = "cucharillas_frases_vista";
       let D = { frases: [], misPropuestas: [] };
       let orden = "recientes";
-      const abiertos = new Set();
+      const abiertos = new Set();      // comentarios abiertos
+      const desplegadas = new Set();   // frases desplegadas
 
       async function servidor(accion, datos = {}) {
         const url = CONFIG.urlGaleria || CONFIG.urlPerfiles;
@@ -79,9 +80,23 @@
 
       function tarjeta(f) {
         const c = cuenta(f), mv = miVoto(f), coms = f.comentarios || [], abierto = abiertos.has(f.id);
+        if (!desplegadas.has(f.id)) {
+          return `<article class="frase-mitica plegada" id="f-${escapar(f.id)}" data-id="${escapar(f.id)}" role="button" tabindex="0" aria-expanded="false">
+            <blockquote>${escapar(f.frase)}</blockquote>
+            <div class="frase-resumen">
+              <span class="${mv === 1 ? "mio-arriba" : ""}">${IC.arriba}${c.up}</span>
+              <span class="${mv === -1 ? "mio-abajo" : ""}">${IC.abajo}${c.down}</span>
+              <span>${IC.bocadillo}${coms.length}</span>
+              <span class="chevron-frase">${ICONOS.expandir}</span>
+            </div>
+          </article>`;
+        }
         const meta = [f.fecha && App.fechaCorta(f.fecha), f.propuestaPor && "Propuesta por " + f.propuestaPor].filter(Boolean).map(escapar).join(" · ");
-        return `<article class="frase-mitica" id="f-${escapar(f.id)}" data-id="${escapar(f.id)}">
-          <blockquote>${escapar(f.frase)}</blockquote>
+        return `<article class="frase-mitica desplegada" id="f-${escapar(f.id)}" data-id="${escapar(f.id)}">
+          <div class="frase-cabeza" data-plegar role="button" tabindex="0" aria-expanded="true">
+            <blockquote>${escapar(f.frase)}</blockquote>
+            <span class="chevron-frase abierto">${ICONOS.expandir}</span>
+          </div>
           ${f.contexto ? `<p class="frase-contexto">${escapar(f.contexto)}</p>` : ""}
           ${meta ? `<p class="frase-meta">${meta}</p>` : ""}
           <div class="frase-acciones">
@@ -119,6 +134,19 @@
         });
         cont.querySelectorAll(".frase-mitica").forEach(el => {
           const id = el.dataset.id;
+          const alternar = () => {
+            if (desplegadas.has(id)) { desplegadas.delete(id); abiertos.delete(id); } else desplegadas.add(id);
+            el.classList.remove("destacada");
+            pintar();
+          };
+          if (el.classList.contains("plegada")) {
+            el.onclick = alternar;
+            el.onkeydown = (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); alternar(); } };
+            return;
+          }
+          const cab = el.querySelector("[data-plegar]");
+          cab.onclick = alternar;
+          cab.onkeydown = (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); alternar(); } };
           const f = () => D.frases.find(x => x.id === id);
           el.querySelectorAll("[data-voto]").forEach(b => b.onclick = async () => {
             const x = f(); if (!x || !yo) return;
@@ -191,7 +219,9 @@
       // ---------- Carga: primero lo guardado/publicado, luego lo último del servidor ----------
       function irAFrase() {
         const m = location.hash.match(/^#f-([a-f0-9]+)$/);
-        const el = m && document.getElementById("f-" + m[1]);
+        if (!m || !(D.frases || []).some(f => f.id === m[1])) return false;
+        if (!desplegadas.has(m[1])) { desplegadas.add(m[1]); pintar(); }
+        const el = document.getElementById("f-" + m[1]);
         if (!el) return false;
         el.classList.add("destacada");
         setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
@@ -201,7 +231,7 @@
       if (!D.frases.length) { const pub = await App.cargar("frases"); D = { frases: pub.frases || [], misPropuestas: [] }; }
       pintar();
       let saltado = irAFrase();
-      try { await servidor("ver"); pintar(); if (!saltado) saltado = irAFrase(); else document.getElementById(location.hash.slice(1))?.classList.add("destacada"); }
+      try { await servidor("ver"); pintar(); if (!saltado) saltado = irAFrase(); else if (location.hash) document.getElementById(location.hash.slice(1))?.classList.add("destacada"); }
       catch (e) { if (e.codigo === "sesion") App.Sesion.pedir(); }
     })();
   </script>

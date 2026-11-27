@@ -11,9 +11,9 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
   <link rel="icon" href="img/icono-192.png">
-  <link rel="stylesheet" href="css/estilos.css?v=23">
-  <script src="js/config.js?v=23"></script>
-  <script src="js/app.js?v=23"></script>
+  <link rel="stylesheet" href="css/estilos.css?v=24">
+  <script src="js/config.js?v=24"></script>
+  <script src="js/app.js?v=24"></script>
 </head>
 <body data-pagina="inicio">
   <svg class="decoracion" viewBox="0 0 200 200" aria-hidden="true">
@@ -31,11 +31,11 @@
       </div>
     </header>
 
-    <a class="frase-portada" id="frase-mitica" href="frases.html" hidden>
-      <span class="frase-portada-etiqueta"><span data-icono="comillas"></span> Frase mítica</span>
+    <div class="frase-portada" id="frase-mitica" role="button" tabindex="0" aria-expanded="false" hidden>
+      <span class="frase-portada-etiqueta"><span data-icono="comillas"></span> Frase mítica
+        <a id="frase-mitica-enlace" href="frases.html" aria-label="Ver la frase en Frases míticas">Ver <span data-icono="flecha"></span></a></span>
       <span class="frase-portada-texto" id="frase-mitica-texto"></span>
-      <span class="frase-portada-contexto" id="frase-mitica-contexto"></span>
-    </a>
+    </div>
 
     <a class="pastilla pastilla-destacada" href="agenda.html">
       <div class="icono-grande">
@@ -123,11 +123,21 @@
         if (!lista.length) lista = (await App.cargar("frases")).frases || [];
         if (!lista.length) return;
         const f = lista[Math.floor(Math.random() * lista.length)];
-        const a = document.getElementById("frase-mitica");
-        a.href = "frases.html#f-" + encodeURIComponent(f.id);
+        const caja = document.getElementById("frase-mitica");
+        document.getElementById("frase-mitica-enlace").href = "frases.html#f-" + encodeURIComponent(f.id);
         document.getElementById("frase-mitica-texto").textContent = `«${f.frase}»`;
-        document.getElementById("frase-mitica-contexto").textContent = f.contexto || "";
-        a.hidden = false;
+        caja.hidden = false;
+        // Plegada a dos líneas; al tocarla se despliega entera (solo si no cabe)
+        const texto = document.getElementById("frase-mitica-texto");
+        const cabe = () => texto.scrollHeight <= texto.clientHeight + 2;
+        if (cabe()) caja.classList.add("cabe");
+        const alternar = (ev) => {
+          if (ev.target.closest("a") || caja.classList.contains("cabe")) return;
+          const abierta = caja.classList.toggle("abierta");
+          caja.setAttribute("aria-expanded", abierta);
+        };
+        caja.onclick = alternar;
+        caja.onkeydown = (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); alternar(ev); } };
       })();
 
       // Una frase de la Palabra al azar cada vez que se abre

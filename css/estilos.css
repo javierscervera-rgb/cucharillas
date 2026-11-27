@@ -526,15 +526,30 @@ mark { background: #FDF0C4; color: inherit; border-radius: 3px; padding: 0 1px; 
 @media (min-width: 700px) { .ga-cuadricula { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 
 /* ---------- Frases míticas ---------- */
-.frase-portada { display: block; margin: -6px 0 16px; padding: 14px 16px 14px 18px; border-radius: 18px; background: linear-gradient(135deg, #FDF4E3, #FFFBF3); border: 1px solid #F3E2BD; text-decoration: none; color: var(--texto-principal); transition: transform .15s ease; }
-.frase-portada:active { transform: scale(0.98); }
+.frase-portada { display: block; margin: -6px 0 16px; padding: 12px 16px 13px 18px; border-radius: 18px; background: linear-gradient(135deg, #FDF4E3, #FFFBF3); border: 1px solid #F3E2BD; color: var(--texto-principal); cursor: pointer; transition: transform .15s ease; -webkit-user-select: none; user-select: none; }
+.frase-portada:active { transform: scale(0.985); }
 .frase-portada[hidden] { display: none; }
 .frase-portada-etiqueta { display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: #B07A1C; margin-bottom: 4px; }
 .frase-portada-etiqueta svg { width: 15px; height: 15px; }
-.frase-portada-texto { display: block; font-family: Georgia, "Times New Roman", serif; font-size: 17px; line-height: 1.45; font-style: italic; }
-.frase-portada-contexto { display: block; font-size: 13px; color: var(--texto-secundario); margin-top: 4px; }
-.frase-portada-contexto:empty { display: none; }
+.frase-portada-etiqueta a { margin-left: auto; display: inline-flex; align-items: center; gap: 2px; color: #B07A1C; text-decoration: none; letter-spacing: .3px; padding: 4px 0 4px 10px; }
+.frase-portada-etiqueta a svg { width: 13px; height: 13px; }
+.frase-portada-texto { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; font-family: Georgia, "Times New Roman", serif; font-size: 17px; line-height: 1.45; font-style: italic; }
+.frase-portada.abierta .frase-portada-texto { -webkit-line-clamp: unset; line-clamp: none; display: block; }
 
+.frase-mitica.plegada { cursor: pointer; padding: 14px 16px 10px; transition: transform .15s ease; }
+.frase-mitica.plegada:active { transform: scale(0.985); }
+.frase-mitica.plegada blockquote { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; font-size: 17.5px; }
+.frase-mitica.plegada blockquote::before { top: -6px; font-size: 40px; }
+.frase-resumen { display: flex; align-items: center; gap: 14px; margin-top: 8px; font-size: 13.5px; font-weight: 600; color: #8592A8; }
+.frase-resumen span { display: inline-flex; align-items: center; gap: 4px; }
+.frase-resumen svg { width: 16px; height: 16px; }
+.frase-resumen .mio-arriba { color: #2F8A60; }
+.frase-resumen .mio-abajo { color: var(--rojo); }
+.chevron-frase { margin-left: auto; color: #A9B4C6; display: inline-flex; transition: transform .2s ease; }
+.chevron-frase svg { width: 20px !important; height: 20px !important; }
+.chevron-frase.abierto { transform: rotate(180deg); }
+.frase-cabeza { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+.frase-cabeza blockquote { flex: 1; min-width: 0; }
 .frase-mitica { background: white; border: 1px solid var(--gris-borde); border-radius: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.05); padding: 18px 18px 10px; margin-bottom: 12px; scroll-margin: 80px; transition: box-shadow .4s ease, border-color .4s ease; }
 .frase-mitica.destacada { border-color: #F0CF8A; box-shadow: 0 0 0 3px rgba(240,207,138,.45), 0 6px 18px rgba(176,122,28,.12); }
 .frase-mitica blockquote { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 19px; line-height: 1.45; font-style: italic; position: relative; padding-left: 26px; }
