@@ -575,3 +575,9 @@ mark { background: #FDF0C4; color: inherit; border-radius: 3px; padding: 0 1px; 
 .mi-propuesta .enlace-suave { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-style: normal; padding: 0 0 0 6px; }
 #proponer [data-icono] svg { width: 18px; height: 18px; }
 .ventana { max-height: calc(100dvh - 40px); overflow-y: auto; }
+
+/* Frase mítica dentro de la cabecera, bajo el saludo */
+.cabecera-portada > div { flex: 1; min-width: 0; }
+.cabecera-portada .frase-portada { margin: 10px 0 0; padding: 9px 12px 10px 13px; border-radius: 14px; }
+.cabecera-portada .frase-portada-etiqueta { font-size: 10.5px; margin-bottom: 2px; }
+.cabecera-portada .frase-portada-texto { font-size: 15px; line-height: 1.4; }

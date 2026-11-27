@@ -11,9 +11,9 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
   <link rel="icon" href="img/icono-192.png">
-  <link rel="stylesheet" href="css/estilos.css?v=24">
-  <script src="js/config.js?v=24"></script>
-  <script src="js/app.js?v=24"></script>
+  <link rel="stylesheet" href="css/estilos.css?v=25">
+  <script src="js/config.js?v=25"></script>
+  <script src="js/app.js?v=25"></script>
 </head>
 <body data-pagina="inicio">
   <svg class="decoracion" viewBox="0 0 200 200" aria-hidden="true">
@@ -27,15 +27,13 @@
       <div>
         <h1>Cucharillas</h1>
         <p class="saludo" id="saludo">Hola, ¿listo para hoy?</p>
-        <p class="frase-dia" id="frase"></p>
+        <div class="frase-portada" id="frase-mitica" role="button" tabindex="0" aria-expanded="false" hidden>
+          <span class="frase-portada-etiqueta"><span data-icono="comillas"></span> Frase mítica
+            <a id="frase-mitica-enlace" href="frases.html" aria-label="Ver la frase en Frases míticas">Ver <span data-icono="flecha"></span></a></span>
+          <span class="frase-portada-texto" id="frase-mitica-texto"></span>
+        </div>
       </div>
     </header>
-
-    <div class="frase-portada" id="frase-mitica" role="button" tabindex="0" aria-expanded="false" hidden>
-      <span class="frase-portada-etiqueta"><span data-icono="comillas"></span> Frase mítica
-        <a id="frase-mitica-enlace" href="frases.html" aria-label="Ver la frase en Frases míticas">Ver <span data-icono="flecha"></span></a></span>
-      <span class="frase-portada-texto" id="frase-mitica-texto"></span>
-    </div>
 
     <a class="pastilla pastilla-destacada" href="agenda.html">
       <div class="icono-grande">
@@ -140,10 +138,6 @@
         caja.onkeydown = (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); alternar(ev); } };
       })();
 
-      // Una frase de la Palabra al azar cada vez que se abre
-      const FRASES = [["Amarás al Señor tu Dios con todo tu corazón, con toda tu alma y con toda tu mente.", "Mt 22,37"], ["Amarás a tu prójimo como a ti mismo.", "Mt 22,39"], ["Nosotros amamos porque él nos amó primero.", "1 Jn 4,19"], ["Amaos unos a otros como yo os he amado.", "Jn 15,12"], ["El que permanece en el amor permanece en Dios.", "1 Jn 4,16"], ["No amemos de palabra y de boca, sino de verdad y con obras.", "1 Jn 3,18"], ["Nadie tiene amor más grande que el que da la vida por sus amigos.", "Jn 15,13"], ["El amor es paciente, es benigno.", "1 Cor 13,4"], ["El amor no pasa nunca.", "1 Cor 13,8"], ["Dios es amor.", "1 Jn 4,8"], ["El que ama a Dios, ame también a su hermano.", "1 Jn 4,21"], ["Con amor eterno te amé.", "Jr 31,3"], ["Si nos amamos unos a otros, Dios permanece en nosotros.", "1 Jn 4,12"], ["En esto conocerán todos que sois discípulos míos: si os amáis unos a otros.", "Jn 13,35"], ["Cada vez que lo hicisteis con uno de estos, mis hermanos más pequeños, conmigo lo hicisteis.", "Mt 25,40"], ["Sobrellevaos mutuamente con amor.", "Ef 4,2"], ["Por encima de todo esto, el amor, que es el vínculo de la unidad perfecta.", "Col 3,14"], ["El que ama a su prójimo ha cumplido la ley.", "Rom 13,8"], ["Mi alma está sedienta de ti, mi carne tiene ansia de ti.", "Sal 63,2"], ["Señor, tú lo sabes todo, tú sabes que te quiero.", "Jn 21,17"], ["Nada podrá separarnos del amor de Dios manifestado en Cristo Jesús.", "Rom 8,39"], ["Ayudaos mutuamente a llevar vuestras cargas.", "Gál 6,2"], ["El que no ama no ha conocido a Dios, porque Dios es amor.", "1 Jn 4,8"], ["Tú eres mi Señor, mi bien, nada hay fuera de ti.", "Sal 16,2"], ["Haced el bien a los que os odian.", "Lc 6,27"], ["Para mí lo bueno es estar junto a Dios.", "Sal 73,28"], ["Me sedujiste, Señor, y me dejé seducir.", "Jr 20,7"], ["Que vuestra caridad no sea una farsa.", "Rom 12,9"], ["Como un padre siente ternura por sus hijos, siente el Señor ternura por los que lo temen.", "Sal 103,13"]];
-      const [frase, cita] = FRASES[Math.floor(Math.random() * FRASES.length)];
-      document.getElementById("frase").innerHTML = `«${App.escapar(frase)}» <span>— ${App.escapar(cita)}</span>`;
 
       const [agenda, lectio, retiro] = await Promise.all([App.cargar("agenda"), App.cargar("lectio"), App.cargar("retiro")]);
 
