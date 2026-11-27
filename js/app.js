@@ -73,6 +73,7 @@
     `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${d}</svg>`;
 
   const ICONOS = {
+    comillas: s('<path d="M10 11H6.5a1 1 0 0 1-1-1V7.5a1 1 0 0 1 1-1H9a1 1 0 0 1 1 1V11c0 3.2-1.6 5.4-4.5 6.5"/><path d="M18.5 11H15a1 1 0 0 1-1-1V7.5a1 1 0 0 1 1-1h2.5a1 1 0 0 1 1 1V11c0 3.2-1.6 5.4-4.5 6.5"/>'),
     casa: s('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/>'),
     casaLlena: `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M11.4 2.5a1 1 0 0 1 1.2 0l9 7.3c.6.5.2 1.5-.6 1.5H20V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1v-8.7H3c-.8 0-1.2-1-.6-1.5l9-7.3Z"/></svg>`,
     libro: s('<path d="M12 6.5C10 5 7 4.5 3 5v13c4-.5 7 0 9 1.5 2-1.5 5-2 9-1.5V5c-4-.5-7 0-9 1.5Z"/><path d="M12 6.5v13"/>'),
@@ -206,7 +207,7 @@
     } catch (e) {
       // Sin conexión: usamos la última copia guardada
       try { const c = localStorage.getItem(clave); if (c) return JSON.parse(c); } catch (e2) {}
-      return tipo === "perfiles" ? { perfiles: [] } : tipo === "devocionario" ? { temas: [] } : tipo === "galeria" ? { eventos: [], fotos: [] } : { entradas: [] };
+      return tipo === "frases" ? { frases: [] } : tipo === "perfiles" ? { perfiles: [] } : tipo === "devocionario" ? { temas: [] } : tipo === "galeria" ? { eventos: [], fotos: [] } : { entradas: [] };
     }
   }
 
@@ -442,15 +443,16 @@
         let mio = ""; try { mio = (JSON.parse(localStorage.getItem("cucharillas_mi_perfil") || "null") || {}).id || ""; } catch (e) {}
         return ((await cargar("perfiles")).perfiles || []).filter(p => p.aprobado && p.id !== mio).map(p => p.id);
       },
+      frases: async () => ((await cargar("frases")).frases || []).map(f => f.id),
       galeria: async () => {
         const [g, yo] = await Promise.all([cargar("galeria"), huellaGaleria()]);
         return [...(g.eventos || []).map(e => "e:" + e.id), ...(g.fotos || []).filter(f => !yo || f.quien !== yo).map(f => "f:" + f.id)];
       }
     };
     // Qué sección «está» en cada página
-    const PAGINAS = { lectio: "lectio", retiro: "retiro", agenda: "agenda", recursos: "recursos", devocionario: "devocionario", comunidad: "comunidad", galeria: "galeria" };
+    const PAGINAS = { lectio: "lectio", retiro: "retiro", agenda: "agenda", recursos: "recursos", devocionario: "devocionario", comunidad: "comunidad", galeria: "galeria", frases: "frases" };
     // El botón Inicio suma lo nuevo de las secciones que están en la portada
-    const EN_PORTADA = ["lectio", "retiro", "galeria", "recursos"];
+    const EN_PORTADA = ["lectio", "retiro", "galeria", "recursos", "frases"];
     let cuentas = {};
 
     async function iniciar(pagina) {

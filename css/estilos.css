@@ -524,3 +524,39 @@ mark { background: #FDF0C4; color: inherit; border-radius: 3px; padding: 0 1px; 
 .ga-celda.elegida img { transform: scale(.86); border-radius: 8px; }
 .ga-celda.elegida .ga-check { background: var(--azul-cielo); }
 @media (min-width: 700px) { .ga-cuadricula { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+
+/* ---------- Frases míticas ---------- */
+.frase-portada { display: block; margin: -6px 0 16px; padding: 14px 16px 14px 18px; border-radius: 18px; background: linear-gradient(135deg, #FDF4E3, #FFFBF3); border: 1px solid #F3E2BD; text-decoration: none; color: var(--texto-principal); transition: transform .15s ease; }
+.frase-portada:active { transform: scale(0.98); }
+.frase-portada[hidden] { display: none; }
+.frase-portada-etiqueta { display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: #B07A1C; margin-bottom: 4px; }
+.frase-portada-etiqueta svg { width: 15px; height: 15px; }
+.frase-portada-texto { display: block; font-family: Georgia, "Times New Roman", serif; font-size: 17px; line-height: 1.45; font-style: italic; }
+.frase-portada-contexto { display: block; font-size: 13px; color: var(--texto-secundario); margin-top: 4px; }
+.frase-portada-contexto:empty { display: none; }
+
+.frase-mitica { background: white; border: 1px solid var(--gris-borde); border-radius: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.05); padding: 18px 18px 10px; margin-bottom: 12px; scroll-margin: 80px; transition: box-shadow .4s ease, border-color .4s ease; }
+.frase-mitica.destacada { border-color: #F0CF8A; box-shadow: 0 0 0 3px rgba(240,207,138,.45), 0 6px 18px rgba(176,122,28,.12); }
+.frase-mitica blockquote { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 19px; line-height: 1.45; font-style: italic; position: relative; padding-left: 26px; }
+.frase-mitica blockquote::before { content: "“"; position: absolute; left: -2px; top: -10px; font-size: 48px; color: #E0A33A; font-style: normal; line-height: 1; }
+.frase-contexto { margin: 10px 0 0; font-size: 14.5px; color: var(--texto-secundario); line-height: 1.5; }
+.frase-meta { margin: 6px 0 0; font-size: 12.5px; color: #8592A8; }
+.frase-acciones { display: flex; gap: 6px; margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--gris-borde); }
+.frase-acciones button { display: inline-flex; align-items: center; gap: 6px; border: none; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--texto-secundario); padding: 8px 10px; border-radius: 12px; cursor: pointer; }
+.frase-acciones button svg { width: 20px; height: 20px; }
+.frase-acciones .ver-coms { margin-left: auto; font-weight: 500; }
+.frase-acciones .voto.arriba.mio { background: var(--verde-suave); color: #2F8A60; }
+.frase-acciones .voto.abajo.mio { background: #FDECEC; color: var(--rojo); }
+.frase-acciones .ver-coms.on { color: var(--azul-cielo); }
+.frase-comentarios { border-top: 1px solid var(--gris-borde); margin-top: 4px; padding-top: 10px; }
+.frase-comentarios .com { background: #F7F9FC; border-radius: 14px; padding: 9px 12px; margin-bottom: 8px; font-size: 14.5px; }
+.frase-comentarios .com small { color: #8592A8; font-size: 12px; }
+.frase-comentarios .com p { margin: 3px 0 0; line-height: 1.45; white-space: pre-wrap; }
+.frase-comentarios .borrar-com { background: none; border: none; font: inherit; font-size: 12.5px; color: var(--texto-secundario); text-decoration: underline; padding: 4px 0 0; }
+.nuevo-com { display: flex; gap: 8px; margin: 4px 0 8px; }
+.nuevo-com input { flex: 1; min-width: 0; padding: 10px 12px; }
+.nuevo-com .boton { padding: 10px 14px; font-size: 14px; }
+.mi-propuesta { margin-top: 8px; font-family: Georgia, "Times New Roman", serif; font-style: italic; }
+.mi-propuesta .enlace-suave { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-style: normal; padding: 0 0 0 6px; }
+#proponer [data-icono] svg { width: 18px; height: 18px; }
+.ventana { max-height: calc(100dvh - 40px); overflow-y: auto; }

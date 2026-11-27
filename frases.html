@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cucharillas">
+  <meta name="theme-color" content="#FFFFFF">
+  <title>Frases míticas · Cucharillas</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="icon" href="img/icono-192.png">
+  <link rel="stylesheet" href="css/estilos.css?v=23">
+  <script src="js/config.js?v=23"></script>
+  <script src="js/app.js?v=23"></script>
+</head>
+<body data-pagina="frases">
+  <main class="contenedor">
+    <header class="cabecera-pagina">
+      <a class="btn-volver" href="index.html" aria-label="Volver" data-icono="atras"></a>
+      <h1>Frases míticas</h1>
+    </header>
+    <p class="subtitulo">Lo que se dijo y no se puede olvidar.</p>
+    <button class="boton secundario ancho" id="proponer" type="button"><span data-icono="mas"></span> Proponer una frase</button>
+    <div id="mis-propuestas"></div>
+    <div class="pestanas" style="margin-top:16px">
+      <button type="button" data-orden="recientes" class="activa">Recientes</button>
+      <button type="button" data-orden="votadas">Más votadas</button>
+    </div>
+    <div id="contenido"><div class="cargando">Cargando…</div></div>
+  </main>
+
+  <script>
+    (async function () {
+      const { escapar, ICONOS, aviso } = App;
+      const sesion = App.Sesion.obtener() || { token: "", cuenta: { id: "" } };
+      const cont = document.getElementById("contenido");
+      const IC = {
+        arriba: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v11H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h3Zm0 0 4-7a2.5 2.5 0 0 1 2.5 2.5V9h5.6a2 2 0 0 1 2 2.3l-1.3 8a2 2 0 0 1-2 1.7H7"/></svg>',
+        abajo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform:scaleY(-1)"><path d="M7 10v11H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h3Zm0 0 4-7a2.5 2.5 0 0 1 2.5 2.5V9h5.6a2 2 0 0 1 2 2.3l-1.3 8a2 2 0 0 1-2 1.7H7"/></svg>',
+        bocadillo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 15a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2Z"/></svg>'
+      };
+
+      // Huella anónima de esta cuenta (la misma que calcula el servidor)
+      let yo = "";
+      try {
+        const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("frases:" + sesion.cuenta.id));
+        yo = Array.from(new Uint8Array(h), b => b.toString(16).padStart(2, "0")).join("").slice(0, 20);
+      } catch (e) {}
+
+      // ---------- Datos ----------
+      const CLAVE = "cucharillas_frases_vista";
+      let D = { frases: [], misPropuestas: [] };
+      let orden = "recientes";
+      const abiertos = new Set();
+
+      async function servidor(accion, datos = {}) {
+        const url = CONFIG.urlGaleria || CONFIG.urlPerfiles;
+        let r;
+        try { r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ servicio: "frases", accion, token: sesion.token }, datos)) }); }
+        catch (e) { throw new Error("Sin conexión. Inténtalo de nuevo"); }
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || j.error) {
+          const err = new Error(j.error || "Error " + r.status);
+          err.codigo = j.codigo || (r.status === 400 && /Identificación/.test(j.error || "") ? "sin-activar" : "");
+          if (err.codigo === "sin-activar") err.message = "Las frases todavía no están activadas en el servidor";
+          throw err;
+        }
+        if (j.datos) { D = j.datos; try { localStorage.setItem(CLAVE, JSON.stringify(D)); } catch (e) {} }
+        return j;
+      }
+      const trasError = (e) => { if (e.codigo === "sesion") App.Sesion.pedir(); else aviso(e.message); };
+
+      // ---------- Pintar ----------
+      const cuenta = (f) => { const v = Object.values(f.votos || {}); return { up: v.filter(x => x === 1).length, down: v.filter(x => x === -1).length }; };
+      const miVoto = (f) => (f.votos || {})[yo] || 0;
+      const clave = (f) => f.fecha || (f.creado || "").slice(0, 10);
+
+      function tarjeta(f) {
+        const c = cuenta(f), mv = miVoto(f), coms = f.comentarios || [], abierto = abiertos.has(f.id);
+        const meta = [f.fecha && App.fechaCorta(f.fecha), f.propuestaPor && "Propuesta por " + f.propuestaPor].filter(Boolean).map(escapar).join(" · ");
+        return `<article class="frase-mitica" id="f-${escapar(f.id)}" data-id="${escapar(f.id)}">
+          <blockquote>${escapar(f.frase)}</blockquote>
+          ${f.contexto ? `<p class="frase-contexto">${escapar(f.contexto)}</p>` : ""}
+          ${meta ? `<p class="frase-meta">${meta}</p>` : ""}
+          <div class="frase-acciones">
+            <button type="button" class="voto arriba${mv === 1 ? " mio" : ""}" data-voto="1" aria-label="Me gusta" aria-pressed="${mv === 1}">${IC.arriba}<span>${c.up}</span></button>
+            <button type="button" class="voto abajo${mv === -1 ? " mio" : ""}" data-voto="-1" aria-label="No me gusta" aria-pressed="${mv === -1}">${IC.abajo}<span>${c.down}</span></button>
+            <button type="button" class="ver-coms${abierto ? " on" : ""}" data-coms aria-expanded="${abierto}">${IC.bocadillo}<span>${coms.length ? coms.length + " comentario" + (coms.length > 1 ? "s" : "") : "Comentar"}</span></button>
+          </div>
+          ${abierto ? `<div class="frase-comentarios">
+            ${coms.map(k => `<div class="com"><b>${escapar(k.autor)}</b> <small>${escapar(App.horaRelativa(k.fecha))}</small>
+              <p>${escapar(k.texto)}</p>${k.quien === yo ? `<button type="button" class="borrar-com" data-borrar="${escapar(k.id)}">Borrar</button>` : ""}</div>`).join("")}
+            <form class="nuevo-com"><input name="t" maxlength="500" placeholder="Escribe un comentario…" autocomplete="off"><button class="boton" type="submit">Enviar</button></form>
+          </div>` : ""}
+        </article>`;
+      }
+
+      function pintar() {
+        document.querySelectorAll("[data-orden]").forEach(b => b.classList.toggle("activa", b.dataset.orden === orden));
+        const mp = D.misPropuestas || [];
+        document.getElementById("mis-propuestas").innerHTML = mp.length ? `<div class="aviso info" style="margin-top:12px">
+          <b>Tus propuestas pendientes de revisar</b>
+          ${mp.map(p => `<div class="mi-propuesta">«${escapar(p.frase)}» <button type="button" class="enlace-suave" data-retirar="${escapar(p.id)}">Retirar</button></div>`).join("")}</div>` : "";
+
+        let lista = [...(D.frases || [])];
+        if (!lista.length) { cont.innerHTML = `<div class="vacio"><div class="icono-pastilla icono-ambar">${ICONOS.comillas}</div>Todavía no hay frases míticas.<br>¡Propón la primera!</div>`; conectar(); return; }
+        if (orden === "votadas") lista.sort((a, b) => { const x = cuenta(a), y = cuenta(b); return (y.up - y.down) - (x.up - x.down) || y.up - x.up || clave(b).localeCompare(clave(a)); });
+        else lista.sort((a, b) => clave(b).localeCompare(clave(a)) || String(b.creado).localeCompare(String(a.creado)));
+        cont.innerHTML = lista.map(tarjeta).join("");
+        conectar();
+      }
+
+      function conectar() {
+        document.querySelectorAll("[data-retirar]").forEach(b => b.onclick = async () => {
+          if (!confirm("¿Retirar esta propuesta?")) return;
+          try { await servidor("retirarPropuesta", { propuesta: b.dataset.retirar }); pintar(); } catch (e) { trasError(e); }
+        });
+        cont.querySelectorAll(".frase-mitica").forEach(el => {
+          const id = el.dataset.id;
+          const f = () => D.frases.find(x => x.id === id);
+          el.querySelectorAll("[data-voto]").forEach(b => b.onclick = async () => {
+            const x = f(); if (!x || !yo) return;
+            const v = +b.dataset.voto, nuevo = miVoto(x) === v ? 0 : v;
+            const antes = JSON.stringify(x.votos || {});
+            x.votos = Object.assign({}, x.votos); if (nuevo) x.votos[yo] = nuevo; else delete x.votos[yo];
+            try { navigator.vibrate && navigator.vibrate(10); } catch (e) {}
+            pintar();
+            try { await servidor("votar", { frase: id, voto: nuevo }); pintar(); }
+            catch (e) { x.votos = JSON.parse(antes); pintar(); trasError(e); }
+          });
+          el.querySelector("[data-coms]").onclick = () => {
+            if (abiertos.has(id)) abiertos.delete(id); else abiertos.add(id);
+            pintar();
+            if (abiertos.has(id)) { const i = document.querySelector(`#f-${id} .nuevo-com input`); if (i && !(f().comentarios || []).length) i.focus(); }
+          };
+          const form = el.querySelector(".nuevo-com");
+          if (form) form.onsubmit = async (ev) => {
+            ev.preventDefault();
+            const texto = form.t.value.trim(); if (!texto) return;
+            const boton = form.querySelector("button"); boton.disabled = true;
+            try { await servidor("comentar", { frase: id, texto }); pintar(); }
+            catch (e) { boton.disabled = false; trasError(e); }
+          };
+          el.querySelectorAll("[data-borrar]").forEach(b => b.onclick = async () => {
+            if (!confirm("¿Borrar tu comentario?")) return;
+            try { await servidor("borrarComentario", { frase: id, comentario: b.dataset.borrar }); pintar(); } catch (e) { trasError(e); }
+          });
+        });
+      }
+
+      document.querySelectorAll("[data-orden]").forEach(b => b.onclick = () => { orden = b.dataset.orden; pintar(); });
+
+      // ---------- Proponer una frase (ventana) ----------
+      document.getElementById("proponer").onclick = () => {
+        const v = document.createElement("div");
+        v.className = "ventana-fondo";
+        v.innerHTML = `<form class="ventana" style="text-align:left" role="dialog" aria-modal="true" aria-labelledby="vp-titulo">
+          <h2 id="vp-titulo" style="text-align:center">Proponer una frase</h2>
+          <p style="text-align:center;margin-bottom:6px">Un responsable la revisará antes de publicarla.</p>
+          <label class="campo" for="vp-frase">Frase *</label>
+          <textarea id="vp-frase" maxlength="400" style="min-height:90px" placeholder="Lo que se dijo, tal cual" required></textarea>
+          <label class="campo" for="vp-contexto">Contexto</label>
+          <textarea id="vp-contexto" maxlength="600" style="min-height:70px" placeholder="Quién lo dijo, dónde, a qué venía…"></textarea>
+          <label class="campo" for="vp-fecha">Fecha</label>
+          <input id="vp-fecha" type="date">
+          <div class="fila-botones">
+            <button type="button" class="boton suave" data-cerrar>Cancelar</button>
+            <button type="submit" class="boton">Enviar</button>
+          </div>
+        </form>`;
+        document.body.appendChild(v);
+        document.body.style.overflow = "hidden";
+        const cerrar = () => { v.remove(); document.body.style.overflow = ""; };
+        v.querySelector("[data-cerrar]").onclick = cerrar;
+        v.addEventListener("click", (ev) => { if (ev.target === v) cerrar(); });
+        v.querySelector("form").onsubmit = async (ev) => {
+          ev.preventDefault();
+          const frase = v.querySelector("#vp-frase").value.trim();
+          if (!frase) return aviso("Escribe la frase");
+          const b = v.querySelector('button[type="submit"]'); b.disabled = true; b.textContent = "Enviando…";
+          try {
+            await servidor("proponer", { frase, contexto: v.querySelector("#vp-contexto").value.trim(), fecha: v.querySelector("#vp-fecha").value });
+            cerrar(); pintar(); aviso("¡Gracias! Un responsable la revisará");
+          } catch (e) { b.disabled = false; b.textContent = "Enviar"; trasError(e); }
+        };
+        setTimeout(() => v.querySelector("#vp-frase").focus(), 50);
+      };
+
+      // ---------- Carga: primero lo guardado/publicado, luego lo último del servidor ----------
+      function irAFrase() {
+        const m = location.hash.match(/^#f-([a-f0-9]+)$/);
+        const el = m && document.getElementById("f-" + m[1]);
+        if (!el) return false;
+        el.classList.add("destacada");
+        setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+        return true;
+      }
+      try { const c = JSON.parse(localStorage.getItem(CLAVE) || "null"); if (c && Array.isArray(c.frases)) D = c; } catch (e) {}
+      if (!D.frases.length) { const pub = await App.cargar("frases"); D = { frases: pub.frases || [], misPropuestas: [] }; }
+      pintar();
+      let saltado = irAFrase();
+      try { await servidor("ver"); pintar(); if (!saltado) saltado = irAFrase(); else document.getElementById(location.hash.slice(1))?.classList.add("destacada"); }
+      catch (e) { if (e.codigo === "sesion") App.Sesion.pedir(); }
+    })();
+  </script>
+</body>
+</html>

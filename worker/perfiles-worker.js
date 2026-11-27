@@ -54,6 +54,12 @@ export default {
       catch (e) { return responder({ error: "Error en el servidor: " + (e && e.message || e) }, 500); }
     }
 
+    // Frases míticas: votos, comentarios y propuestas
+    if (datos && datos.servicio === "frases") {
+      try { return await frases(datos, env, responder); }
+      catch (e) { return responder({ error: "Error en el servidor: " + (e && e.message || e) }, 500); }
+    }
+
     // Galería de fotos: va por su propio camino (más abajo)
     if (datos && datos.servicio === "galeria") {
       try { return await galeria(datos, env, responder); }
@@ -362,6 +368,174 @@ async function galeria(d, env, responder) {
   }
 
   return responder({ error: "Acción no válida" }, 400);
+}
+
+/* =========================================================
+   FRASES MÍTICAS
+   data/frases.json = { frases: [...], propuestas: [...] }
+   Solo los responsables publican (con su token de GitHub). Los usuarios con
+   sesión votan (👍 / 👎), comentan y proponen frases nuevas.
+   ========================================================= */
+const RUTA_FRASES = "data/frases.json";
+const F_LIM = { frase: 400, contexto: 600, comentario: 500, autor: 30, maxFrases: 2000, maxComentarios: 300, maxPropuestas: 300, porPersona: 10 };
+const fechaOK = (f) => /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(f || "") ? f : "";
+const idFrase = (x) => /^[a-f0-9]{8,24}$/.test(x || "");
+
+async function frases(d, env, responder) {
+  const accion = String(d.accion || "");
+
+  // ----- Responsables -----
+  if (accion.startsWith("admin")) {
+    if (!(await esResponsable(env, d.ghToken))) return responder({ error: "Solo para responsables", codigo: "admin" }, 403);
+    const ahora = new Date().toISOString();
+    if (accion === "adminVer") { const { datos } = await leerFrases(env); return responder({ ok: true, datos }); }
+    if (accion === "adminGuardar") {
+      const campos = { frase: recortar(d.frase, F_LIM.frase), contexto: recortar(d.contexto, F_LIM.contexto), fecha: fechaOK(d.fecha) };
+      if (!campos.frase) return responder({ error: "Falta la frase" }, 400);
+      return modificarFrases(env, responder, d.id ? "Frases: edita una frase" : "Frases: nueva frase mítica", (f) => {
+        if (d.id) {
+          const x = f.frases.find(y => y.id === d.id);
+          if (!x) return "Esa frase ya no existe";
+          Object.assign(x, campos, { editado: ahora });
+          return;
+        }
+        if (f.frases.length >= F_LIM.maxFrases) return "Se ha alcanzado el máximo de frases";
+        const nueva = Object.assign({ id: aleatorioHex(6) }, campos, { creado: ahora, votos: {}, comentarios: [] });
+        if (d.propuesta) {
+          const i = f.propuestas.findIndex(p => p.id === d.propuesta);
+          if (i >= 0) { nueva.propuestaPor = f.propuestas[i].autor; f.propuestas.splice(i, 1); }
+        }
+        f.frases.push(nueva);
+      }, null, true);
+    }
+    if (accion === "adminBorrar") {
+      return modificarFrases(env, responder, "Frases: borra una frase", (f) => {
+        const i = f.frases.findIndex(y => y.id === d.id);
+        if (i < 0) return { sinCambios: true };
+        f.frases.splice(i, 1);
+      }, null, true);
+    }
+    if (accion === "adminRechazar") {
+      return modificarFrases(env, responder, "Frases: rechaza una propuesta", (f) => {
+        const i = f.propuestas.findIndex(p => p.id === d.propuesta);
+        if (i < 0) return { sinCambios: true };
+        f.propuestas.splice(i, 1);
+      }, null, true);
+    }
+    if (accion === "adminBorrarComentario") {
+      return modificarFrases(env, responder, "Frases: un responsable borra un comentario", (f) => {
+        const x = f.frases.find(y => y.id === d.frase);
+        if (!x) return { sinCambios: true };
+        const i = (x.comentarios || []).findIndex(c => c.id === d.comentario);
+        if (i < 0) return { sinCambios: true };
+        x.comentarios.splice(i, 1);
+      }, null, true);
+    }
+    return responder({ error: "Acción no válida" }, 400);
+  }
+
+  // ----- Usuarios con sesión -----
+  const s = await sesionValida(d.token, env, accion !== "ver");
+  if (s.error) return responder({ error: s.error, codigo: s.codigo }, s.estado);
+  const quien = (await sha256("frases:" + s.i)).slice(0, 20);
+  const autor = recortar(s.n, F_LIM.autor) || "Anónimo";
+  const ahora = new Date().toISOString();
+
+  if (accion === "ver") { const { datos } = await leerFrases(env); return responder({ ok: true, datos: vistaFrases(datos, quien) }); }
+
+  if (accion === "votar") {
+    const voto = d.voto === 1 || d.voto === -1 ? d.voto : 0;
+    return modificarFrases(env, responder, "Frases: voto", (f) => {
+      const x = f.frases.find(y => y.id === d.frase);
+      if (!x) return "Esa frase ya no existe";
+      x.votos = x.votos && typeof x.votos === "object" ? x.votos : {};
+      if ((x.votos[quien] || 0) === voto) return { sinCambios: true };
+      if (voto) x.votos[quien] = voto; else delete x.votos[quien];
+    }, quien);
+  }
+  if (accion === "comentar") {
+    const texto = recortar(d.texto, F_LIM.comentario);
+    if (!texto) return responder({ error: "El comentario está vacío" }, 400);
+    return modificarFrases(env, responder, "Frases: comentario", (f) => {
+      const x = f.frases.find(y => y.id === d.frase);
+      if (!x) return "Esa frase ya no existe";
+      x.comentarios = x.comentarios || [];
+      if (x.comentarios.length >= F_LIM.maxComentarios) return "Esta frase ya tiene el máximo de comentarios";
+      x.comentarios.push({ id: aleatorioHex(8), autor, texto, fecha: ahora, quien });
+    }, quien);
+  }
+  if (accion === "borrarComentario") {
+    return modificarFrases(env, responder, "Frases: su autor borra un comentario", (f) => {
+      const x = f.frases.find(y => y.id === d.frase);
+      if (!x) return { sinCambios: true };
+      const i = (x.comentarios || []).findIndex(c => c.id === d.comentario);
+      if (i < 0) return { sinCambios: true };
+      if (x.comentarios[i].quien !== quien) return "Solo quien escribió el comentario puede borrarlo";
+      x.comentarios.splice(i, 1);
+    }, quien);
+  }
+  if (accion === "proponer") {
+    const p = { frase: recortar(d.frase, F_LIM.frase), contexto: recortar(d.contexto, F_LIM.contexto), fecha: fechaOK(d.fecha) };
+    if (!p.frase) return responder({ error: "Escribe la frase" }, 400);
+    return modificarFrases(env, responder, "Frases: nueva propuesta", (f) => {
+      if (f.propuestas.length >= F_LIM.maxPropuestas) return "Hay demasiadas propuestas pendientes. Inténtalo más adelante";
+      if (f.propuestas.filter(x => x.quien === quien).length >= F_LIM.porPersona) return "Ya tienes muchas propuestas pendientes. Espera a que las revisen";
+      f.propuestas.push(Object.assign({ id: aleatorioHex(6) }, p, { autor, quien, creado: ahora }));
+    }, quien);
+  }
+  if (accion === "retirarPropuesta") {
+    return modificarFrases(env, responder, "Frases: su autor retira una propuesta", (f) => {
+      const i = f.propuestas.findIndex(x => x.id === d.propuesta);
+      if (i < 0) return { sinCambios: true };
+      if (f.propuestas[i].quien !== quien) return "Solo quien la propuso puede retirarla";
+      f.propuestas.splice(i, 1);
+    }, quien);
+  }
+  return responder({ error: "Acción no válida" }, 400);
+}
+
+// Lo que ve un usuario: todas las frases y solo sus propias propuestas
+function vistaFrases(datos, quien) {
+  return { frases: datos.frases, misPropuestas: datos.propuestas.filter(p => p.quien === quien).map(({ id, frase, contexto, fecha, creado }) => ({ id, frase, contexto, fecha, creado })) };
+}
+
+async function modificarFrases(env, responder, mensaje, cambio, quien, completo) {
+  for (let intento = 0; intento < 6; intento++) {
+    const { datos, sha } = await leerFrases(env);
+    const r = cambio(datos);
+    if (typeof r === "string") return responder({ error: r }, 400);
+    const cuerpo = () => ({ ok: true, datos: completo ? datos : vistaFrases(datos, quien) });
+    if (r && r.sinCambios) return responder(cuerpo());
+    const bytes = new TextEncoder().encode(JSON.stringify(datos, null, 1) + "\n");
+    let bin = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    const w = await gh(env, RUTA_FRASES, { method: "PUT", body: JSON.stringify(Object.assign({ message: mensaje, content: btoa(bin), branch: env.RAMA || "main" }, sha ? { sha } : {})) });
+    if (w.ok) return responder(cuerpo());
+    if (w.status !== 409 && w.status !== 422) return responder({ error: "GitHub respondió " + w.status }, 502);
+    await new Promise(ok => setTimeout(ok, 150 + Math.random() * 350));
+  }
+  return responder({ error: "Mucho tráfico, inténtalo de nuevo" }, 503);
+}
+
+async function leerFrases(env) {
+  const rama = encodeURIComponent(env.RAMA || "main");
+  const r = await gh(env, `${RUTA_FRASES}?ref=${rama}`);
+  if (r.status === 404) return { datos: { frases: [], propuestas: [] }, sha: null };
+  if (!r.ok) throw new Error("GitHub respondió " + r.status);
+  const j = await r.json();
+  let texto;
+  if (j.content && j.encoding === "base64") {
+    texto = new TextDecoder().decode(Uint8Array.from(atob(j.content.replace(/\s/g, "")), c => c.charCodeAt(0)));
+  } else {
+    const raw = await fetch(`https://api.github.com/repos/${env.REPO}/contents/${RUTA_FRASES}?ref=${rama}`, {
+      headers: { Authorization: "Bearer " + env.GITHUB_TOKEN, Accept: "application/vnd.github.raw", "User-Agent": "cucharillas-perfiles" }
+    });
+    texto = await raw.text();
+  }
+  const datos = JSON.parse(texto || "{}");
+  datos.frases = Array.isArray(datos.frases) ? datos.frases : [];
+  datos.propuestas = Array.isArray(datos.propuestas) ? datos.propuestas : [];
+  return { datos, sha: j.sha };
 }
 
 // ----- Subir un vídeo -----

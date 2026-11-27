@@ -123,7 +123,7 @@
 
   // ---------- Panel ----------
   const SECCIONES = [
-    ["lectio", "Lectio"], ["retiro", "Retiro"], ["agenda", "Agenda"], ["recursos", "Libros y vídeos"], ["articulos", "Artículos"], ["perfiles", "Perfiles"], ["galeria", "Galería"], ["usuarios", "Usuarios"]
+    ["lectio", "Lectio"], ["retiro", "Retiro"], ["agenda", "Agenda"], ["recursos", "Libros y vídeos"], ["articulos", "Artículos"], ["perfiles", "Perfiles"], ["galeria", "Galería"], ["frases", "Frases"], ["usuarios", "Usuarios"]
   ];
 
   function pintarPanel() {
@@ -153,6 +153,7 @@
     const zona = document.getElementById("zona");
     zona.innerHTML = `<div class="cargando">Cargando…</div>`;
     if (seccion === "usuarios") return pintarUsuarios(zona);
+    if (seccion === "frases") return pintarFrasesAdmin(zona);
     try {
       if (forzar || !cache[seccion]) await leer(seccion);
     } catch (e) {
@@ -586,6 +587,113 @@
         const n = (f.comentarios || []).length; f.comentarios = (f.comentarios || []).filter(c => c.id !== idC);
         if (f.comentarios.length === n) return false;
       }, `Galería: borra un comentario (admin)`);
+    });
+  }
+
+  // ---------- Frases míticas ----------
+  // Se guardan a través del Worker (los usuarios votan y comentan en el mismo archivo).
+  async function servidorFrases(accion, datos = {}) {
+    const url = CONFIG.urlGaleria || CONFIG.urlPerfiles;
+    let r;
+    try { r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ servicio: "frases", accion, ghToken: token }, datos)) }); }
+    catch (e) { throw new Error("Sin conexión. Inténtalo de nuevo"); }
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || j.error) throw new Error(r.status === 400 && /Identificación/.test(j.error || "") ? "Falta actualizar el código del servidor en Cloudflare (perfiles-worker.js)" : (j.error || "Error " + r.status));
+    return j.datos;
+  }
+  const votosDe = (f) => { const v = Object.values(f.votos || {}); return { up: v.filter(x => x === 1).length, down: v.filter(x => x === -1).length }; };
+
+  async function pintarFrasesAdmin(zona, datos) {
+    if (!datos) {
+      try { datos = await servidorFrases("adminVer"); }
+      catch (e) { zona.innerHTML = `<div class="aviso">${escapar(e.message)}</div>`; return; }
+    }
+    const props = [...datos.propuestas].sort((a, b) => String(b.creado).localeCompare(String(a.creado)));
+    const lista = [...datos.frases].sort((a, b) => String(b.fecha || b.creado).localeCompare(String(a.fecha || a.creado)));
+    zona.innerHTML = `
+      <button class="boton ancho" id="nueva-frase">${ICONOS.mas} Nueva frase mítica</button>
+      ${props.length ? `<h3 class="titulo-grupo" style="margin-top:22px">Propuestas pendientes (${props.length})</h3>` : `<div class="aviso info" style="margin-top:14px">No hay propuestas pendientes.</div>`}
+      ${props.map(p => `
+        <div class="pastilla columna">
+          <div style="font-family:Georgia,serif;font-style:italic;font-size:17px">«${escapar(p.frase)}»</div>
+          ${p.contexto ? `<div class="detalle" style="margin-top:6px;font-size:14px">${escapar(p.contexto)}</div>` : ""}
+          <div class="detalle" style="margin-top:6px;font-size:12.5px">${p.fecha ? escapar(App.fechaCorta(p.fecha)) + " · " : ""}Propuesta por ${escapar(p.autor)} · ${escapar(App.horaRelativa(p.creado))}</div>
+          <div class="fila-botones">
+            <button class="boton" data-revisar="${escapar(p.id)}">Revisar y publicar</button>
+            <button class="boton peligro" data-rechazar="${escapar(p.id)}">Rechazar</button>
+          </div>
+        </div>`).join("")}
+      <h3 class="titulo-grupo" style="margin-top:22px">Publicadas (${lista.length})</h3>
+      ${lista.length ? "" : `<div class="vacio">Todavía no hay frases publicadas.</div>`}
+      ${lista.map(f => { const v = votosDe(f); return `
+        <div class="pastilla" role="button" data-editar="${escapar(f.id)}">
+          <div class="texto"><div class="titulo" style="font-weight:500;font-style:italic">«${escapar(f.frase.length > 90 ? f.frase.slice(0, 90) + "…" : f.frase)}»</div>
+          <div class="detalle">${f.fecha ? escapar(App.fechaCorta(f.fecha)) + " · " : ""}👍 ${v.up} · 👎 ${v.down} · 💬 ${(f.comentarios || []).length}</div></div>
+          <span class="flecha">${ICONOS.lapiz}</span>
+        </div>`; }).join("")}
+      <button class="boton suave ancho" id="recargar-frases" style="margin-top:8px">Recargar</button>`;
+
+    zona.querySelector("#nueva-frase").onclick = () => formularioFrase(zona, datos, null, null);
+    zona.querySelector("#recargar-frases").onclick = () => { zona.innerHTML = `<div class="cargando">Cargando…</div>`; pintarFrasesAdmin(zona); };
+    zona.querySelectorAll("[data-revisar]").forEach(b => b.onclick = () => formularioFrase(zona, datos, null, props.find(p => p.id === b.dataset.revisar)));
+    zona.querySelectorAll("[data-editar]").forEach(b => b.onclick = () => formularioFrase(zona, datos, lista.find(f => f.id === b.dataset.editar), null));
+    zona.querySelectorAll("[data-rechazar]").forEach(b => b.onclick = async () => {
+      if (!confirm("¿Rechazar esta propuesta? Se borrará.")) return;
+      b.disabled = true;
+      try { pintarFrasesAdmin(zona, await servidorFrases("adminRechazar", { propuesta: b.dataset.rechazar })); aviso("Propuesta rechazada"); }
+      catch (e) { b.disabled = false; aviso(e.message); }
+    });
+  }
+
+  // Formulario para publicar (nueva, desde propuesta) o editar una frase
+  function formularioFrase(zona, datos, frase, propuesta) {
+    const base = frase || propuesta || { fecha: new Date().toLocaleDateString("sv") };
+    const coms = frase ? (frase.comentarios || []) : [];
+    zona.innerHTML = `
+      <button class="boton suave" id="volver-frases" style="padding:8px 14px;margin-bottom:6px">${ICONOS.atras} Volver</button>
+      <div class="ficha">
+        <h2 style="margin:0 0 4px;font-size:19px">${frase ? "Editar frase" : propuesta ? "Revisar propuesta" : "Nueva frase mítica"}</h2>
+        ${propuesta ? `<p class="detalle" style="color:var(--texto-secundario);font-size:13px;margin:0">Propuesta por ${escapar(propuesta.autor)}. Puedes corregirla antes de publicar.</p>` : ""}
+        <label class="campo" for="ff-frase">Frase *</label>
+        <textarea id="ff-frase" maxlength="400" style="min-height:100px">${escapar(base.frase || "")}</textarea>
+        <label class="campo" for="ff-contexto">Contexto</label>
+        <textarea id="ff-contexto" maxlength="600" style="min-height:90px">${escapar(base.contexto || "")}</textarea>
+        <label class="campo" for="ff-fecha">Fecha</label>
+        <input id="ff-fecha" type="date" value="${escapar(base.fecha || "")}">
+      </div>
+      <button class="boton ancho" id="guardar-frase">${frase ? "Guardar cambios" : "Publicar"}</button>
+      ${frase ? `<button class="boton peligro ancho" id="borrar-frase" style="margin-top:10px">${ICONOS.papelera} Borrar frase</button>` : ""}
+      ${coms.length ? `<h3 class="titulo-grupo" style="margin-top:22px">Comentarios (${coms.length})</h3>
+        ${coms.map(c => `<div class="pastilla columna" style="padding:12px 14px">
+          <div class="detalle"><b style="color:var(--texto-principal)">${escapar(c.autor)}</b> · ${escapar(App.horaRelativa(c.fecha))}</div>
+          <div style="margin-top:4px">${escapar(c.texto)}</div>
+          <button class="enlace-suave" data-borrarcom="${escapar(c.id)}">Borrar comentario</button></div>`).join("")}` : ""}`;
+
+    zona.querySelector("#volver-frases").onclick = () => pintarFrasesAdmin(zona, datos);
+    zona.querySelector("#guardar-frase").onclick = async (ev) => {
+      const b = ev.currentTarget;
+      const frase_ = zona.querySelector("#ff-frase").value.trim();
+      if (!frase_) return aviso("Falta la frase");
+      b.disabled = true; b.textContent = "Publicando…";
+      try {
+        const d = await servidorFrases("adminGuardar", { id: frase ? frase.id : undefined, propuesta: propuesta ? propuesta.id : undefined,
+          frase: frase_, contexto: zona.querySelector("#ff-contexto").value.trim(), fecha: zona.querySelector("#ff-fecha").value });
+        aviso("Publicado"); pintarFrasesAdmin(zona, d);
+      } catch (e) { b.disabled = false; b.textContent = frase ? "Guardar cambios" : "Publicar"; aviso(e.message); }
+    };
+    const borrar = zona.querySelector("#borrar-frase");
+    if (borrar) borrar.onclick = async () => {
+      if (!confirm("¿Borrar esta frase con sus votos y comentarios?")) return;
+      borrar.disabled = true;
+      try { pintarFrasesAdmin(zona, await servidorFrases("adminBorrar", { id: frase.id })); aviso("Frase borrada"); }
+      catch (e) { borrar.disabled = false; aviso(e.message); }
+    };
+    zona.querySelectorAll("[data-borrarcom]").forEach(b => b.onclick = async () => {
+      if (!confirm("¿Borrar este comentario?")) return;
+      try {
+        const d = await servidorFrases("adminBorrarComentario", { frase: frase.id, comentario: b.dataset.borrarcom });
+        formularioFrase(zona, d, d.frases.find(f => f.id === frase.id), null);
+      } catch (e) { aviso(e.message); }
     });
   }
 
