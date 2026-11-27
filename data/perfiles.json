@@ -402,6 +402,20 @@
       "aprobado": true,
       "actualizado": "2026-11-25T10:02:59.265Z",
       "claveHash": "37ae076aa8a47e39aef840bde398d51e2f91d62694f2f87c9afa33991a6fd512"
+    },
+    {
+      "id": "00856aac8f17",
+      "nombre": "Lu",
+      "emoji": "🌿",
+      "color": "#E8F4FD",
+      "sobreMi": "",
+      "gustos": "",
+      "intencion": "",
+      "cumple": "05-13",
+      "foto": "img/perfiles/00856aac8f17.jpg?v=1795768953461",
+      "aprobado": true,
+      "actualizado": "2026-11-27T08:42:33.733Z",
+      "claveHash": "523e8edbc8534decd414ee876513f5d63f7d0d447aabd749ad662ed0abd43ab0"
     }
   ]
 }
