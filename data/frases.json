@@ -34,7 +34,15 @@
    "fecha": "",
    "creado": "2026-11-28T08:00:54.226Z",
    "votos": {},
-   "comentarios": [],
+   "comentarios": [
+    {
+     "id": "c579d2ad62dfa70d",
+     "autor": "DJ",
+     "texto": "Me sabe a canción del Via Crucis…",
+     "fecha": "2026-11-28T08:01:29.066Z",
+     "quien": "280d0c7a774c9807ada8"
+    }
+   ],
    "propuestaPor": "Natalia"
   }
  ],
